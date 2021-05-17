@@ -1,0 +1,42 @@
+{
+  "name": "kaleido-superresolution-api",
+  "main": "src/index.js",
+  "private": true,
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/remove-bg/kaleido-superresolution.git"
+  },
+  "author": "ops@kaleido.ai",
+  "homepage": "https://github.com/remove-bg/kaleido-superresolution#readme",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@google-cloud/monitoring": "^1.3.0",
+    "@google-cloud/storage": "^4.6.0",
+    "amqplib": "^0.5.3",
+    "body-parser": "^1.18.3",
+    "color-name": "^1.1.4",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.16.4",
+    "express-basic-auth": "^1.2.0",
+    "express-fileupload": "^1.0.0",
+    "file-type": "^12.3.0",
+    "giphy-api": "^2.0.1",
+    "hex-rgb": "^4.0.0",
+    "http-terminator": "^2.0.3",
+    "image-size": "^0.8.2",
+    "ioredis": "^4.14.1",
+    "ip-range-check": "^0.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "kaleido-api": "^1.1.2",
+    "mockery": "^2.1.0",
+    "pg": "^7.7.1",
+    "request": "^2.88.0",
+    "uuid": "^7.0.2",
+    "valid-url": "^1.0.9",
+    "ws": "^7.2.1"
+  }
+}
