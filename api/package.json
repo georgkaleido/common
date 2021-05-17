@@ -1,14 +1,14 @@
 {
-  "name": "kaleido-superresolution-api",
+  "name": "kaleido-removebg-api",
   "main": "src/index.js",
   "private": true,
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/remove-bg/kaleido-superresolution.git"
+    "url": "git+https://github.com/remove-bg/kaleido-removebg.git"
   },
   "author": "ops@kaleido.ai",
-  "homepage": "https://github.com/remove-bg/kaleido-superresolution#readme",
+  "homepage": "https://github.com/remove-bg/kaleido-removebg#readme",
   "scripts": {
     "start": "node src/index.js"
   },
