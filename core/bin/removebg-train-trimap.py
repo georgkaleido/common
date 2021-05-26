@@ -53,7 +53,7 @@ def main():
 
 
     print('initializing danni loader...')
-    loader = DanniLoader('danni-data/', filter_, fields, result_fn, result_fn_names, limit=1000, max_pages=2)
+    loader = DanniLoader('danni-data/', filter_, fields, result_fn, result_fn_names, limit=1000)
 
     # set the seed
 
