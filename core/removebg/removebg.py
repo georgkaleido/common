@@ -14,8 +14,7 @@ from kaleido.models.gaussian import GaussianSmoothing
 
 from ccl import ConnectedComponentsLabeling
 
-# TODO
-#from shadowgen.models.oriented_shadow import OrientedShadow
+from shadowgen.models.oriented_shadow import OrientedShadow
 
 
 class UnknownForegroundException(Exception):
@@ -58,7 +57,7 @@ class Removebg:
 
         torch.cuda.set_device(0)
 
-        def load_model(model, path, key='state_dict'):
+        def load_model(model, path, k='state_dict'):
             if not os.path.exists(path):
                 error_msg = 'warning! model {} does not exist!'.format(path)
 
@@ -67,7 +66,12 @@ class Removebg:
                 else:
                     print(error_msg)
             else:
-                model.load_state_dict(torch.load(path)[key])
+                cp = torch.load(path)
+
+                if k:
+                    cp = cp[k]
+
+                model.load_state_dict(cp)
 
             model.cuda()
             model.half()
@@ -80,9 +84,8 @@ class Removebg:
         load_model(self.model_matting, os.path.join(model_paths, 'matting-fba.pth.tar'))
         self.model_matting.float()
 
-        #self.model_shadow = OrientedShadow()
-        #load_model(self.model_shadow, os.path.join(model_paths, 'shadowgen256_car.ckpt'))
-        self.mode_shadow = None
+        self.model_shadow = OrientedShadow()
+        load_model(self.model_shadow, os.path.join(model_paths, 'shadowgen256_car.pth.tar'), k=None)
 
     def __call__(self, im, color_enabled=False, shadow_enabled=False, trimap_confidence_thresh=0.5):
 

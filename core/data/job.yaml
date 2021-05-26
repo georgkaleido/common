@@ -9,7 +9,7 @@ spec:
   maxReplicas: 8 # Must be higher or equal to replicasSpecs/Worker/replicas
   replicaSpecs:
     Worker:
-      replicas: 2 # Number of nodes to use
+      replicas: 8 # Number of nodes to use
       restartPolicy: OnFailure
       template:
         apiVersion: v1
@@ -23,7 +23,7 @@ spec:
           # Docker container description and configuration
           containers:
             - name: elasticjob-worker
-              image: eu.gcr.io/kaleido-train/removebg-worker:v25 # Name of the docker image
+              image: eu.gcr.io/kaleido-train/removebg-worker:v10 # Name of the docker image
               imagePullPolicy: Always
               args:
                 - "--nproc_per_node=1"
@@ -35,11 +35,10 @@ spec:
                 - "--wandb_api_key=072f2409710584d306dd0100cf1dfbebb4f657f3"
                 - "--danni_user=david.fankhauser"
                 - "--danni_token=7rbnKHj02KFH4qF0tTanRUTC"
-                - "--name=qi-march-21_10"
+                - "--name=qi-march-21_4"
                 - "--lr=0.0001"
                 - "--checkpoint_url=https://nx2763.your-storageshare.de/s/eZi7aYw7aCcHoa8/download"
-#                - "--danni_max_pages=1"
-                - "--danni_page_size=10000"
+#                - "--danni_max_pages=5"
 #                - "--limit_train_batches=2"
 #                - "--limit_val_batches=2"
 

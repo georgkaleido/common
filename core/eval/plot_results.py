@@ -14,7 +14,7 @@ parser.add_argument('--samples', type=int, default=0, help='number of good and b
 args = parser.parse_args()
 
 if not args.out:
-    args.out = 'results_{}_{}/'.format(os.path.splitext(args.old)[0], os.path.splitext(args.new)[0])
+    args.out = 'results_{}_{}/'.format(os.path.splitext(os.path.basename(args.old))[0], os.path.splitext(os.path.basename(args.new))[0])
 
 if not os.path.exists(args.out):
     os.makedirs(args.out)
@@ -158,8 +158,8 @@ for set1, set2 in zip(sets1, sets2):
         for score, name in samples:
             path_col = os.path.join(os.path.join(set1.path, name, 'color.jpg'))
             path_gt = os.path.join(os.path.join(set1.path, name, 'alpha.png'))
-            path_old = os.path.join(os.path.join(set1.path, name, '{}_result.png'.format(os.path.splitext(args.old)[0])))
-            path_new = os.path.join(os.path.join(set1.path, name, '{}_result.png'.format(os.path.splitext(args.new)[0])))
+            path_old = os.path.join(os.path.join(set1.path, name, '{}_result.png'.format(os.path.splitext(os.path.basename(args.old))[0])))
+            path_new = os.path.join(os.path.join(set1.path, name, '{}_result.png'.format(os.path.splitext(os.path.basename(args.new))[0])))
 
             if not (os.path.exists(path_col) and os.path.exists(path_gt) and os.path.exists(path_old) and os.path.exists(path_new)):
                 print('could not generate visualization. images are missing: \n\t{}\n\t{}\n\t{}\n\t{}'.format(path_col, path_gt, path_old, path_new))

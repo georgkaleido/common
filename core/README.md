@@ -11,7 +11,7 @@ and pushed to the Docker registry.
 
 Configure which Docker images should be built in [`docker-build.yml`](docker-build.yml).
 
-The resulting images will be tagged `[version]-pt[pytorch-version]-cc[compute-compatibility]`.
+The resulting images will be tagged `[version]-pt[pytorch-version]-cc[compute-capability]`.
 
 You can find the list of built images in the release description.
 

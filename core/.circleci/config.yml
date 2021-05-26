@@ -3,7 +3,7 @@ version: 2.1
 # Declare the orbs that we'll use in our config.
 # read more about orbs: https://circleci.com/docs/2.0/using-orbs/
 orbs:
-  slack: circleci/slack@4.2.1
+  slack: circleci/slack@4.3.1
   gcr: circleci/gcp-gcr@0.13.0
 
 jobs:
@@ -91,7 +91,7 @@ jobs:
         auth:
           username: ${DOCKERHUB_USER}
           password: ${DOCKERHUB_PASSWORD}
-    resource_class: small
+    resource_class: medium
     working_directory: ~/project
     steps:
       - setup_remote_docker:
@@ -128,21 +128,22 @@ jobs:
 
             yq -rc '."pytorch-tags" | .[]' docker-build.yml | while read pytorch_tag
             do
-                yq -rc '."compute-compatibilities" | .[]' docker-build.yml | while read compute_compatibility
+                yq -rc '."compute-capabilities" | .[]' docker-build.yml | while read compute_capability
                 do
-                    echo "Building Docker image for PyTorch ${pytorch_tag} with compute compatibility ${compute_compatibility}..."
+                    echo "Building Docker image for PyTorch ${pytorch_tag} with compute capability ${compute_capability}..."
 
                     # Create tag and append to tags.txt
-                    tag="${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}-pt${pytorch_tag}-cc${compute_compatibility}"
+                    tag="${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}-pt${pytorch_tag}-cc${compute_capability}"
                     echo "${tag}" >> tags.txt
 
                     DOCKER_BUILDKIT=1 PROGRESS_NO_TRUNC=1 docker build --progress=tty \
                         --build-arg PYTORCH_IMAGE_TAG=${pytorch_tag} \
-                        --build-arg COMPUTE_COMPATIBILITY=${compute_compatibility} \
+                        --build-arg COMPUTE_CAPABILITY=${compute_capability} \
                         --build-arg REMOVEBG_CORE_PY_VERSION=${CIRCLE_TAG} \
                         --build-arg VCS_REF=${CIRCLE_SHA1:0:7} \
                         --build-arg BUILD_DATE=${BUILD_DATE} \
                         --build-arg VERSION=${CIRCLE_TAG} \
+                        --build-arg MAX_JOBS=$(nproc) \
                         --secret id=fury_auth_token,src=fury_auth_token.txt \
                         --secret id=github_auth_token,src=github_auth_token.txt \
                         --tag ${tag} \
@@ -167,9 +168,9 @@ jobs:
             while IFS="" read -r p || [ -n "$p" ]
             do
               pytorch_version=$(echo "$p" | sed -r 's/.*:(.*)-pt([[:digit:]|\.]*)-cc([[:digit:]]+)/\2/')
-              compute_compatibility=$(echo "$p" | sed -r 's/.*:(.*)-pt([[:digit:]|\.]*)-cc([[:digit:]]+)/\3/')
+              compute_capability=$(echo "$p" | sed -r 's/.*:(.*)-pt([[:digit:]|\.]*)-cc([[:digit:]]+)/\3/')
 
-              echo -e "* PyTorch **${pytorch_version}**, Compute Compatibility **${compute_compatibility}**: \`$p\`" >> release-append.txt
+              echo -e "* PyTorch **${pytorch_version}**, Compute Capability **${compute_capability}**: \`$p\`" >> release-append.txt
               docker push "$p"
             done < tags.txt
       - run:

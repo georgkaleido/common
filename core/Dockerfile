@@ -27,21 +27,25 @@ WORKDIR /app/
 # Define package versions
 
 # https://github.com/remove-bg/kaleido-models
-ARG KALEIDO_MODELS_VERSION=1.1.1
+ARG KALEIDO_MODELS_VERSION=1.1.4
 # https://github.com/remove-bg/downscale-area-cuda/
 ARG CUDA_DOWNSCALE_VERSION=v3.0.4
 # https://github.com/remove-bg/connected-component-labeling-cuda
 ARG CUDA_CCL_VERSION=v3.0.4
 # https://github.com/remove-bg/kaleido-core-lib
-ARG KALEIDO_CORE_PY_VERSION=1.3.5
+ARG KALEIDO_CORE_PY_VERSION=1.3.11
+# https://github.com/remove-bg/kaleido-core-shadowgen
+ARG SHADOWGEN_CORE_PY_VERSION=1.4.2
 # https://github.com/remove-bg/kaleido-core-removebg
 ARG REMOVEBG_CORE_PY_VERSION=1.0.0
+
 
 # Install required python packages
 RUN --mount=type=secret,id=fury_auth_token --mount=type=cache,target=/root/.cache/pip pip install \
       --progress-bar off --extra-index-url https://$(cat /run/secrets/fury_auth_token):@deps.kaleido.ai/pypi/ \
         kaleido-core==${KALEIDO_CORE_PY_VERSION} \
-        removebg-core==${REMOVEBG_CORE_PY_VERSION}
+        removebg-core==${REMOVEBG_CORE_PY_VERSION} \
+        shadowgen-core==${SHADOWGEN_CORE_PY_VERSION}
 
 # Install models
 RUN --mount=type=secret,id=github_auth_token \
@@ -62,11 +66,11 @@ RUN --mount=type=secret,id=github_auth_token \
     tar -xz --strip-components=1 -C /app/cuda_modules/downscale/ \
  && rm -rf /tmp/*
 
-# Requested Compute Compatibility
-ARG COMPUTE_COMPATIBILITY=75
+# Requested Compute Capability
+ARG COMPUTE_CAPABILITY=75
 
-RUN /app/cuda_modules/ccl/python/ccl_package/install.sh ${COMPUTE_COMPATIBILITY} \
- && /app/cuda_modules/downscale/python/da_package/install.sh ${COMPUTE_COMPATIBILITY}
+RUN /app/cuda_modules/ccl/python/ccl_package/install.sh ${COMPUTE_CAPABILITY} \
+ && /app/cuda_modules/downscale/python/da_package/install.sh ${COMPUTE_CAPABILITY}
 
 # Copy files
 COPY liveness.sh /app/

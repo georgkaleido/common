@@ -5,8 +5,8 @@ pytorch-tags:
   - 20.11
   - 20.03
 
-# Which compute compatibilities should we build images for
+# Which compute capabilities should we build images for
 # https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
-compute-compatibilities:
+compute-capabilities:
   - 75 # Turing: GTX/RTX Turing – GTX 1660 Ti, RTX 2060, RTX 2070, RTX 2080, ...
-  - 62 # Pascal: Integrated GPU on the NVIDIA Drive PX2, Tegra (Jetson) TX2
+  - 61 # GTX 1080, GTX 10x0, GT 1010 (GP108) Titan Xp, Tesla P40, Tesla P4, ...

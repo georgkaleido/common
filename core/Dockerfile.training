@@ -1,7 +1,11 @@
 # syntax=docker/dockerfile:experimental
 
 # https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel_20-10.html#rel_20-10
-FROM nvcr.io/nvidia/pytorch:20.11-py3
+FROM nvcr.io/nvidia/pytorch:21.02-py3
+
+# Required to prevent warnings
+ARG DEBIAN_FRONTEND=noninteractive
+ARG DEBCONF_NONINTERACTIVE_SEEN=true
 
 RUN apt-get update
 RUN apt-get install ffmpeg libsm6 libxext6  -y
@@ -27,7 +31,10 @@ RUN --mount=type=secret,id=fury_auth_token \
 # Copy current content of the framework
 COPY removebg removebg/removebg
 COPY data removebg/data
+#COPY data/trimap513-deeplab-res2net.pth.tar /workspace/kaleido/removebg/data/trimap513-deeplab-res2net.pth.tar
 COPY bin/removebg-train-trimap-dist.py removebg-train-trimap-dist.py
+#COPY bin/removebg-train-trimap-dist-debug.py removebg-train-trimap-dist-debug.py
+COPY bin/removebg-train-trimap-cloud.py removebg-train-trimap-cloud.py
 COPY liveness.training.sh liveness.training.sh
 
 # Set PYTHONPATH to directory where the framework is
@@ -39,9 +46,18 @@ ENV PYTHONPATH=/workspace/kaleido/removebg
 # to enable a watchdog thread that will destroy stale NCCL communicators
 # NOTE: This was removed on github pytorch/elastic master in Dec 15, 2020, but is not yet in any release
 # See PR: https://github.com/pytorch/elastic/pull/138
-ENV NCCL_BLOCKING_WAIT=1
+#ENV NCCL_BLOCKING_WAIT=1
 # Display extra info, useful sometimes to understand what's wrong
 #ENV NCCL_DEBUG=INFO
+# The NCCL_IB_DISABLE variable disables the IB/RoCE transport that is to be used by NCCL. Instead, NCCL will fallback to using IP sockets.
+#ENV NCCL_IB_DISABLE=1
+ENV NCCL_ASYNC_ERROR_HANDLING=1
+
+#ENV NCCL_DEBUG_SUBSYS=ALL
+
+# Enable Gloo backend, instead of NCCL
+#ENV PL_TORCH_DISTRIBUTED_BACKEND=gloo
+
 
 USER root
 ENTRYPOINT ["python", "-m", "torchelastic.distributed.launch"]
