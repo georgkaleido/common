@@ -1,0 +1,64 @@
+apiVersion: elastic.pytorch.org/v1alpha1
+kind: ElasticJob
+metadata:
+  name: removebg # Name of your training
+  namespace: elastic-job
+spec:
+  rdzvEndpoint: "etcd-service:2379"
+  minReplicas: 1
+  maxReplicas: 8 # Must be higher or equal to replicasSpecs/Worker/replicas
+  replicaSpecs:
+    Worker:
+      replicas: 2 # Number of nodes to use
+      restartPolicy: OnFailure
+      template:
+        apiVersion: v1
+        kind: Pod
+        spec:
+          # Necessary to have enough shared memory
+          volumes:
+            - name: dshm
+              emptyDir:
+                medium: Memory
+          # Docker container description and configuration
+          containers:
+            - name: elasticjob-worker
+              image: eu.gcr.io/kaleido-train/removebg-worker:v25 # Name of the docker image
+              imagePullPolicy: Always
+              args:
+                - "--nproc_per_node=1"
+                - "--max_restarts=3"
+                - "/workspace/kaleido/removebg-train-trimap-dist.py"
+
+          # Here start the arguments for your model
+                - "--config=/workspace/kaleido/removebg/data/trimap.json"
+                - "--wandb_api_key=072f2409710584d306dd0100cf1dfbebb4f657f3"
+                - "--danni_user=david.fankhauser"
+                - "--danni_token=7rbnKHj02KFH4qF0tTanRUTC"
+                - "--name=qi-march-21_10"
+                - "--lr=0.0001"
+                - "--checkpoint_url=https://nx2763.your-storageshare.de/s/eZi7aYw7aCcHoa8/download"
+#                - "--danni_max_pages=1"
+                - "--danni_page_size=10000"
+#                - "--limit_train_batches=2"
+#                - "--limit_val_batches=2"
+
+              # Ensure that the node has a GPU
+              resources:
+                limits:
+                  nvidia.com/gpu: 1
+              # Necessary to have enough shared memory
+              volumeMounts:
+                  - mountPath: /dev/shm
+                    name: dshm
+              # Restart pods that are hanging
+              livenessProbe:
+                exec:
+                  command:
+                    - /bin/bash
+                    - -c
+                    - /workspace/kaleido/liveness.training.sh
+                      /tmp/training_in_progress
+                      120
+                initialDelaySeconds: 1200
+                periodSeconds: 5

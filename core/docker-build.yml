@@ -1,0 +1,12 @@
+---
+# Which PyTorch tags should be used to build images
+# https://ngc.nvidia.com/catalog/containers/nvidia:pytorch
+pytorch-tags:
+  - 20.11
+  - 20.03
+
+# Which compute compatibilities should we build images for
+# https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
+compute-compatibilities:
+  - 75 # Turing: GTX/RTX Turing – GTX 1660 Ti, RTX 2060, RTX 2070, RTX 2080, ...
+  - 62 # Pascal: Integrated GPU on the NVIDIA Drive PX2, Tegra (Jetson) TX2

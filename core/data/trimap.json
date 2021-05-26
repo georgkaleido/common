@@ -1,0 +1,188 @@
+{
+    "forward": [
+        "color",
+        "trimap",
+        "crop_info"
+    ],
+    "data": {
+        "augmentations": "valid",
+        "augmentations_train": "train",
+        "paths": [
+            {
+                "path": "."
+            }
+        ],
+        "files": {
+            "default": [
+                {
+                    "filename": "color.jpg",
+                    "label": "color"
+                },
+                {
+                    "filename": "alpha.png",
+                    "label": "alpha",
+                    "load_grayscale": true
+                }
+            ]
+        }
+    },
+    "augmentations": {
+
+        "train": [
+
+            {
+                "name": "kaleido.aug.image.Scale",
+                "input_mapping": {
+                    "im": "color|alpha"
+                },
+                "output_mapping": {
+                    "result": "color|alpha"
+                },
+                "kwargs": {
+                    "size": [100000, 400000],
+                    "mode": "area"
+                }
+            },
+            {
+                "name": "kaleido.aug.image.Flip",
+                "p": 0.5,
+                "input_mapping": {
+                    "im": "color|alpha"
+                },
+                "output_mapping": {
+                    "result": "color|alpha"
+                },
+                "kwargs": {
+                    "h_flip": true,
+                    "v_flip": false
+                }
+            },
+            {
+                "name": "kaleido.aug.image.Rotate",
+                "p": 0.2,
+                "input_mapping": {
+                    "im": "color|alpha"
+                },
+                "output_mapping": {
+                    "result": "color|alpha"
+                },
+                "kwargs": {
+                    "deg": 20,
+                    "crop": true
+                }
+            },
+            {
+                "name": "kaleido.aug.mask.Trimap",
+                "input_mapping": {
+                    "alpha": "alpha"
+                },
+                "output_mapping": {
+                    "result": "trimap"
+                }
+            },
+            {
+                "name": "kaleido.aug.image.Gamma",
+                "p": 0.5,
+                "input_mapping": {
+                    "im": "color"
+                },
+                "output_mapping": {
+                    "result": "color"
+                }
+            },
+            {
+                "name": "kaleido.aug.image.Grayscale",
+                "p": 0.05,
+                "input_mapping": {
+                    "im": "color"
+                },
+                "output_mapping": {
+                    "result": "color"
+                },
+                "kwargs": {
+                    "only_desaturate": true
+                }
+            },
+            {
+                "name": "kaleido.aug.image.ScaleDownUp",
+                "p": 0.02,
+                "input_mapping": {
+                    "im": "color"
+                },
+                "output_mapping": {
+                    "result": "color"
+                }
+            },
+            {
+                "name": "kaleido.aug.image.Crop",
+                "input_mapping": {
+                    "im": "color|trimap"
+                },
+                "output_mapping": {
+                    "result": "color|trimap",
+                    "crop_info": "crop_info"
+                },
+                "kwargs": {
+                    "size": 513,
+                    "pad": 0.05
+                }
+            },
+            {
+                "name": "kaleido.aug.image.Normalize",
+                "input_mapping": {
+                    "im": "color"
+                },
+                "output_mapping": {
+                    "result": "color"
+                }
+            }
+        ],
+        "valid": [
+
+            {
+                "name": "kaleido.aug.image.Scale",
+                "input_mapping": {
+                    "im": "color|alpha"
+                },
+                "output_mapping": {
+                    "result": "color|alpha"
+                },
+                "kwargs": {
+                    "size": 513,
+                    "random": false
+                }
+            },
+            {
+                "name": "kaleido.aug.mask.Trimap",
+                "input_mapping": {
+                    "alpha": "alpha"
+                },
+                "output_mapping": {
+                    "result": "trimap"
+                }
+            },
+            {
+                "name": "kaleido.aug.image.Crop",
+                "input_mapping": {
+                    "im": "color|trimap"
+                },
+                "output_mapping": {
+                    "result": "color|trimap",
+                    "crop_info": "crop_info"
+                },
+                "kwargs": {
+                    "size": 513
+                }
+            },
+            {
+                "name": "kaleido.aug.image.Normalize",
+                "input_mapping": {
+                    "im": "color"
+                },
+                "output_mapping": {
+                    "result": "color"
+                }
+            }
+        ]
+    }
+}

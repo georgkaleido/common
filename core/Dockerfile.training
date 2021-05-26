@@ -1,0 +1,48 @@
+# syntax=docker/dockerfile:experimental
+
+# https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel_20-10.html#rel_20-10
+FROM nvcr.io/nvidia/pytorch:20.11-py3
+
+RUN apt-get update
+RUN apt-get install ffmpeg libsm6 libxext6  -y
+
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-sdk -y
+
+WORKDIR /workspace
+
+# Create directory for kaleido
+RUN mkdir kaleido
+WORKDIR /workspace/kaleido
+
+# Create directory for the dataset(s)
+RUN mkdir data
+
+# Copy and install general requirements
+COPY requirements-train.txt .
+RUN --mount=type=secret,id=fury_auth_token \
+    pip install \
+    --extra-index-url https://$(cat /run/secrets/fury_auth_token):@deps.kaleido.ai/pypi/ \
+    -r /workspace/kaleido/requirements-train.txt
+
+# Copy current content of the framework
+COPY removebg removebg/removebg
+COPY data removebg/data
+COPY bin/removebg-train-trimap-dist.py removebg-train-trimap-dist.py
+COPY liveness.training.sh liveness.training.sh
+
+# Set PYTHONPATH to directory where the framework is
+ENV PYTHONPATH=/workspace/kaleido/removebg
+
+# Prevent nodes from freezing when one of them dies
+# when using NCCL, on failures, surviving nodes will deadlock on NCCL ops
+# because NCCL uses a spin-lock on the device. Set this env var and
+# to enable a watchdog thread that will destroy stale NCCL communicators
+# NOTE: This was removed on github pytorch/elastic master in Dec 15, 2020, but is not yet in any release
+# See PR: https://github.com/pytorch/elastic/pull/138
+ENV NCCL_BLOCKING_WAIT=1
+# Display extra info, useful sometimes to understand what's wrong
+#ENV NCCL_DEBUG=INFO
+
+USER root
+ENTRYPOINT ["python", "-m", "torchelastic.distributed.launch"]
+CMD ["--help"]

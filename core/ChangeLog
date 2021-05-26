@@ -1,0 +1,23 @@
+CHANGES
+=======
+
+1.0.0
+-----
+
+* Update CircleCI config
+* Update Circle config
+* Update Circle config
+* Update Circle config
+* Add FURY\_AUTH\_TOKEN to pip install
+* Update CircleCI config
+* Add Gemfury context to build step
+* Fix double requirement
+* Add CirceCI pipeline
+* Add README
+* Update package
+* updated dockerfile, fixed requirements, updated setup.py
+* added resuming from checkpoint
+* wip
+* wip
+* initial commit
+* Initial commit

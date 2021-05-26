@@ -1,0 +1,798 @@
+{
+    "forward": [
+        "color",
+        "color_norm",
+        "trimap2c",
+        "alpha",
+        "fg",
+        "bg"
+    ],
+    "data": {
+        "train_balancing_mode": "min",
+        "paths": [
+            {
+                "path": "color/backgrounds/",
+                "always": true,
+                "files": "backgrounds"
+            },
+            {
+                "path": "alpha/products/eleganza.nl/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/products/obriencarelli@squareup.com/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/products/sarah@thenextcloset.com/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/products/shutterstock/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/products/tieroom.se/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/products/vela/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/products/website/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+
+            {
+                "path": "alpha/graphics/logos-website/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/graphics/signatures-website/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+
+
+            {
+                "path": "alpha/persons/bfox@foxmar.com/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/persons/gpixtract-green/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/persons/gpixtract-sport/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/persons/gpixtract-studio/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/persons/halomediaworks.com/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/persons/pexels-sports/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/persons/proimageexperts/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/persons/website/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/persons/flash-photography",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+
+            {
+                "path": "alpha/animals/shutterstock/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+
+            {
+                "path": "alpha/cars/cerys.mees@bca.com/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/cars/cerys.mees@bca.com_open/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/cars/citnow/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/cars/iblackwidow/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+            {
+                "path": "alpha/cars/tbethke@tuev-nord.de/",
+                "group": "foreground",
+                "files": "foreground",
+                "augmentations": "foreground",
+                "augmentations_train": "foreground"
+            },
+
+            {
+                "path": "alpha/products/david@kaleido.ai/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/eleganza.nl/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/flickr/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/flickr-mirflickr/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/kape67@naver.com/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/obriencarelli@squareup.com/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/sarah@thenextcloset.com/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/shutterstock/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/squareup.com/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/tieroom.se/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/vela/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/website/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/wikimedia/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/kiran.rathore@snapdeal.com/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/marc@phoenixtradingcompany.com/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/products/removebg@vestiairecollective.com/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+
+            {
+                "path": "alpha/cars/cerys.mees@bca.com/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/cars/cerys.mees@bca.com_open/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/cars/citnow/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/cars/iblackwidow/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/cars/mirflickr/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/cars/shutterstock/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/cars/tbethke@tuev-nord.de/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/cars/website/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+
+            {
+                "path": "alpha/car_parts/citnow/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/car_parts/flickr-mirflickr/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/car_parts/shutterstock/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/car_parts/website/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/car_parts/cerys.mees@bca.com/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+
+            {
+                "path": "alpha/car_interiors/autrado360/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/car_interiors/citnow/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/car_interiors/shutterstock/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/car_interiors/website/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+
+            {
+                "path": "alpha/transportation/website/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            },
+            {
+                "path": "alpha/transportation/flickr-mirflickr/",
+                "group": "default",
+                "files": "default",
+                "augmentations": "default",
+                "augmentations_train": "default"
+            }
+        ],
+        "files": {
+            "default": [
+                {
+                    "filename": "color.jpg",
+                    "label": "color"
+                },
+                {
+                    "filename": "alpha.png",
+                    "label": "alpha",
+                    "load_grayscale": true
+                }
+            ],
+            "foreground": [
+                {
+                    "filename": "inpaint.jpg",
+                    "label": "fg"
+                },
+                {
+                    "filename": "alpha.png",
+                    "label": "alpha",
+                    "load_grayscale": true
+                }
+            ],
+            "backgrounds": [
+                {
+                    "filename": "color.jpg",
+                    "label": "bg"
+                }
+            ]
+        }
+    },
+    "augmentations": {
+
+        "default": [
+
+            {
+                "name": "image.Scale",
+                "input_mapping": {
+                    "im": "color|alpha"
+                },
+                "output_mapping": {
+                    "result": "color|alpha"
+                },
+                "kwargs": {
+                    "size": [100000, 4000000],
+                    "mode": "area",
+                    "allow_scale_up": false
+                }
+            },
+            {
+                "name": "image.Flip",
+                "p": 0.5,
+                "input_mapping": {
+                    "im": "color|alpha"
+                },
+                "output_mapping": {
+                    "result": "color|alpha"
+                },
+                "kwargs": {
+                    "h_flip": true,
+                    "v_flip": false
+                }
+            },
+            {
+                "name": "image.Scale",
+                "input_mapping": {
+                    "im": "alpha"
+                },
+                "output_mapping": {
+                    "result": "alpha_trimap"
+                },
+                "kwargs": {
+                    "size": [450, 550]
+                }
+            },
+            {
+                "name": "image.RandomWarp",
+                "input_mapping": {
+                    "im": "alpha_trimap"
+                },
+                "output_mapping": {
+                    "result": "alpha_trimap"
+                },
+                "kwargs": {
+                    "weights": [0, 1, 3]
+                }
+            },
+            {
+                "name": "mask.Trimap",
+                "input_mapping": {
+                    "alpha": "alpha_trimap"
+                },
+                "output_mapping": {
+                    "result": "trimap"
+                }
+            },
+            {
+                "name": "mask.TrimapMorphology",
+                "input_mapping": {
+                    "trimap": "trimap"
+                },
+                "output_mapping": {
+                    "result": "trimap"
+                },
+                "kwargs": {
+                    "erode_uk_ks": [0, 3, 5, 7],
+                    "dilate_uk_ks": [0, 3, 5, 7],
+                    "smooth_kernel_size": 7,
+                    "opencv_morph": false
+                }
+            },
+            {
+                "name": "mask.TrimapTwoChannel",
+                "input_mapping": {
+                    "trimap": "trimap"
+                },
+                "output_mapping": {
+                    "result": "trimap2c"
+                }
+            },
+            {
+                "name": "image.ScaleToRef",
+                "input_mapping": {
+                    "im": "trimap2c",
+                    "im_ref": "alpha"
+                },
+                "output_mapping": {
+                    "result": "trimap2c"
+                }
+            },
+            {
+                "name": "image.Crop",
+                "input_mapping": {
+                    "im": "color|trimap2c|alpha",
+                    "alpha": "alpha"
+                },
+                "output_mapping": {
+                    "result": "color|trimap2c|alpha"
+                },
+                "kwargs": {
+                    "size": [320, 480, 640],
+                    "size_type": "single_random",
+                    "focus_on": "alpha_transitions",
+                    "fill": "reflect"
+                }
+            },
+            {
+                "name": "image.Gamma",
+                "p": 0.5,
+                "input_mapping": {
+                    "im": "color"
+                },
+                "output_mapping": {
+                    "result": "color"
+                }
+            },
+            {
+                "name": "image.Grayscale",
+                "p": 0.05,
+                "input_mapping": {
+                    "im": "color"
+                },
+                "output_mapping": {
+                    "result": "color"
+                },
+                "kwargs": {
+                    "only_desaturate": true
+                }
+            },
+            {
+                "name": "image.Normalize",
+                "input_mapping": {
+                    "im": "color"
+                },
+                "output_mapping": {
+                    "result": "color_norm"
+                }
+            }
+        ],
+        "foreground": [
+
+            {
+                "name": "image.Scale",
+                "input_mapping": {
+                    "im": "fg|alpha"
+                },
+                "output_mapping": {
+                    "result": "fg|alpha"
+                },
+                "kwargs": {
+                    "size": [100000, 4000000],
+                    "mode": "area",
+                    "allow_scale_up": false
+                }
+            },
+            {
+                "name": "image.Flip",
+                "p": 0.5,
+                "input_mapping": {
+                    "im": "fg|alpha"
+                },
+                "output_mapping": {
+                    "result": "fg|alpha"
+                },
+                "kwargs": {
+                    "h_flip": true,
+                    "v_flip": false
+                }
+            },
+            {
+                "name": "image.Scale",
+                "input_mapping": {
+                    "im": "alpha"
+                },
+                "output_mapping": {
+                    "result": "alpha_trimap"
+                },
+                "kwargs": {
+                    "size": [450, 550]
+                }
+            },
+            {
+                "name": "image.RandomWarp",
+                "input_mapping": {
+                    "im": "alpha_trimap"
+                },
+                "output_mapping": {
+                    "result": "alpha_trimap"
+                },
+                "kwargs": {
+                    "weights": [0, 1, 3]
+                }
+            },
+            {
+                "name": "mask.Trimap",
+                "input_mapping": {
+                    "alpha": "alpha_trimap"
+                },
+                "output_mapping": {
+                    "result": "trimap"
+                }
+            },
+            {
+                "name": "mask.TrimapMorphology",
+                "input_mapping": {
+                    "trimap": "trimap"
+                },
+                "output_mapping": {
+                    "result": "trimap"
+                },
+                "kwargs": {
+                    "erode_uk_ks": [0, 3, 5, 7],
+                    "dilate_uk_ks": [0, 3, 5, 7],
+                    "smooth_kernel_size": 7,
+                    "opencv_morph": false
+                }
+            },
+            {
+                "name": "mask.TrimapTwoChannel",
+                "input_mapping": {
+                    "trimap": "trimap"
+                },
+                "output_mapping": {
+                    "result": "trimap2c"
+                }
+            },
+            {
+                "name": "image.ScaleToRef",
+                "input_mapping": {
+                    "im": "trimap2c",
+                    "im_ref": "alpha"
+                },
+                "output_mapping": {
+                    "result": "trimap2c"
+                }
+            },
+            {
+                "name": "image.Crop",
+                "input_mapping": {
+                    "im": "fg|trimap2c|alpha",
+                    "alpha": "alpha"
+                },
+                "output_mapping": {
+                    "result": "fg|trimap2c|alpha"
+                },
+                "kwargs": {
+                    "size": [320, 480, 640],
+                    "size_type": "single_random",
+                    "focus_on": "alpha_transitions",
+                    "fill": "reflect"
+                }
+            },
+            {
+                "name": "image.ScaleToRef",
+                "input_mapping": {
+                    "im": "bg",
+                    "im_ref": "fg"
+                },
+                "output_mapping": {
+                    "result": "bg"
+                }
+            },
+            {
+                "name": "mask.ReplaceBackground",
+                "input_mapping": {
+                    "alpha": "alpha",
+                    "foreground": "fg",
+                    "background": "bg"
+                },
+                "output_mapping": {
+                    "result": "color"
+                },
+                "kwargs": {
+                    "modes": ["img", "color_noise"]
+                }
+            },
+            {
+                "name": "image.Normalize",
+                "input_mapping": {
+                    "im": "color"
+                },
+                "output_mapping": {
+                    "result": "color_norm"
+                }
+            },
+            {
+                "name": "general.ApplyFn",
+                "input_mapping": {
+                    "input": "trimap2c|color"
+                },
+                "output_mapping": {
+                    "result": "vis"
+                },
+                "kwargs": {
+                    "fn": "(1-x[0:1]) * (1-x[1:2]) * x[2:]"
+                }
+            },
+            {
+                "name": "image.Save",
+                "only_indices": [],
+                "input_mapping": {
+                    "color": "color",
+                    "trimap": "trimap",
+                    "alpha": "alpha",
+                    "fg": "fg",
+                    "bg": "bg",
+                    "vis": "vis"
+                },
+                "kwargs": {
+                    "save_path": "/home/fan/Documents/pics_colortransfer/tmp/tmp",
+                    "rgb2bgr": ["color", "bg", "fg", "vis"],
+                    "normalize": ["trimap"]
+                }
+            }
+        ]
+    }
+}
