@@ -44,7 +44,7 @@ def main():
     def result_fn(d):
 
       im_color_url = d.get('image', {}).get('file300k', {}).get('url')
-      im_alpha_url = d.get('image', {}).get('remove_background', {}).get('alpha', [{}])[-1].get('file300k', {}).get('url')
+      im_alpha_url = d.get('image', {}).get('remove_background', {}).get('alpha', [{}])[0].get('file300k', {}).get('url')
 
       if not im_color_url or not im_alpha_url:
         return None
