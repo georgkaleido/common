@@ -31,9 +31,10 @@ RUN --mount=type=secret,id=fury_auth_token \
 # Copy current content of the framework
 COPY removebg removebg/removebg
 COPY data removebg/data
-#COPY data/trimap513-deeplab-res2net.pth.tar /workspace/kaleido/removebg/data/trimap513-deeplab-res2net.pth.tar
+COPY data/trimap513-deeplab-res2net.pth.tar /workspace/kaleido/removebg/data/trimap513-deeplab-res2net.pth.tar
 COPY bin/removebg-train-trimap-dist.py removebg-train-trimap-dist.py
-#COPY bin/removebg-train-trimap-dist-debug.py removebg-train-trimap-dist-debug.py
+COPY bin/removebg-train-trimap-cloud-multi-gpu-xp.py removebg-train-trimap-cloud-multi-gpu-xp.py
+COPY bin/removebg-train-trimap-dist-xp.py removebg-train-trimap-dist-xp.py
 COPY bin/removebg-train-trimap-cloud.py removebg-train-trimap-cloud.py
 COPY liveness.training.sh liveness.training.sh
 

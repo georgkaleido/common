@@ -141,7 +141,9 @@ def main():
     callbacks.append(pl.callbacks.ProgressBar(5, 0))
 
     # Configure cloud training on GCP -> Checkpoint synchronization on bucket
-    configure_cloud_training(checkpoint_dir_local_path, callbacks, 'removebg', args.name, bucket_category="torchelastic", checkpoint_names=["last.ckpt", "best.ckpt"])
+    configure_cloud_training(checkpoint_dir_local_path, callbacks, 'removebg', args.name,
+                             bucket_category="torchelastic",
+                             checkpoint_names=["last.ckpt", "best.ckpt", "best-v1.ckpt", "best-v2.ckpt"])
 
     # Create trainer
     last_checkpoint_dir = os.path.join(checkpoint_dir_local_path, 'last.ckpt')

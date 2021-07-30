@@ -137,16 +137,12 @@ def main():
     # Checkpoints creation
     model_checkppint_callback = pl.callbacks.ModelCheckpoint(
             save_last=True,
-            save_top_k=1,
             dirpath=checkpoint_dir_local_path,
-            filename='best',
             verbose=True,
-            monitor='avg_val_accuracy',
-            mode='max'
         )
 
-    best_model_checkpoint_path = os.path.join(checkpoint_dir_local_path, "best.ckpt")
-    configure_best_model_checkpoint_for_cloud_training(best_model_checkpoint_path, model_checkppint_callback)
+    # best_model_checkpoint_path = os.path.join(checkpoint_dir_local_path, "best.ckpt")
+    # configure_best_model_checkpoint_for_cloud_training(best_model_checkpoint_path, model_checkppint_callback)
     callbacks.append(model_checkppint_callback)
 
     # Progress bar
@@ -154,7 +150,7 @@ def main():
 
     # Configure cloud training on GCP -> Checkpoint synchronization on bucket
 
-    configure_cloud_training(checkpoint_dir_local_path, callbacks, 'removebg', args.name, bucket_category="torchelastic", checkpoint_names=["last.ckpt", "best.ckpt"])
+    # configure_cloud_training(checkpoint_dir_local_path, callbacks, 'removebg', args.name, bucket_category="torchelastic", checkpoint_names=["last.ckpt", "best.ckpt"])
 
     # Create trainer
 
@@ -164,7 +160,8 @@ def main():
                          default_root_dir=path,
                          deterministic=True,
                          progress_bar_refresh_rate=1,
-                         sync_batchnorm=True,
+                         # sync_batchnorm=True,
+                         max_epochs=20,
                          # precision=16,
                          **configure_distributed(replace_sampler_ddp=False),
                          # plugins=pl.plugins.DDPPlugin(find_unused_parameters=False),

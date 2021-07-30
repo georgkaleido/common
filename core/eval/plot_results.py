@@ -11,6 +11,7 @@ parser.add_argument('old', help='path to first json')
 parser.add_argument('new', help='path to second json')
 parser.add_argument('--out', help='out path')
 parser.add_argument('--samples', type=int, default=0, help='number of good and bad samples to visualize')
+parser.add_argument('--minimum_samples', type=int, default=0, help='Minimum number of samples in a group to consider them')
 args = parser.parse_args()
 
 if not args.out:
@@ -80,7 +81,10 @@ for path in data1.keys():
         data1[path] = dict([d for d in data1[path].items() if d[0] in keys])
         data2[path] = dict([d for d in data2[path].items() if d[0] in keys])
 
-        #continue
+    sample_number = len(data1[path])
+    if args.minimum_samples > sample_number:
+        print(f"Ignored because path does not have enough samples ({sample_number} < {args.minimum_samples}): {path}")
+        continue
 
     paths.append(path)
 

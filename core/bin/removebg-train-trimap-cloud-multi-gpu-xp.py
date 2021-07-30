@@ -16,10 +16,8 @@ from kaleido.data.danni.loader import DanniLoader, DanniOfflineLoader
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from kaleido.training.sampler import DistributedSampler as KaleidoDistributedSampler
 from kaleido.training.helpers import download_checkpoint
 from kaleido.training.gce.utilities import configure_cloud_training, configure_best_model_checkpoint_for_cloud_training
-from kaleido.training.distributed.utilities import configure_distributed, callbacks_distributed, is_distributed_enabled
 
 
 def main():
@@ -36,7 +34,6 @@ def main():
     parser.add_argument('--wandb_api_key', type=str, help='wandb api key.')
     parser.add_argument('--checkpoint_url', type=str, help='checkpoint url to start.')
     parser.add_argument('--danni_max_pages', type=int, help='limit pages.')
-    parser.add_argument('--scale_lr_ddp', action='store_true', help='When using distributed training, multiply the learning rate with the number of nodes')
     parser.add_argument('--fresh', action='store_true', help='removes previous directory with results')
     args = parser.parse_args()
 
@@ -91,17 +88,8 @@ def main():
     train_dataset = Dataset('danni-data/', config, is_train=True, report_augmentation_timings=False, pre_load_callback=loader.pre_load_callback)
     valid_dataset = Dataset('danni-data/', config, is_train=False, report_augmentation_timings=False, pre_load_callback=loader.pre_load_callback)
 
-    # Check for distributed training, and set samplers accordingly
-    train_sampler = None
-    valid_sampler = None
-    if is_distributed_enabled():
-        num_replicas = int(os.environ['WORLD_SIZE'])
-        rank = int(os.environ['RANK'])
-        train_sampler = KaleidoDistributedSampler(train_dataset, shuffle=True, num_replicas=num_replicas, rank=rank, drop_last=True)
-        valid_sampler = KaleidoDistributedSampler(valid_dataset, shuffle=False, num_replicas=num_replicas, rank=rank, drop_last=True)
-
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.bs, shuffle=(train_sampler is None), sampler=train_sampler, num_workers=args.workers, drop_last=True)
-    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=8, shuffle=False, sampler=valid_sampler, num_workers=args.workers)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.bs, shuffle=True, num_workers=args.workers, drop_last=True)
+    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=8, shuffle=False, num_workers=args.workers)
 
     # Setup logger
 
@@ -137,48 +125,36 @@ def main():
     # Checkpoints creation
     model_checkppint_callback = pl.callbacks.ModelCheckpoint(
             save_last=True,
-            save_top_k=1,
             dirpath=checkpoint_dir_local_path,
-            filename='best',
             verbose=True,
-            monitor='avg_val_accuracy',
-            mode='max'
         )
 
-    best_model_checkpoint_path = os.path.join(checkpoint_dir_local_path, "best.ckpt")
-    configure_best_model_checkpoint_for_cloud_training(best_model_checkpoint_path, model_checkppint_callback)
+    # best_model_checkpoint_path = os.path.join(checkpoint_dir_local_path, "best.ckpt")
+    # configure_best_model_checkpoint_for_cloud_training(best_model_checkpoint_path, model_checkppint_callback)
     callbacks.append(model_checkppint_callback)
 
     # Progress bar
     callbacks.append(pl.callbacks.ProgressBar(5, 0))
 
     # Configure cloud training on GCP -> Checkpoint synchronization on bucket
-
-    configure_cloud_training(checkpoint_dir_local_path, callbacks, 'removebg', args.name, bucket_category="torchelastic", checkpoint_names=["last.ckpt", "best.ckpt"])
+    # configure_cloud_training(checkpoint_dir_local_path, callbacks, 'removebg', args.name, bucket_category="torchelastic", checkpoint_names=["last.ckpt", "best.ckpt"])
 
     # Create trainer
-
     last_checkpoint_dir = os.path.join(checkpoint_dir_local_path, 'last.ckpt')
     trainer = pl.Trainer(logger=logger,
-                         callbacks=callbacks + callbacks_distributed(),
+                         callbacks=callbacks,
                          default_root_dir=path,
                          deterministic=True,
                          progress_bar_refresh_rate=1,
-                         sync_batchnorm=True,
-                         # precision=16,
-                         **configure_distributed(replace_sampler_ddp=False),
-                         # plugins=pl.plugins.DDPPlugin(find_unused_parameters=False),
+                         # sync_batchnorm=True,
+                         gpus=-1,
+                         accelerator='ddp',
+                         max_epochs=20,
                          resume_from_checkpoint=last_checkpoint_dir if os.path.exists(last_checkpoint_dir) else None)
 
     # Init model
 
-    # Scale learning rate with number of nodes
-    learning_rate = args.lr
-    if args.scale_lr_ddp and is_distributed_enabled():
-        world_size = int(os.environ['WORLD_SIZE'])
-        learning_rate *= world_size
-
-    model = PlTrimap(lr=learning_rate)
+    model = PlTrimap(lr=args.lr)
 
     if args.checkpoint_url:
         checkpoint = download_checkpoint(args.checkpoint_url)
