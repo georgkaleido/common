@@ -1,0 +1,12 @@
+kaleido-core>=1.4.0
+shadowgen-core<1.5.0
+torch>=1.8.0,<1.9.0 # depends on Dockerfile base image see here: https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/
+torchvision>=0.9.0,<0.10.0 # see compatibility with torch here: https://pypi.org/project/torchvision/
+numpy>=1.17,<1.22.0
+opencv-python>=4.1,<5.0.0
+wandb<0.12
+pika>=1.0.0,<2.0.0
+msgpack<1.0.0
+pandas<1.4.0
+nibabel<2.5.0,>=2.4.0
+pillow>=7.2.0,<9.0.0
