@@ -1,0 +1,16 @@
+---
+
+extends: relaxed
+
+yaml-files:
+  - '*.yaml'
+  - '*.yml'
+  - '.yamllint'
+
+rules:
+  line-length:
+    max: 250
+    level: warning
+
+ignore: |
+  node_modules

@@ -1,0 +1,15 @@
+{
+  "name": "kaleido-removebg",
+  "description": "Remove.bg",
+  "author": "ops@kaleido.ai",
+  "private": true,
+  "license": "UNLICENSED",
+  "dependencies": {},
+  "devDependencies": {
+    "danger": "^10.6.4",
+    "danger-plugin-todos": "^1.3.0",
+    "danger-plugin-toolbox": "^1.30.0",
+    "ts-node": "^10.2.0",
+    "typescript": "^4.3.2"
+  }
+}
