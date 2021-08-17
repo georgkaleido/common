@@ -149,4 +149,4 @@ wandb==0.11.2
 pip
 wheel
 setuptools
---extra-index-url https://${FURY_AUTH_TOKEN@Q}:@deps.kaleido.ai/pypi/
+--extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/
