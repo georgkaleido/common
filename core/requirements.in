@@ -1,7 +1,13 @@
-kaleido-core>=1.4.0
+# Requirements in here are loaded in setup.py as "install_requires"
+# which defines the minimum requirements for the kaleido-core-lib
+# Keep requirements more loose here to not restrict projects
+# which include kaleido-core-lib.
+# Specify the required dependencies for using removebg-core as a library here.
+
+kaleido-core>=1.3.10
 shadowgen-core<1.5.0
-torch>=1.8.0,<1.9.0 # depends on Dockerfile base image see here: https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/
-torchvision>=0.9.0,<0.10.0 # see compatibility with torch here: https://pypi.org/project/torchvision/
+torch>=1.8.0
+torchvision>=0.9.0
 numpy>=1.17,<1.22.0
 opencv-python>=4.1,<5.0.0
 wandb<0.12

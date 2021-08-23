@@ -1,2 +1,7 @@
+# requirements-dev.in extends requirements-deploy.in when running update-requirements.sh
+# Additionally development requirements can be specified here.
+
 pbr>=5.5.1,<6.0.0
 pytest>=6.2.0,<6.3.0
+torch==1.9.0
+torchvision==0.10.0

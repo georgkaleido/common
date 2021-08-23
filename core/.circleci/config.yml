@@ -31,8 +31,7 @@ jobs:
           name: Install packages
           command: |
             . .venv/bin/activate
-            pip install -r requirements-dev.txt --progress-bar off
-            pip install -r requirements.txt --progress-bar off
+            pip install -r requirements-deploy.txt --progress-bar off
       - run:
           name: Check and install
           command: |
