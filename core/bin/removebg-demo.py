@@ -14,7 +14,7 @@ from removebg.image import SmartAlphaImage
 from removebg.removebg import Removebg, UnknownForegroundException, Identifier
 
 
-def main():
+def handle_args():
     # arguments
 
     parser = argparse.ArgumentParser()
@@ -43,6 +43,10 @@ def main():
     parser.add_argument('--subject_crop_margin', default=0, type=int, help='relative crop margin')
 
     args = parser.parse_args()
+    return args
+
+
+def demo(args):
 
     removebg = Removebg(args.path_networks, require_models=False, trimap_flip_mean=True)
     identifier = Identifier(args.path_networks, require_models=False)
@@ -230,4 +234,4 @@ def main():
 
 if __name__ == "__main__":
     # execute only if run as a script
-    main()
+    demo(handle_args())

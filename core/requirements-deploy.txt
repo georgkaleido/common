@@ -119,7 +119,7 @@ torchvision==0.10.0
     # via
     #   kaleido-core
     #   shadowgen-core
-tqdm==4.62.1
+tqdm==4.62.2
     # via kaleido-core
 typing-extensions==3.10.0.0
     # via torch

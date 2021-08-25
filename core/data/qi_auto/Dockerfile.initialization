@@ -1,0 +1,40 @@
+FROM nvcr.io/nvidia/pytorch:21.02-py3
+
+# Required to prevent warnings
+ARG DEBIAN_FRONTEND=noninteractive
+ARG DEBCONF_NONINTERACTIVE_SEEN=true
+
+RUN apt-get update
+RUN apt-get install ffmpeg libsm6 libxext6  -y
+
+# Install gcloud utilities
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-sdk kubectl -y
+
+# Create workspace
+RUN mkdir -p /workspace/kaleido
+WORKDIR /workspace/kaleido
+
+# Copy and install general requirements
+COPY requirements-train.txt .
+RUN --mount=type=secret,id=fury_auth_token \
+    pip install \
+    --extra-index-url https://$(cat /run/secrets/fury_auth_token):@deps.kaleido.ai/pypi/ \
+    -r /workspace/kaleido/requirements-train.txt
+
+# Add framework
+RUN mkdir -p bin
+COPY ./bin/__init__.py ./bin/__init__.py
+COPY ./bin/dataset_fetch_metadata.py ./bin/dataset_fetch_metadata.py
+RUN mkdir -p qi_auto
+COPY ./qi_auto/utilities.py ./qi_auto/utilities.py
+COPY ./qi_auto/initialization.py ./qi_auto/initialization.py
+COPY ./qi_auto/termination.py ./qi_auto/termination.py
+RUN mkdir -p data/qi_auto
+COPY ./data/qi_auto/template_job_trimap.yaml ./data/qi_auto/template_job_trimap.yaml
+
+# Set PYTHONPATH to the root of the framework
+ENV PYTHONPATH=/workspace/kaleido/
+
+USER root
+ENTRYPOINT ["python", "-m", "qi_auto.initialization"]
+CMD ["--help"]

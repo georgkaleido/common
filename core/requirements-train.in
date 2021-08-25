@@ -1,0 +1,10 @@
+pyarrow>=3.0.0
+torchelastic==0.2.0
+google-cloud>=0.34.0
+google-cloud-core>=1.4.3
+google-cloud-storage>=1.32.0
+google-api-python-client>=1.7.8
+crcmod>=1.7
+google-crc32c>=1.0.0
+pytorch-lightning>=1.4.2
+

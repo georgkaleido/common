@@ -30,10 +30,9 @@ RUN --mount=type=secret,id=fury_auth_token \
 
 # Copy current content of the framework
 COPY removebg removebg/removebg
-COPY data removebg/data
-COPY data/trimap513-deeplab-res2net.pth.tar /workspace/kaleido/removebg/data/trimap513-deeplab-res2net.pth.tar
-COPY bin/removebg-train-trimap-dist.py removebg-train-trimap-dist.py
-COPY bin/removebg-train-trimap-cloud.py removebg-train-trimap-cloud.py
+RUN mkdir -p removebg/data
+COPY data/trimap.json removebg/data/trimap.json
+COPY bin/removebg-train-trimap-cloud-qi.py removebg-train-trimap-cloud-qi.py
 COPY liveness.training.sh liveness.training.sh
 
 # Set PYTHONPATH to directory where the framework is

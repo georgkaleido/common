@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: qi-auto-initialization
+spec:
+  # Run once a month at 3am of the first day of the month
+  schedule: "0 3 1 * *"
+#  schedule: "39 8 18 * *" # TEST
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: qi-auto-initialization
+            image: eu.gcr.io/kaleido-train/trimap-qi-auto-initialization:v2
+            imagePullPolicy: Always
+            args:
+              - "--danni_user=[...]"
+              - "--danni_token=[...]"
+          restartPolicy: OnFailure

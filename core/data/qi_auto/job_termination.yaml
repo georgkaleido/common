@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: qi-auto-termination
+spec:
+  # Run once a month at 3am of the 21st day of the month
+  schedule: "0 3 21 * *"
+#  schedule: "59 10 18 * *" # TEST
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: qi-auto-termination
+            image: eu.gcr.io/kaleido-train/trimap-qi-auto-initialization:v2
+            imagePullPolicy: Always
+            command: ["python", "-m", "qi_auto.termination"]
+          restartPolicy: OnFailure
