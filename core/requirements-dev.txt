@@ -78,7 +78,7 @@ pillow==8.3.1
     #   kaleido-core
     #   shadowgen-core
     #   torchvision
-pluggy==0.13.1
+pluggy==1.0.0
     # via pytest
 promise==2.3
     # via wandb
@@ -90,7 +90,7 @@ py==1.10.0
     # via pytest
 pyparsing==2.4.7
     # via packaging
-pytest==6.2.4
+pytest==6.2.5
     # via -r requirements-dev.in
 python-dateutil==2.8.2
     # via
@@ -100,6 +100,8 @@ pytz==2021.1
     # via pandas
 pyyaml==5.4.1
     # via wandb
+removebg-core==1.3.0
+    # via -r requirements-deploy.in
 requests==2.26.0
     # via
     #   kaleido-core
@@ -141,7 +143,7 @@ torchvision==0.10.0
     #   shadowgen-core
 tqdm==4.62.2
     # via kaleido-core
-typing-extensions==3.10.0.0
+typing-extensions==3.10.0.2
     # via torch
 urllib3==1.26.6
     # via

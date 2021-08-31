@@ -1,6 +1,7 @@
 # Requirements here are used for deployment and should be pinned to a specific version.
 # Specify requirements which are used for removebg as a service here.
 
+--extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/
 kaleido-core>=1.4.0
 shadowgen-core<1.5.0
 numpy>=1.17,<1.22.0
@@ -11,3 +12,4 @@ msgpack<1.0.0
 pandas<1.4.0
 nibabel<2.5.0,>=2.4.0
 pillow>=7.2.0,<9.0.0
+removebg-core>1.0.0
