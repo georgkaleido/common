@@ -1,7 +1,6 @@
 --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/
 pip>=21.0.0<22.0.0
 setuptools>=52.0.0,<53.0.0
-wheel>=0.36<0.37
 
 beautifulsoup4==4.9.3
     # via google
@@ -47,6 +46,7 @@ numpy==1.21.2
     #   pandas
     #   scipy
     #   shadowgen-core
+    #   torch
     #   torchvision
 opencv-python==4.5.3.56
     # via
@@ -112,13 +112,13 @@ soupsieve==2.2.1
     # via beautifulsoup4
 subprocess32==3.5.4
     # via wandb
-torch==1.9.0
     # via
+    #   -r requirements-deploy.in
     #   kaleido-core
     #   shadowgen-core
     #   torchvision
-torchvision==0.10.0
     # via
+    #   -r requirements-deploy.in
     #   kaleido-core
     #   shadowgen-core
 tqdm==4.62.2
