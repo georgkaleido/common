@@ -2,25 +2,26 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: api
-  name: api
+    app: api-staging
+  name: api-staging
   namespace: default
 spec:
-  minReadySeconds: 30
+  minReadySeconds: 0
   progressDeadlineSeconds: 600
+  replicas: 0
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: api
+      app: api-staging
   strategy:
     rollingUpdate:
-      maxSurge: 35%
-      maxUnavailable: 5%
+      maxSurge: 1
+      maxUnavailable: 100%
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: api
+        app: api-staging
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
@@ -37,18 +38,18 @@ spec:
               path: /health/liveness
               port: 9443
               scheme: HTTPS
-            initialDelaySeconds: 100
+            initialDelaySeconds: 60
             periodSeconds: 15
             successThreshold: 1
             timeoutSeconds: 14
           readinessProbe:
-            failureThreshold: 5
+            failureThreshold: 2
             httpGet:
               path: /health/readiness
               port: 9443
               scheme: HTTPS
-            initialDelaySeconds: 120
-            periodSeconds: 10
+            initialDelaySeconds: 60
+            periodSeconds: 15
             successThreshold: 1
             timeoutSeconds: 13
           lifecycle:
@@ -61,7 +62,7 @@ spec:
               protocol: TCP
           resources:
             requests:
-              cpu: "1"
+              cpu: "0.1"
               memory: "4Gi"
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
@@ -81,12 +82,13 @@ spec:
             preStop:
               exec:
                 command: ["/bin/bash", "-c", "sleep 25 && echo 'Shutting down container rabbitmq'"]
-        - name: core
-          image: eu.gcr.io/removebg-226919/removebg-core:1.2.4-pt20.11-cc75
-          imagePullPolicy: Always
+        - args:
           envFrom:
             - configMapRef:
                 name: api-config
+          image: eu.gcr.io/removebg-226919/removebg-core:1.2.4-pt20.11-cc75
+          imagePullPolicy: Always
+          name: core
           resources:
             limits:
               nvidia.com/gpu: "1"

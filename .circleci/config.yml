@@ -121,7 +121,8 @@ jobs:
       - run:
           name: Kubeval
           command:
-            kubeval --strict --schema-location https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/ --kubernetes-version=${GKE_KUBERNETES_VERSION} --directories k8s/ --output json --quiet > lint/kubeval.json || true
+            kubeval --strict --schema-location https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/ \
+              --kubernetes-version=${GKE_KUBERNETES_VERSION} --skip-kinds BackendConfig --directories k8s/ --output json --quiet > lint/kubeval.json || true
       - store_artifacts:
           path: lint/kubeval.json
           destination: kubeval.json
