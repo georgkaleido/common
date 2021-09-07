@@ -322,3 +322,7 @@ core/canva_slider/other_ops.py
 # imgs
 core/sweep_local/out_res/
 core/sweep_local/sample_imgs/
+
+# Python Dist Tools
+core/ChangeLog
+core/AUTHORS
