@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: api-balancer-com
+  annotations:
+    "kubernetes.io/ingress.allow-http": "false"
+    "kubernetes.io/ingress.global-static-ip-name": api-com-ip
+    "networking.gke.io/managed-certificates": api-ssl-com
+spec:
+  rules:
+    - host: api.removebg.com
+      http:
+        paths:
+          - backend:
+              serviceName: api-nodeport
+              servicePort: 9443

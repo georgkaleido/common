@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: api-balancer-kaleido
+  annotations:
+    "kubernetes.io/ingress.allow-http": "false"
+    "kubernetes.io/ingress.global-static-ip-name": api-ip-kaleido
+    "networking.gke.io/managed-certificates": api-ssl-kaleido
+spec:
+  rules:
+    - host: api.kaleido.ai
+      http:
+        paths:
+          - path: /v1.0/shadowgen
+            backend:
+              serviceName: shadowgen-api-nodeport
+              servicePort: 9443
+          - path: /v1.0/colortransfer
+            backend:
+              serviceName: colortransfer-api-nodeport
+              servicePort: 9443
+          - path: /v1.0/autoenhance
+            backend:
+              serviceName: autoenhance-api-nodeport
+              servicePort: 9443
+          - path: /v1.0/superresolution
+            backend:
+              serviceName: superresolution-api-nodeport
+              servicePort: 9443
+          - path: /v1.0/facetouchup
+            backend:
+              serviceName: facetouchup-api-nodeport
+              servicePort: 9443
+          - path: /v1.0/inpainting
+            backend:
+              serviceName: inpainting-api-nodeport
+              servicePort: 9443
+          - path: /v1.0/layering
+            backend:
+              serviceName: layering-api-nodeport
+              servicePort: 9443
