@@ -5,6 +5,7 @@ version: 2.1
 # - CACHE_VERSION (int): increment this to force the pipeline to renew its cache
 # - DOCKER_IMAGE_NAME (str): full image name for the resulting Docker image, including registry URL
 # - GKE_CLUSTER (str): name of the GKE cluster to use
+# - GKE_KUBERNETES_VERSION (str): version of Kubernetes that $GKE_CLUSTER uses
 
 # Declare the orbs that we'll use in our config.
 # read more about orbs: https://circleci.com/docs/2.0/using-orbs/
