@@ -4,6 +4,7 @@ version: 2.1
 #
 # - CACHE_VERSION (int): increment this to force the pipeline to renew its cache
 # - DOCKER_IMAGE_NAME (str): full image name for the resulting Docker image, including registry URL
+# - GKE_CLUSTER (str): name of the GKE cluster to use
 
 # Declare the orbs that we'll use in our config.
 # read more about orbs: https://circleci.com/docs/2.0/using-orbs/
@@ -132,7 +133,6 @@ jobs:
             - lint/yamllint.txt
           key: lint-v{{ .Environment.CACHE_VERSION }}-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
 
-
   # Publish
   publish:
     docker:
@@ -250,9 +250,9 @@ jobs:
             do
               echo "Building Docker image with compute capability ${compute_capability}..."
 
-              # Create tag and append to tags.txt
-              tag="${DOCKER_IMAGE_NAME}:${VERSION}-cc${compute_capability}"
-              echo "${tag}" >> tags.txt
+              # Create tag and append to tags-core.txt
+              tag="${DOCKER_IMAGE_NAME}-core:${VERSION}-cc${compute_capability}"
+              echo "${tag}" >> tags-core.txt
 
               # Build an image for each PyTorch tag
               DOCKER_BUILDKIT=1 docker build --progress=plain \
@@ -270,6 +270,11 @@ jobs:
       - run:
           name: Build Docker images (api)
           command: |
+            if [ -z "${CIRCLE_TAG}" ] ; then
+              echo "Not building docker images"
+              exit 0
+            fi
+
             export BUILD_DATE="$(date --rfc-3339=seconds | sed 's/ /T/')"
 
             if [ -n "${CIRCLE_TAG}" ] && [ ! -z "${CIRCLE_TAG}" ] ; then
@@ -398,7 +403,7 @@ jobs:
       #       fi
       #
       #       # Patch deployment yaml files
-      #       echo "Setting container image to ${DOCKER_IMAGE_NAME}:${IMAGE_TAG}"
+      #       echo "Setting container image to ${DOCKER_IMAGE_NAME}-core/api:${IMAGE_TAG}"
       #       for file in k8s/${GKE_KUBERNETES_NAMESPACE}/*; do
       #         echo "Patching ${file}..."
       #         echo "=========================================================="
