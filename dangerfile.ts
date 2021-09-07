@@ -94,6 +94,17 @@ if (danger.github.pr.base.ref != "main") {
 }
 
 /**
+ * Rule: PR needs to have a label
+ * Reason: Labels are used to categorize the PR into a group which
+ *         is used in the Changelog.
+ */
+ if (danger.github.issue.labels.length == 0) {
+  fail("🏷 Please categorize your PR by adding a label!")
+} else if (danger.github.issue.labels.length > 1 && !isDepfuPR) {
+  fail(`🏷 Please use exactly one label for your PR, instead of ${danger.github.issue.labels.length}!`)
+}
+
+/**
  * Rule: Check for TODO's in app code
  * Reason: It's bad form to leave TODO or FIXME in the code
  */
