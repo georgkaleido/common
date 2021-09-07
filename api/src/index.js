@@ -1,13 +1,12 @@
 const logger = require("kaleido-api/logger");
+require("dotenv").config()
 
 if(process.env.NODE_ENV == "development") {
-  require("dotenv").config()
-
   const mockery = require("mockery")
   mockery.enable({
     warnOnUnregistered: false
   })
-  mockery.registerSubstitute("kaleido-api/core", "mock/core_mock")
+  mockery.registerSubstitute("kaleido-api/core", "./mock/core_mock")
 }
 
 const https = require('https');
@@ -124,7 +123,11 @@ function startServer() {
       case "photoshop":
         // req.query.v == "1.0.0"
         // req.query.v == "1.0.1"
-        res.json({"status": "ok"});
+        if (req.query.v.split('.')[0]=="1") { // send warning nudge to all users of CEP plugin
+          res.json({"status": "warning", "message": "<b>⚠️ This plugin is outdated</b><br>Learn how to upgrade to the new version in the FAQ section. www.remove.bg/photoshop"});
+        } else {
+          res.json({"status": "ok"});
+        }
         break;
       case "desktop":
         // req.query.v == "1.0.0"
