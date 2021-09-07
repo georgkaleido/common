@@ -512,7 +512,7 @@ workflows:
               only: /^\d+\.\d+\.\d+$/
       - publish:
           requires:
-            - build
+            - build_core
           context:
             - DockerHub
             - Gemfury
