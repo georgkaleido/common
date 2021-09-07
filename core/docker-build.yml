@@ -1,12 +1,8 @@
 ---
-# Which PyTorch tags should be used to build images
-# https://ngc.nvidia.com/catalog/containers/nvidia:pytorch
-pytorch-tags:
-  - 20.11
-  - 20.03
 
 # Which compute capabilities should we build images for
 # https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
 compute-capabilities:
   - 75 # Turing: GTX/RTX Turing – GTX 1660 Ti, RTX 2060, RTX 2070, RTX 2080, ...
   - 61 # GTX 1080, GTX 10x0, GT 1010 (GP108) Titan Xp, Tesla P40, Tesla P4, ...
+  - 86 # Tesla GA10x, RTX 3050/3060/3070/3080/3090, RTX A6000, RTX A40, ...

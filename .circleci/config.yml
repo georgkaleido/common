@@ -1,0 +1,571 @@
+version: 2.1
+
+# Used environment variables:
+#
+# - CACHE_VERSION (int): increment this to force the pipeline to renew its cache
+# - DOCKER_IMAGE_NAME (str): full image name for the resulting Docker image, including registry URL
+
+# Declare the orbs that we'll use in our config.
+# read more about orbs: https://circleci.com/docs/2.0/using-orbs/
+orbs:
+  slack: circleci/slack@4.4.2
+  gcr: circleci/gcp-gcr@0.13.0
+  gke: circleci/gcp-gke@1.3.0
+  node: circleci/node@4.5.0
+
+jobs:
+  # Build job
+  build_core:
+    docker:
+      - image: cimg/python:3.9.5
+        auth:
+          username: ${DOCKERHUB_USER}
+          password: ${DOCKERHUB_PASSWORD}
+    resource_class: medium
+    working_directory: ~/project
+    steps:
+      - run:
+          name: Install prerequisites
+          command: |
+            sudo apt-get update && sudo apt-get install -y --no-install-recommends --fix-missing \
+              libopenblas-dev zlib1g-dev libjpeg-dev libpng-dev build-essential
+      - checkout
+      - restore_cache:
+          keys:
+            - venv-v{{ .Environment.CACHE_VERSION }}-{{ checksum "core/requirements.in" }}
+            - venv-v{{ .Environment.CACHE_VERSION }}
+      - run:
+          name: Create virtualenv
+          command: |
+            cd core
+            python3 -m venv .venv
+      - run:
+          name: Install packages
+          command: |
+            cd core
+            . .venv/bin/activate
+            pip install -r requirements.in --progress-bar off
+      - run:
+          name: Check and install
+          command: |
+            . .venv/bin/activate
+            python setup.py check
+            python setup.py install
+      - save_cache:
+          paths:
+            - core/.venv
+          key: venv-v{{ .Environment.CACHE_VERSION }}-{{ checksum "core/requirements.in" }}
+
+  # Build job
+  build_api:
+    docker:
+      - image: cimg/node:14.17.5
+        auth:
+          username: ${DOCKERHUB_USER}
+          password: ${DOCKERHUB_PASSWORD}
+    resource_class: small
+    working_directory: ~/project
+    steps:
+      - node/install-yarn
+      - checkout
+      - restore_cache:
+          keys:
+            - yarn-v{{ .Environment.CACHE_VERSION }}-{{ checksum "api/yarn.lock" }}
+            - yarn-v{{ .Environment.CACHE_VERSION }}
+      - run:
+          name: Install packages
+          command: |
+            cd api
+            npm config set registry https://npm-proxy.fury.io/kaleido/ \
+            npm config set always-auth true
+            echo '//npm-proxy.fury.io/kaleido/:_authToken=${NPM_TOKEN}' >> ~/.npmrc
+            yarn install --immutable --frozen-lockfile --production=false --non-interactive --check-files
+      - save_cache:
+          paths:
+            - api/node_modules
+          key: yarn-v{{ .Environment.CACHE_VERSION }}-{{ checksum "api/yarn.lock" }}
+
+  # Lint
+  lint:
+    docker:
+      - image: cimg/python:3.9.5-node
+        auth:
+          username: ${DOCKERHUB_USER}
+          password: ${DOCKERHUB_PASSWORD}
+    resource_class: small
+    working_directory: ~/project
+    steps:
+      - run:
+          name: Install prerequisites
+          command: |
+
+            # jq
+            sudo curl -Lo /usr/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+            sudo chmod +x /usr/bin/jq
+
+            # yamllint
+            pip install --user yamllint
+
+            # Kubeval
+            wget --no-verbose -O - https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz | sudo tar -xz -C /usr/local/bin/
+            sudo chmod +x /usr/local/bin/kubeval
+      - checkout
+      - run: mkdir lint
+      - run:
+          name: yamllint
+          command: |
+            yamllint -c .yamllint.yml --strict -f parsable . > lint/yamllint.txt || true
+      - run:
+          name: Kubeval
+          command:
+            kubeval --strict --schema-location https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/ --kubernetes-version=${GKE_KUBERNETES_VERSION} --directories k8s/ --output json --quiet > lint/kubeval.json || true
+      - store_artifacts:
+          path: lint/kubeval.json
+          destination: kubeval.json
+      - store_artifacts:
+          path: lint/yamllint.txt
+          destination: yamllint.txt
+      - save_cache:
+          paths:
+            - lint/kubeval.json
+            - lint/yamllint.txt
+          key: lint-v{{ .Environment.CACHE_VERSION }}-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+
+
+  # Publish
+  publish:
+    docker:
+      - image: cimg/python:3.9.5
+        auth:
+          username: ${DOCKERHUB_USER}
+          password: ${DOCKERHUB_PASSWORD}
+    resource_class: medium
+    working_directory: ~/project
+    steps:
+      - run:
+          name: Install prerequisites
+          command: |
+            sudo apt-get update && sudo apt-get install -y --no-install-recommends --fix-missing \
+              libopenblas-dev zlib1g-dev libjpeg-dev libpng-dev build-essential
+      - checkout
+      - restore_cache:
+          keys:
+            - venv-v{{ .Environment.CACHE_VERSION }}-{{ checksum "core/requirements.in" }}
+            - venv-v{{ .Environment.CACHE_VERSION }}
+      - run:
+          name: Create virtualenv
+          command: |
+            cd core
+            python3 -m venv .venv
+      - run:
+          name: Install packages
+          command: |
+            cd core
+            . .venv/bin/activate
+            pip install -r requirements.in --progress-bar off
+      - run:
+          name: Init .pypirc
+          command: |
+            tee -a /home/circleci/.pypirc > /dev/null \<<EOT
+            [distutils]
+            index-servers =
+                pypi
+                fury
+            [pypi]
+            username =
+            password =
+            [fury]
+            repository: https://deps.kaleido.ai/pypi/
+            username = ${FURY_PUSH_TOKEN}
+            password =
+            EOT
+      - run:
+          name: Deploy to Gemfury
+          command: |
+            if [ -z "${CIRCLE_TAG}" ] ; then
+              echo "Not publishing library"
+              exit 0
+            fi
+
+            cd core
+            . .venv/bin/activate
+            python setup.py check
+            python setup.py sdist upload -r fury --show-response
+            python setup.py bdist upload -r fury --show-response
+            python setup.py bdist_wheel upload -r fury --show-response
+
+  # Docker
+  docker:
+    docker:
+      - image: google/cloud-sdk:latest
+        auth:
+          username: ${DOCKERHUB_USER}
+          password: ${DOCKERHUB_PASSWORD}
+    resource_class: large
+    working_directory: ~/project
+    steps:
+      - setup_remote_docker:
+          version: 20.10.6
+          docker_layer_caching: true
+      - checkout
+      - run:
+          name: Install Prerequisites
+          command: |
+            curl -Lo /usr/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+            chmod +x /usr/bin/jq
+            pip3 install yq
+      - run:
+          name: Build Docker images (core)
+          command: |
+            if [ -z "${CIRCLE_TAG}" ] ; then
+              echo "Not building docker images"
+              exit 0
+            fi
+
+            export BUILD_DATE="$(date --rfc-3339=seconds | sed 's/ /T/')"
+
+            if [ -n "${CIRCLE_TAG}" ] && [ ! -z "${CIRCLE_TAG}" ] ; then
+              export VERSION="${CIRCLE_TAG}"
+            else
+              export VERSION="main"
+            fi
+
+            echo "Using the following settings:"
+            echo "  VCS_REF:    ${CIRCLE_SHA1:0:7}"
+            echo "  BUILD_DATE: ${BUILD_DATE}"
+            echo "  VERSION:    ${VERSION}"
+            echo ""
+
+            cd core
+
+            # Create empty file
+            touch tags-core.txt
+
+            # Create token files
+            echo "${FURY_AUTH_TOKEN}" > fury_auth_token.txt
+            echo "${GITHUB_AUTH_TOKEN}" > github_auth_token.txt
+
+            yq -rc '."compute-capabilities" | .[]' docker-build.yml | while read compute_capability
+            do
+              echo "Building Docker image with compute capability ${compute_capability}..."
+
+              # Create tag and append to tags.txt
+              tag="${DOCKER_IMAGE_NAME}:${VERSION}-cc${compute_capability}"
+              echo "${tag}" >> tags.txt
+
+              # Build an image for each PyTorch tag
+              DOCKER_BUILDKIT=1 docker build --progress=plain \
+                --build-arg VCS_REF=${CIRCLE_SHA1:0:7} \
+                --build-arg BUILD_DATE=${BUILD_DATE} \
+                --build-arg VERSION=${VERSION} \
+                --build-arg MAX_JOBS=$(nproc) \
+                --build-arg REMOVEBG_CORE_PY_VERSION=${VERSION} \
+                --build-arg COMPUTE_CAPABILITY=${compute_capability} \
+                --secret id=fury_auth_token,src=fury_auth_token.txt \
+                --secret id=github_auth_token,src=github_auth_token.txt \
+                --tag ${tag} \
+              .
+            done
+      - run:
+          name: Build Docker images (api)
+          command: |
+            export BUILD_DATE="$(date --rfc-3339=seconds | sed 's/ /T/')"
+
+            if [ -n "${CIRCLE_TAG}" ] && [ ! -z "${CIRCLE_TAG}" ] ; then
+              export VERSION="${CIRCLE_TAG}"
+            else
+              export VERSION="main"
+            fi
+
+            echo "Using the following settings:"
+            echo "  VCS_REF:    ${CIRCLE_SHA1:0:7}"
+            echo "  BUILD_DATE: ${BUILD_DATE}"
+            echo "  VERSION:    ${VERSION}"
+            echo ""
+
+            cd api
+
+            # Create token files
+            echo "${NPM_TOKEN}" > npm_token.txt
+
+            # Create tag and append to tags-api.txt
+            tag="${DOCKER_IMAGE_NAME}-api:${VERSION}"
+            echo "${tag}" > tags-api.txt
+
+            # Build
+            DOCKER_BUILDKIT=1 docker build --progress=plain \
+              --build-arg VCS_REF=${CIRCLE_SHA1:0:7} \
+              --build-arg BUILD_DATE=${BUILD_DATE} \
+              --build-arg VERSION=${VERSION} \
+              --secret id=npm_token,src=npm_token.txt \
+              --tag ${tag} \
+                .
+      - gcr/gcr-auth
+      - run:
+          name: Push image to registry (if this is a release)
+          command: |
+            if [ -z "${CIRCLE_TAG}" ] ; then
+              echo "Not pushing Docker image"
+              exit 0
+            fi
+
+            while IFS="" read -r p || [ -n "$p" ]
+            do
+              docker push "${p}"
+            done <api/tags-api.txt
+
+            while IFS="" read -r p || [ -n "$p" ]
+            do
+              docker push "${p}"
+            done <core/tags-core.txt
+      - save_cache:
+          paths:
+            - api/tags-api.txt
+            - core/tags-core.txt
+          key: tags-v{{ .Environment.CACHE_VERSION }}-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+
+  # Danger
+  danger:
+    docker:
+      - image: cimg/node:14.17.5
+        auth:
+          username: ${DOCKERHUB_USER}
+          password: ${DOCKERHUB_PASSWORD}
+    resource_class: small
+    working_directory: ~/project
+    steps:
+      - node/install-yarn
+      - checkout
+      - restore_cache:
+          keys:
+            - root-yarn-v{{ .Environment.CACHE_VERSION }}-{{ checksum "yarn.lock" }}
+            - root-yarn-v{{ .Environment.CACHE_VERSION }}
+      - restore_cache:
+          key: lint-v{{ .Environment.CACHE_VERSION }}-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+      - run:
+          name: Install packages
+          command: |
+            yarn install --immutable --frozen-lockfile --non-interactive --check-files --production=false
+      - save_cache:
+          paths:
+            - ~/project/node_modules
+          key: root-yarn-v{{ .Environment.CACHE_VERSION }}-{{ checksum "yarn.lock" }}
+      - run:
+          name: Run Danger
+          command: yarn danger ci
+
+  deploy:
+    docker:
+      - image: google/cloud-sdk:latest
+        auth:
+          username: ${DOCKERHUB_USER}
+          password: ${DOCKERHUB_PASSWORD}
+    resource_class: small
+    working_directory: ~/project
+    steps:
+      - setup_remote_docker:
+          version: 20.10.6
+      - checkout
+      - restore_cache:
+          key: tags-v{{ .Environment.CACHE_VERSION }}-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+      - gke/install
+      - gke/update-kubeconfig-with-credentials:
+          cluster: ${GKE_CLUSTER}
+          install-kubectl: true
+          perform-login: true
+      - gcr/gcr-auth
+      - run:
+          name: Install prerequisites
+          command: |
+            # Install prereq
+            curl -Lo /usr/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+            chmod +x /usr/bin/jq
+            pip3 install yq
+
+            apt-get update && apt-get install -y --no-install-recommends --fix-missing \
+              golang-go nodejs npm
+            npm install github-release-notes -g
+      # - run:
+      #     name: Configure GKE
+      #     command: |
+      #       if [ -n "${CIRCLE_TAG}" ] && [ ! -z "${CIRCLE_TAG}" ] ; then
+      #         export IMAGE_TAG="${CIRCLE_TAG}"
+      #         export GKE_KUBERNETES_NAMESPACE="default"
+      #       else
+      #         echo "Not a tag, stopping deploy"
+      #         exit 0
+      #       fi
+      #
+      #       # Patch deployment yaml files
+      #       echo "Setting container image to ${DOCKER_IMAGE_NAME}:${IMAGE_TAG}"
+      #       for file in k8s/${GKE_KUBERNETES_NAMESPACE}/*; do
+      #         echo "Patching ${file}..."
+      #         echo "=========================================================="
+      #
+      #         yq --in-place --yaml-roundtrip --arg image "${DOCKER_IMAGE_NAME}-api:${IMAGE_TAG}" "walk(if type==\"object\" and has(\"image\") and .image == \"${DOCKER_IMAGE_NAME}-api\" then .image=\$image else . end)" "${file}"
+      #         yq --in-place --yaml-roundtrip --arg image "${DOCKER_IMAGE_NAME}-core:${IMAGE_TAG}" "walk(if type==\"object\" and has(\"image\") and .image == \"${DOCKER_IMAGE_NAME}-core\" then .image=\$image else . end)" "${file}"
+      #
+      #         cat ${file}
+      #       done
+      #
+      #       # Applying Kubernetes config
+      #       kubectl config set-context --current --namespace=${GKE_KUBERNETES_NAMESPACE}
+      #       kubectl apply --validate=true -f k8s/${GKE_KUBERNETES_NAMESPACE}/ --namespace=${GKE_KUBERNETES_NAMESPACE}
+      #
+      #       # Wait for finished deployment
+      #       kubectl wait --namespace=${GKE_KUBERNETES_NAMESPACE} --for=condition=available --timeout=120s deployment autoenhance-api
+      - run:
+          name: Edit Release
+          command: |
+            if [ -z "${CIRCLE_TAG}" ] ; then
+              echo "Not editing release"
+              exit 0
+            fi
+
+            # First, use gren to generate release notes
+            GREN_GITHUB_TOKEN=${GITHUB_AUTH_TOKEN} gren release --tags "${CIRCLE_TAG}" --override
+
+            # Get Docker images to append to release notes
+            touch release-append.txt
+            echo -e "\r\n\r\n### Docker Images\r\n" >> release-append.txt
+
+            while IFS="" read -r p || [ -n "$p" ]
+            do
+              echo -e "* \`${p}\`" >> release-append.txt
+            done <api/tags-api.txt
+
+            while IFS="" read -r p || [ -n "$p" ]
+            do
+              echo -e "* \`${p}\`" >> release-append.txt
+            done <core/tags-core.txt
+
+            # Install github-release
+            export PATH=$PATH:$(go env GOPATH)/bin
+            go get github.com/github-release/github-release
+
+            # Get current release description
+            GITHUB_TOKEN=${GITHUB_AUTH_TOKEN} github-release info \
+              --user ${CIRCLE_PROJECT_USERNAME} --repo ${CIRCLE_PROJECT_REPONAME} --tag "${CIRCLE_TAG}" --json \
+            | jq -r ".Releases[0].body" > release-body.txt
+
+            # Append to release description
+            GITHUB_TOKEN=${GITHUB_AUTH_TOKEN} github-release edit \
+              --user ${CIRCLE_PROJECT_USERNAME} --repo ${CIRCLE_PROJECT_REPONAME} --tag "${CIRCLE_TAG}" \
+              --description "$(cat release-body.txt) $(cat release-append.txt)"
+      - run:
+          name: Generate a CHANGELOG.md
+          command: |
+            if [ -z "${CIRCLE_TAG}" ] ; then
+              echo "Not editing release"
+              exit 0
+            fi
+
+            # Get Changelog filename
+            export CHANGELOG_FILENAME=$(jq -r '.changelogFilename' .grenrc.json)
+
+            rm -f ${CHANGELOG_FILENAME}
+            docker run -it --name=gren \
+              eu.gcr.io/removebg-226919/github-release-notes:latest \
+              changelog --override --changelog-filename ${CHANGELOG_FILENAME} --token ${GITHUB_AUTH_TOKEN} --username ${CIRCLE_PROJECT_USERNAME} --repo ${CIRCLE_PROJECT_REPONAME}
+            docker cp gren:/${CHANGELOG_FILENAME} ${CHANGELOG_FILENAME}
+            docker rm gren
+
+            # Configure git
+            git config --global credential.helper cache
+            git config --global user.email "${GITHUB_USER_EMAIL}"
+            git config --global user.name "${GITHUB_USER_NAME}"
+
+            # Stash local changes
+            git stash
+
+            # Retrieve main branch of the repo and check it out
+            export GIT_MAIN_BRANCH="$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')"
+            git checkout --force "${GIT_MAIN_BRANCH}"
+            git checkout stash@{0} -- ${CHANGELOG_FILENAME}
+            git add ${CHANGELOG_FILENAME}
+
+            # Then, commit the changelog to git
+            git commit -m "docs(CHANGELOG): update ${CHANGELOG_FILENAME} for ${CIRCLE_TAG}"
+            git push -q --set-upstream origin ${GIT_MAIN_BRANCH}
+
+
+# Workflows orchestrate the jobs
+workflows:
+  version: 2
+
+  # Build/deploy pipeline
+  pipeline:
+    jobs:
+      - build_core:
+          context:
+            - Gemfury
+            - DockerHub
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - build_api:
+          context:
+            - Gemfury
+            - DockerHub
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - publish:
+          requires:
+            - build
+          context:
+            - DockerHub
+            - Gemfury
+            - GitHub
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+            branches:
+              ignore: /.*/
+      - docker:
+          requires:
+            - build_core
+            - build_api
+            - publish
+          context:
+            - DockerHub
+            - Gemfury
+            - Google Cloud remove.bg
+            - GitHub
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+            branches:
+              ignore: /.*/
+      - lint:
+          context:
+            - DockerHub
+          filters:
+            branches:
+              ignore: main
+      - danger:
+          requires:
+            - build_core
+            - build_api
+            - lint
+            - docker
+          context:
+            - DockerHub
+            - GitHub
+            - Danger
+          filters:
+            branches:
+              ignore: main
+      - deploy:
+          requires:
+            - docker
+          context:
+            - DockerHub
+            - Slack
+            - GitHub
+            - Google Cloud remove.bg
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+            branches:
+              ignore: /.*/

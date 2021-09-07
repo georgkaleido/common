@@ -15,7 +15,7 @@ import * as fs from 'fs';
 const isDepfuPR = danger.github.pr.user.login == 'depfu[bot]' && danger.github.pr.user.type == 'Bot'
 
 // Check if it's a trivial PR
-const declaredTrivial = danger.github.pr.title.includes("#trivial")
+const declaredTrivial = danger.github.pr.title.includes("#trivial") || danger.github.pr.body.includes("#yolo")
 
 // Get stats
 const { additions = 0, deletions = 0 } = danger.github.pr
@@ -197,10 +197,14 @@ if (vulnerabilitiesAPI == 0) {
 var yamllintResult = fs.readFileSync("lint/yamllint.txt").toString();
 if (yamllintResult.includes("[error]") || yamllintResult.includes("[warning]")) {
   const yamllintRegex = /^([^:]+):(\d+):(\d+): \[(\w+)\] (.+) \(([\w_\-\.]+)\)/gmi
-  yamllintResult = yamllintResult.replace(yamllintRegex, '| `$1` | $2 | $3 | $4 | `$6` | $5 |')
+  yamllintResult = yamllintResult.replace(yamllintRegex, '| `$1` | $2 | $3 | **$4** | `$6` | $5 |')
 
   const markdownHeaderYamllint = "| File  | Line | Position | Level | Module | Message |\n| ----- |:----:|:--------:|:-----:|:------:| ------- |\n"
   markdown("### YAML Lint\n\n" + markdownHeaderYamllint + yamllintResult)
+}
+
+if (yamllintResult.includes("warning") || yamllintResult.includes("error")) {
+  fail("📎 There are issues in your `.yaml` files!")
 }
 
 var kubevalJson = JSON.parse(fs.readFileSync("lint/kubeval.json").toString());
@@ -218,5 +222,5 @@ kubevalJson.forEach(obj => {
 markdown("### Kubernetes Configuration\n\n" + markdownHeaderKubeval + kubevalResult);
 
 if (kubevalResult.includes("invalid")) {
-  fail("`☸️ Invalid Kubernetes configuration Check the output of `kubeval`!")
+  fail("`☸️ Invalid Kubernetes configuration found!")
 }

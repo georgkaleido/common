@@ -1,0 +1,130 @@
+###
+# Note: This is just a preliminary version! Database etc. need to be added.
+# https://github.com/remove-bg/kaleido-deploy/blob/master/removebg/k8s/api/api-config.yaml
+#
+version: "3.8"
+
+services:
+
+  # API
+  api:
+    build:
+      context: api
+      dockerfile: Dockerfile
+
+      # Configure build args
+      args:
+        - NPM_TOKEN=$NPM_TOKEN
+
+      # Add a 'development' label to the image
+      labels:
+        ai.kaleido.ops.target: "development"
+
+    # Specify container dependencies
+    depends_on:
+      - rabbitmq
+
+    # Keep the stdin open, so we can attach to our app container's process
+    # and do things such as byebug, etc:
+    stdin_open: true
+
+    # Enable sending signals (CTRL+C, CTRL+P + CTRL+Q) into the container:
+    tty: true
+
+    # Specify environment variables available for our app containers. We'll leave
+    # a YML anchor in case we need to override or add more variables if needed on
+    # each app container:
+    environment: &api_environment
+
+      # Configure Rabbitmq
+      RABBITMQ_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672/
+
+      # Configure app specific settings
+      REQUEST_QUEUE: remove_bg
+      RESPONSE_QUEUE: remove_bg_api_result
+      DOWNLOAD_POOL_SIZE: 15
+
+      # Configure TLS certificates
+      API_SSL_CRT: ssl/development.crt
+      API_SSL_KEY: ssl/development.key
+      API_SSL_PASS: development
+
+    # Specify ports that should be exposed on the host
+    ports:
+      - "9443:9443"
+
+  # Core
+  core:
+    build:
+      context: core
+      dockerfile: Dockerfile
+
+      # Configure build args
+      args:
+        - FURY_AUTH_TOKEN=$FURY_AUTH_TOKEN
+        - GITHUB_AUTH_TOKEN=$GITHUB_AUTH_TOKEN
+
+      # Add a 'development' label to the image
+      labels:
+        ai.kaleido.ops.target: "development"
+
+    # Enable Nvidia GPU
+    runtime: nvidia
+
+    # Specify container dependencies
+    depends_on:
+      - rabbitmq
+
+    # Keep the stdin open, so we can attach to our app container's process
+    # and do things such as byebug, etc:
+    stdin_open: true
+
+    # Enable sending signals (CTRL+C, CTRL+P + CTRL+Q) into the container:
+    tty: true
+
+    # Specify environment variables available for our app containers. We'll leave
+    # a YML anchor in case we need to override or add more variables if needed on
+    # each app container:
+    environment: &core_environment
+
+      # Configure Rabbitmq
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: rabbitmq
+      RABBITMQ_PASSWORD: rabbitmq
+
+      # Configure app specific settings
+      REQUEST_QUEUE: remove_bg
+      MOCK_RESPONSE: 0
+
+      # Make all NVIDIA GPUs available to the container
+      NVIDIA_VISIBLE_DEVICES: all
+
+    # !!! Leave this commented out in the repository. Only uncomment locally
+    # if you need to access the core ports.
+    # ports:
+    #   - "7443:7443"
+
+  # Rabbitmq
+  rabbitmq:
+    image: rabbitmq:3.8.14
+
+    # Specify environment variables available for our app containers. We'll leave
+    # a YML anchor in case we need to override or add more variables if needed on
+    # each app container:
+    environment: &rabbitmq_environment
+      RABBITMQ_ERLANG_COOKIE: "JDJSIFJ82LsNls2SaYY771D"
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
+
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+
+    # !!! Leave this commented out in the repository. Only uncomment locally
+    # if you need to access the rabbitmq ports.
+    # ports:
+    #  - "5672:5672"
+
+volumes:
+  rabbitmq:
