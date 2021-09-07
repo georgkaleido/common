@@ -48,6 +48,7 @@ jobs:
       - run:
           name: Check and install
           command: |
+            cd core
             . .venv/bin/activate
             python setup.py check
             python setup.py install
