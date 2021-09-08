@@ -138,7 +138,6 @@ ENV VCS_REF="${VCS_REF}" \
 # Application configuration
 ENV PYTHONUNBUFFERED="true"
 ENV PYTHONPATH="${PYTHONPATH}:../"
-ENV NODE_OPTIONS="--max_old_space_size=4096"
 
 # Switch back to app user
 USER app
