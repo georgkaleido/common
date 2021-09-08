@@ -91,7 +91,7 @@ docker build \
 
 `//TODO: describe requirements_*.in and how it translates to *.txt`
 
-`//TODO: move this to new repository after the library is splt.
+`//TODO: move this to new repository after the library is split`
 
 After all prerequisites are satisfied, you can create a source distribution in the [dist](core/dist) directory
 with this command.
