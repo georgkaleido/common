@@ -66,7 +66,8 @@ USER app
 # Configure Node environment
 ENV NODE_ENV="production" \
     API_PORT="9443" \
-    API_SSL="true"
+    API_SSL="true" \
+    NODE_OPTIONS="--max_old_space_size=4096"
 
 # Ports used by the listener
 EXPOSE 9443
