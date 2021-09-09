@@ -16,8 +16,8 @@ pip install -U "pip-tools<7.0.0"
 
 echo "Updating requirements-deploy.txt. This may take a while..."
 pip-compile -U requirements-deploy.in -o requirements-deploy.txt --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
-# add --extra-index-url and install requirements (pip, setuptools) to beginning of file
-sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\npip>=21.0.0<22.0.0\nsetuptools>=52.0.0,<53.0.0\n\n/' requirements-deploy.txt
+# add --extra-index-url to beginning of file
+sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\n\n/' requirements-deploy.txt
 echo "Successfully updated requirements-deploy.txt"
 
 echo "Removing torch,torchvision and torchtext dependencies from requirements-deploy.txt as already shipped in base image."
@@ -28,14 +28,14 @@ sed -i '/torchtext==/d' requirements-deploy.txt
 
 echo "Updating requirements-dev.txt. This may take a while..."
 pip-compile -U requirements-deploy.in requirements-dev.in -o requirements-dev.txt --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
-# add --extra-index-url and install requirements (pip, setuptools) to beginning of file
-sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\npip>=21.0.0<22.0.0\nsetuptools>=52.0.0,<53.0.0\n\n/' requirements-dev.txt
+# add --extra-index-url to beginning of file
+sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\n\n/' requirements-dev.txt
 echo "Successfully updated requirements-dev.txt"
 
 echo "Updating requirements-train.txt. This may take a while..."
 pip-compile -U requirements.in requirements-train.in -o requirements-train.txt --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
-# add --extra-index-url and install requirements (pip, setuptools) to beginning of file
-sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\npip>=21.0.0<22.0.0\nsetuptools>=52.0.0,<53.0.0\n\n/' requirements-train.txt
+# add --extra-index-url to beginning of file
+sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\n\n/' requirements-train.txt
 echo "Successfully updated requirements-train.txt"
 
 echo "Removing torch,torchvision and torchtext dependencies from requirements-train.txt as already shipped in base image."

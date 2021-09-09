@@ -19,3 +19,4 @@ msgpack<1.0.0
 pandas<1.4.0
 nibabel<2.5.0,>=2.4.0
 pillow>=7.2.0,<9.0.0
+removebg-core>1.0.0
