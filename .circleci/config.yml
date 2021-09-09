@@ -539,6 +539,14 @@ jobs:
             # Then, commit the changelog to git
             git commit -m "docs(CHANGELOG): update ${CHANGELOG_FILENAME} for ${CIRCLE_TAG}"
             git push -q --set-upstream origin ${GIT_MAIN_BRANCH}
+      - slack/notify:
+          event: fail
+          mentions: '@ops'
+          template: basic_fail_1
+      - slack/notify:
+          event: pass
+          template: success_tagged_deploy_1
+          branch_pattern: none
 
 # Workflows orchestrate the jobs
 workflows:
