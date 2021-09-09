@@ -11,9 +11,10 @@ version: 2.1
 # read more about orbs: https://circleci.com/docs/2.0/using-orbs/
 orbs:
   slack: circleci/slack@4.4.2
-  gcr: circleci/gcp-gcr@0.13.0
-  gke: circleci/gcp-gke@1.3.0
   node: circleci/node@4.5.0
+  gcp-gcr: circleci/gcp-gcr@0.13.0
+  gcp-gke: circleci/gcp-gke@1.3.0
+  aws-ecr: circleci/aws-ecr@7.2.0
 
 jobs:
   # Build job
@@ -208,12 +209,14 @@ jobs:
     working_directory: ~/project
     steps:
       - setup_remote_docker:
-          version: 20.10.6
+          version: 20.10.7
           docker_layer_caching: true
       - checkout
       - run:
           name: Install Prerequisites
           command: |
+            apt-get update && apt-get install -y unzip
+
             curl -Lo /usr/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
             chmod +x /usr/bin/jq
             pip3 install yq
@@ -308,9 +311,9 @@ jobs:
               --secret id=npm_token,src=npm_token.txt \
               --tag ${tag} \
                 .
-      - gcr/gcr-auth
+      - gcp-gcr/gcr-auth
       - run:
-          name: Push image to registry (if this is a release)
+          name: Push image to GCR registry (if this is a release)
           command: |
             if [ -z "${CIRCLE_TAG}" ] ; then
               echo "Not pushing Docker image"
@@ -325,6 +328,40 @@ jobs:
             while IFS="" read -r p || [ -n "$p" ]
             do
               docker push "${p}"
+            done <core/tags-core.txt
+      - run:
+          name: Push image to Canva AWS registry (if this is a release)
+          command: |
+
+            # Only push to AWS ECR for tagged releases
+            if [ -z "${CIRCLE_TAG}" ] ; then
+              echo "Not pushing Docker image"
+              exit 0
+            fi
+
+            # Ensure AWS CLI is installed
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscli.zip
+            unzip awscli.zip
+            ./aws/install
+            aws --version
+
+            # Log in to Canva Docker Registry
+            aws configure set role_arn ${AWS_ROLE_ARN}
+            aws ecr get-login-password --region ${CANVA_ECR_REGION} | docker login --username AWS --password-stdin ${CANVA_ECR_REGISTRY_URI}
+
+            # Push all Docker images to Canva Docker Registry
+            while IFS="" read -r p || [ -n "$p" ]
+            do
+              tag=$(cut -d ':' -f2 \<<< "$p")
+              docker tag "${p}" "${CANVA_ECR_REGISTRY_URI}/kaleido/kaleido-api:${tag}"
+              docker push "${CANVA_ECR_REGISTRY_URI}/kaleido/kaleido-api:${tag}"
+            done <api/tags-api.txt
+
+            while IFS="" read -r p || [ -n "$p" ]
+            do
+              tag=$(cut -d ':' -f2 \<<< "$p")
+              docker tag "${p}" "${CANVA_ECR_REGISTRY_URI}/kaleido/removebg-core:${tag}"
+              docker push "${CANVA_ECR_REGISTRY_URI}/kaleido/removebg-core:${tag}"
             done <core/tags-core.txt
       - save_cache:
           paths:
@@ -372,16 +409,16 @@ jobs:
     working_directory: ~/project
     steps:
       - setup_remote_docker:
-          version: 20.10.6
+          version: 20.10.7
       - checkout
       - restore_cache:
           key: tags-v{{ .Environment.CACHE_VERSION }}-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-      - gke/install
-      - gke/update-kubeconfig-with-credentials:
+      - gcp-gke/install
+      - gcp-gke/update-kubeconfig-with-credentials:
           cluster: ${GKE_CLUSTER}
           install-kubectl: true
           perform-login: true
-      - gcr/gcr-auth
+      - gcp-gcr/gcr-auth
       - run:
           name: Install prerequisites
           command: |
@@ -496,7 +533,6 @@ jobs:
             git commit -m "docs(CHANGELOG): update ${CHANGELOG_FILENAME} for ${CIRCLE_TAG}"
             git push -q --set-upstream origin ${GIT_MAIN_BRANCH}
 
-
 # Workflows orchestrate the jobs
 workflows:
   version: 2
@@ -539,6 +575,8 @@ workflows:
             - DockerHub
             - Gemfury
             - Google Cloud remove.bg
+            - AWS
+            - AWS Canva ECR
             - GitHub
           filters:
             tags:
