@@ -259,7 +259,7 @@ jobs:
               tag="${DOCKER_IMAGE_NAME}-core:${VERSION}-cc${compute_capability}"
               echo "${tag}" >> tags-core.txt
 
-              # Build an image for each PyTorch tag
+              # Build an image for each Compute Capability
               DOCKER_BUILDKIT=1 docker build --progress=plain \
                 --build-arg VCS_REF=${CIRCLE_SHA1:0:7} \
                 --build-arg BUILD_DATE=${BUILD_DATE} \
