@@ -341,13 +341,20 @@ jobs:
 
             # Ensure AWS CLI is installed
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscli.zip
-            unzip awscli.zip
-            ./aws/install
+            unzip -oq awscli.zip
+            ./aws/install --update
             aws --version
 
             # Log in to Canva Docker Registry
-            aws configure set role_arn ${AWS_ROLE_ARN}
-            aws ecr get-login-password --region ${CANVA_ECR_REGION} | docker login --username AWS --password-stdin ${CANVA_ECR_REGISTRY_URI}
+            aws --profile default configure set aws_access_key_id "${AWS_ACCESS_KEY_ID}"
+            aws --profile default configure set aws_secret_access_key "${AWS_SECRET_ACCESS_KEY}"
+            aws --profile default configure set output ${AWS_DEFAULT_OUTPUT}
+
+            aws --profile canva configure set role_arn ${AWS_ROLE_ARN}
+            aws --profile canva configure set source_profile default
+            aws --profile canva configure set role_session_name ops@kaleido.ai
+
+            aws ecr get-login-password --region ${CANVA_ECR_REGION} --profile canva | docker login --username AWS --password-stdin ${CANVA_ECR_REGISTRY_URI}
 
             # Push all Docker images to Canva Docker Registry
             while IFS="" read -r p || [ -n "$p" ]
