@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.6.0 (10/09/2021)
+
+#### 🚀 Enhancements:
+
+- Update kaleido-models version [#25](https://github.com/remove-bg/kaleido-removebg/pull/25)
+- Refactored server code [#6](https://github.com/remove-bg/kaleido-removebg/pull/6)
+
+#### 🐞 Bugfixes:
+
+- Refactor exif test: Recreate images with compression level=100 [#26](https://github.com/remove-bg/kaleido-removebg/pull/26)
+- Revert "Refactored server code" [#24](https://github.com/remove-bg/kaleido-removebg/pull/24)
+- Fix dpi test [#20](https://github.com/remove-bg/kaleido-removebg/pull/20) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.6.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.6.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.6.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.6.0-cc86`
+---
+
 ## 1.5.0 (09/09/2021)
 
 #### 🚀 Enhancements:
