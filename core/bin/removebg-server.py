@@ -1,108 +1,103 @@
 #!/usr/bin/env python
-import math
-import os
+
+import pika
 import time
-from dataclasses import dataclass
-from typing import Any, Dict, Optional, Type, Union
-
+import os
+import math
 import msgpack
+import multiprocessing
 import numpy as np
-from kaleido.server import ImageServer, Worker, read_rabbitmq_env_variables
-from kaleido.server.messages import (ERROR_STATUS, ImageProcessingData,
-                                     ImageResult)
-from kaleido.tensor.utils import to_numpy, to_tensor
-from pika import spec
+import traceback
 
-from removebg.image import CouldNotReadImage, SmartAlphaImage
+from kaleido.tensor.utils import to_numpy, to_tensor
+from removebg.image import SmartAlphaImage, CouldNotReadImage
 from removebg.removebg import UnknownForegroundException
 
-UNKNOWN_ERROR = "unknown_error"
-UNKNOWN_FOREGROUND = "unknown_foreground"
+workers = multiprocessing.cpu_count()
+queue_in = multiprocessing.Queue(workers)
+shared_data_manager = multiprocessing.Manager()
+initializing = multiprocessing.Value('i', 1)
 
 
-@dataclass
-class RemovebgResult(ImageResult):
-    maxwidth: int = 0
-    maxheight: int = 0
-    width_hd: int = 0
-    height_hd: int = 0
-    width_medium: int = 0
-    height_medium: int = 0
-    width_uncropped: int = 0
-    height_uncropped: int = 0
-    type: str = "auto"
+class ExtractorError(Exception):
+    """Raised when the extractor class returns an error"""
+    pass
 
 
-class RemovebgWorker(Worker):
-    def _preprocess(
-        self,
-        method: spec.Basic.Deliver,
-        props: spec.BasicProperties,
-        body: Union[Optional[bytes], Any],
-    ) -> None:
-        obj_in = msgpack.unpackb(body)
-        correlation_extra = {"correlation_id": props.correlation_id}
+def callback(ch, method, props, body):
+    # try to read the body
 
-        result: RemovebgResult = RemovebgResult()
-        processing_data = ImageProcessingData(
-            worker_id=self.identifier,
-            routing_key=str(props.reply_to),
-            correlation_id=props.correlation_id,
-            delivery_tag=method.delivery_tag,
-            result=result,
-        )
+    def rep(obj):
+        body = msgpack.packb(obj)
 
-        if self._handle_command(obj_in[b"command"], processing_data):
-            return None
+        ch.basic_publish(exchange='',
+                         routing_key=props.reply_to,
+                         properties=pika.BasicProperties(correlation_id=props.correlation_id, delivery_mode=2),
+                         body=body)
+        ch.basic_ack(delivery_tag=method.delivery_tag)
 
-        # continue with removebg
-        im_bytes = obj_in[b"data"]
-        megapixels = obj_in[b"megapixels"]
-        only_alpha = obj_in.get(b"channels", b"rgba") == b"alpha"
-        api_type = obj_in.get(b"type", b"auto")
-        file_format = obj_in.get(b"format", b"auto").decode()
-        bg_color = obj_in.get(b"bg_color", [255, 255, 255, 0])
-        im_bytes_bg = obj_in.get(b"bg_image", None)
-        scale_param = obj_in.get(b"scale", None)
-        position_param = obj_in.get(b"position", None)
-        crop = obj_in.get(b"crop", False)
-        crop_margin = obj_in.get(b"crop_margin", None)
-        roi = obj_in.get(b"roi", None)
-        shadow = obj_in.get(b"shadow", False)
-        semitransparency = obj_in.get(b"semitransparency", True)
+    obj_in = msgpack.unpackb(body)
+    obj_out = {b'status': 'ok',
+               b'description': '',
+               b'data': bytes(),
+               b'width': 0,
+               b'height': 0,
+               b'maxwidth': 0,
+               b'maxheight': 0,
+               b'width_hd': 0,
+               b'height_hd': 0,
+               b'width_medium': 0,
+               b'height_medium': 0,
+               b'version': 1.0,
+               b'format': 'png'}
+
+    # parse command
+    command = obj_in[b'command']
+    if command == b'health':
+        obj_out['status'] = 'initializing' if initializing.value == 1 else 'ok'
+        rep(obj_out)
+
+        return
+
+    # continue with removebg
+
+    im_bytes = obj_in[b'data']
+    megapixels = obj_in[b'megapixels']
+    only_alpha = obj_in.get(b'channels', b'rgba') == b'alpha'
+    api_type = obj_in.get(b'type', b'auto')
+    format = obj_in.get(b'format', b'auto').decode('utf-8')
+    bg_color = obj_in.get(b'bg_color', [255, 255, 255, 0])
+    im_bytes_bg = obj_in.get(b'bg_image', None)
+    scale_param = obj_in.get(b'scale', None)
+    position_param = obj_in.get(b'position', None)
+    crop = obj_in.get(b'crop', False)
+    crop_margin = obj_in.get(b'crop_margin', None)
+    roi = obj_in.get(b'roi', None)
+    shadow = obj_in.get(b'shadow', False)
+    semitransparency = obj_in.get(b'semitransparency', True)
+
+    times = []
+    t = time.time()
+
+    try:
+        image = SmartAlphaImage(im_bytes, megapixel_limit=megapixels)
         image_bg = None
 
-        times = []
-        t = time.time()
-
-        try:
-            image = SmartAlphaImage(im_bytes, megapixel_limit=megapixels)
-
-            if im_bytes_bg is not None:
-                image_bg = SmartAlphaImage(im_bytes_bg, megapixel_limit=megapixels)
-        except CouldNotReadImage:
-            self.logger.exception(
-                "error: could not read image", extra=correlation_extra
-            )
-            result.status = ERROR_STATUS
-            result.description = "failed_to_read_image"
-            # error happened, we exit
-            self._submit_result(processing_data)
-            return None
+        if im_bytes_bg is not None:
+            image_bg = SmartAlphaImage(im_bytes_bg, megapixel_limit=megapixels)
 
         if image.signal_beacon():
-            self.logger.info("SIGNAL BEACON DETECTED", extra=correlation_extra)
+            print('[{}] {}'.format(props.correlation_id, 'SIGNAL BEACON DETECTED'))
 
         times.append(time.time() - t)
-        has_image_icc: str = "yes" if image.icc else "no"
-        has_alpha: str = "yes" if image.im_alpha is not None is not None else "no"
-        has_exif_rot: str = "none" if image.exif_rot is None else image.exif_rot
-        self.logger.info(
-            f"[{props.correlation_id}] decoding ({times[-1]:.2f}s) | megapixels: {megapixels}, mode: {image.mode_original}, dpi: {image.dpi}, icc: {has_image_icc}, has alpha: {has_alpha}, exif: {has_exif_rot}",
-        )
+        print('[{}] {:10} ({:.2f}s) | megapixels: {}, mode: {}, dpi: {}, icc: {}, has alpha: {}, exif: {}'.format(
+            props.correlation_id, 'decoding', times[-1], megapixels, image.mode_original, image.dpi,
+            'yes' if image.icc else 'no', 'yes' if image.im_alpha is not None is not None else 'no',
+            'none' if image.exif_rot is None else image.exif_rot))
         t = time.time()
 
         # crop to roi
+
         crop_roi = None
 
         if roi:
@@ -118,137 +113,89 @@ class RemovebgWorker(Worker):
 
             crop_roi = [x0, y0, w, h]
 
-        im_cv = image.get("bgr", crop=crop_roi)
+        im_cv = image.get('bgr', crop=crop_roi)
 
         # check min size
-        s = 224.0 / max(im_cv.shape[0], im_cv.shape[1])
+
+        s = 224. / max(im_cv.shape[0], im_cv.shape[1])
         if s * im_cv.shape[0] < 5 or s * im_cv.shape[1] < 5:
-            self.logger.exception(
-                "error: could not identify foreground",
-                extra={
-                    "detail": f"image size too small: {im_cv.shape}",
-                    **correlation_extra,
-                },
-            )
-            result.status = ERROR_STATUS
-            result.description = UNKNOWN_FOREGROUND
-            self._submit_result(processing_data)
+            raise UnknownForegroundException('image size too small: {}'.format(im_cv.shape))
 
         times.append(time.time() - t)
-        self.logger.info(
-            f"[{props.correlation_id}] preproc ({times[-1]:.2f}s) | {image.width}x{image.height} -> {im_cv.shape[1]}x{im_cv.shape[0]} (crop: {crop})",
-        )
+        print('[{}] {:10} ({:.2f}s) | {}x{} -> {}x{} (crop: {})'.format(props.correlation_id, 'preproc', times[-1],
+                                                                        image.width, image.height, im_cv.shape[1],
+                                                                        im_cv.shape[0], crop))
 
-        # pass all data which is needed for postprocessing
-        processing_data.data = {
-            "times": times,
-            "api": api_type.decode(),
-            "image": image,
-            "im_cv": im_cv,
-            "image_bg": image_bg,
-            "shadow": shadow,
-            "only_alpha": only_alpha,
-            "file_format": file_format,
-            "bg_color": bg_color,
-            "scale_param": scale_param,
-            "position_param": position_param,
-            "crop": crop,
-            "crop_margin": crop_margin,
-            "crop_roi": crop_roi,
-            "semitransparency": semitransparency,
-        }
+        shared_data = shared_data_manager.dict()
+        shared_data['finished'] = False
+        shared_data['data'] = None
+        shared_data['error'] = None
+        shared_data['error_fg'] = None
+        shared_data['api'] = None
+        shared_data['time'] = None
+        queue_in.put((im_cv, shared_data, api_type.decode('utf-8'), shadow, props.correlation_id))
 
-        self._send_to_server(processing_data)
-        return None
+        while not shared_data['finished']:
+            time.sleep(0.01)
 
-    def _post_process(self) -> None:
-        processing_data: Optional[ImageProcessingData] = self._fetch_from_server()
-        if not processing_data:
-            # handle when server is stopped
-            return None
+        im_res = shared_data['data']
 
-        result = processing_data.result
-        data = processing_data.data
+        if shared_data['error']:
+            raise ExtractorError(shared_data['error'])
 
-        if result.status == ERROR_STATUS:
-            self._submit_result(processing_data)
-            return None
+        if shared_data['error_fg']:
+            raise UnknownForegroundException()
 
-        # load data from preprocessing
-        im_res = data["data"]
-        times = data["times"]
-        image = data["image"]
-        semitransparency = data["semitransparency"]
-        crop_margin = data["crop_margin"]
-        scale_param = data["scale_param"]
-        position_param = data["position_param"]
-        bg_color = data["bg_color"]
-        image_bg = data["image_bg"]
-        shadow = data["shadow"]
-        only_alpha = data["only_alpha"]
-        file_format = data["file_format"]
+        times.append(shared_data['time'])
+        print('[{}] {:10} ({:.2f}s) | class: {}'.format(props.correlation_id, 'processing', times[-1],
+                                                        shared_data['api']))
 
-        times.append(data["time"])
-        self.logger.info(
-            f"[{processing_data.correlation_id}] processing ({times[-1]:.2f}s) | class: {data['api']}",
-        )
+        # postprocessing
+
         t = time.time()
 
         # uncrop and set result
-        im_rgb_precolorcorr = image.get("rgb")
-        image.set(im_res, "bgra", limit_alpha=True, crop=data["crop_roi"])
+
+        im_rgb_precolorcorr = image.get('rgb')
+        image.set(im_res, 'bgra', limit_alpha=True, crop=crop_roi)
 
         # car windows
-        if data["api"] == "car":
-            image.fill_holes(
-                200 if semitransparency else 255,
-                mode="car",
-                average=semitransparency,
-                im_rgb_precolorcorr=im_rgb_precolorcorr,
-            )
-        elif data["api"] == "car_interior":
-            image.fill_holes(
-                200 if semitransparency else 0,
-                mode="all",
-                average=True,
-                im_rgb_precolorcorr=im_rgb_precolorcorr,
-            )
+
+        if shared_data['api'] == 'car':
+            image.fill_holes(200 if semitransparency else 255, mode='car', average=semitransparency,
+                             im_rgb_precolorcorr=im_rgb_precolorcorr)
+
+        elif shared_data['api'] == 'car_interior':
+            image.fill_holes(200 if semitransparency else 0, mode='all', average=True,
+                             im_rgb_precolorcorr=im_rgb_precolorcorr)
 
         # crop to subject
-        if data["crop"]:
+
+        if crop:
+
             kwargs = {}
             if crop_margin:
-                kwargs = {
-                    "margins": [
-                        crop_margin[b"top"],
-                        crop_margin[b"right"],
-                        crop_margin[b"bottom"],
-                        crop_margin[b"left"],
-                    ],
-                    "absolutes": [
-                        not crop_margin[b"top_relative"],
-                        not crop_margin[b"right_relative"],
-                        not crop_margin[b"bottom_relative"],
-                        not crop_margin[b"left_relative"],
-                    ],
-                    "clamp": 500,
-                }
-            image.postproc_fn("crop_subject", **kwargs)
+                kwargs['margins'] = [crop_margin[b'top'], crop_margin[b'right'], crop_margin[b'bottom'],
+                                     crop_margin[b'left']]
+                kwargs['absolutes'] = [not crop_margin[b'top_relative'], not crop_margin[b'right_relative'],
+                                       not crop_margin[b'bottom_relative'], not crop_margin[b'left_relative']]
+                kwargs['clamp'] = 500
+
+            image.postproc_fn('crop_subject', **kwargs)
 
         # scale
+
         if scale_param:
-            image.postproc_fn("scale_subject", scale_new=scale_param / 100.0)
+            image.postproc_fn('scale_subject', scale_new=scale_param / 100.)
 
         # position
+
         if position_param:
-            image.postproc_fn(
-                "position_subject",
-                dx=position_param[b"x"] / 100.0,
-                dy=position_param[b"y"] / 100.0,
-            )
+            image.postproc_fn('position_subject', dx=position_param[b'x'] / 100., dy=position_param[b'y'] / 100.)
 
         # fill bg color or background
-        if file_format == "jpg":
+
+        if format == 'jpg':
             bg_color[3] = 255
 
         if image_bg is not None:
@@ -257,190 +204,211 @@ class RemovebgWorker(Worker):
             image.underlay_background(bg_color)
 
         times.append(time.time() - t)
-        has_shadow: str = "yes" if shadow else "no"
-        self.logger.info(
-            f"[{processing_data.correlation_id}] postproc ({times[-1]:.2f}s) | bg_color: {bg_color}, shadow: {has_shadow}",
-        )
+        print('[{}] {:10} ({:.2f}s) | bg_color: {}, shadow: {}'.format(props.correlation_id, 'postproc', times[-1],
+                                                                       bg_color, 'yes' if shadow else 'no'))
         t = time.time()
 
         # encoding
-        if file_format == "zip":
-            res = image.encode("zip")
-            result.format = "zip"
+
+        if format == 'zip':
+            res = image.encode('zip')
+            obj_out['format'] = 'zip'
+
         else:
             if only_alpha:
-                if file_format == "jpg" or file_format == "auto":
-                    res = image.encode("jpg_alpha")
-                    result.format = "jpg"
+                if format == 'jpg' or format == 'auto':
+                    res = image.encode('jpg_alpha')
+                    obj_out['format'] = 'jpg'
+
                 else:
-                    res = image.encode("png_alpha")
-                    result.format = "png"
+                    res = image.encode('png_alpha')
+                    obj_out['format'] = 'png'
             else:
-                if file_format == "png" or (
-                    file_format == "auto" and image.has_transparency()
-                ):
-                    res = image.encode("png")
-                    result.format = "png"
+                if format == 'png' or (format == 'auto' and image.has_transparency()):
+                    res = image.encode('png')
+                    obj_out['format'] = 'png'
+
                 else:
-                    res = image.encode("jpg")
-                    result.format = "jpg"
+                    res = image.encode('jpg')
+                    obj_out['format'] = 'jpg'
 
-        result.type = data["api"]
-        result.data = res
-        result.width = image.width
-        result.height = image.height
-        result.width_uncropped = image.width_original
-        result.height_uncropped = image.height_original
+        obj_out['type'] = shared_data['api']
 
-        scale = math.sqrt(
-            1500000.0 / (image.width_pre_mplimit * image.height_pre_mplimit)
-        )
-        result.width_medium = min(
-            int(scale * image.width_pre_mplimit), image.width_pre_mplimit
-        )
-        result.height_medium = min(
-            int(scale * image.height_pre_mplimit), image.height_pre_mplimit
-        )
+        obj_out['data'] = res
+        obj_out['width'] = image.width
+        obj_out['height'] = image.height
+        obj_out['width_uncropped'] = image.width_original
+        obj_out['height_uncropped'] = image.height_original
 
-        scale = math.sqrt(
-            4000000.0 / (image.width_pre_mplimit * image.height_pre_mplimit)
-        )
-        result.width_hd = min(
-            int(scale * image.width_pre_mplimit), image.width_pre_mplimit
-        )
-        result.height_hd = min(
-            int(scale * image.height_pre_mplimit), image.height_pre_mplimit
-        )
+        scale = math.sqrt(1500000.0 / (image.width_pre_mplimit * image.height_pre_mplimit))
+        obj_out['width_medium'] = min(int(scale * image.width_pre_mplimit), image.width_pre_mplimit)
+        obj_out['height_medium'] = min(int(scale * image.height_pre_mplimit), image.height_pre_mplimit)
 
-        scale = math.sqrt(
-            25000000.0 / (image.width_pre_mplimit * image.height_pre_mplimit)
-        )
-        result.maxwidth = min(
-            int(scale * image.width_pre_mplimit), image.width_pre_mplimit
-        )
-        result.maxheight = min(
-            int(scale * image.height_pre_mplimit), image.height_pre_mplimit
-        )
+        scale = math.sqrt(4000000.0 / (image.width_pre_mplimit * image.height_pre_mplimit))
+        obj_out['width_hd'] = min(int(scale * image.width_pre_mplimit), image.width_pre_mplimit)
+        obj_out['height_hd'] = min(int(scale * image.height_pre_mplimit), image.height_pre_mplimit)
+
+        scale = math.sqrt(25000000.0 / (image.width_pre_mplimit * image.height_pre_mplimit))
+        obj_out['maxwidth'] = min(int(scale * image.width_pre_mplimit), image.width_pre_mplimit)
+        obj_out['maxheight'] = min(int(scale * image.height_pre_mplimit), image.height_pre_mplimit)
 
         times.append(time.time() - t)
-        self.logger.info(
-            f"[{processing_data.correlation_id}] encoding ({times[-1]:.2f}s) "
-            f"| format: {result.format}, overall {sum(times):.2f}s",
-        )
-        self._submit_result(processing_data)
+        print('[{}] {:10} ({:.2f}s) | format: {}, overall {:.2f}s'.format(props.correlation_id, 'encoding', times[-1],
+                                                                          str(obj_out['format']), sum(times)))
+    except CouldNotReadImage as e:
+        print('[{}] error: could not read image: {}'.format(props.correlation_id, e))
+
+        obj_out['status'] = 'error'
+        obj_out['description'] = 'failed_to_read_image'
+
+    except UnknownForegroundException:
+        print('[{}] error: could not identify foreground'.format(props.correlation_id))
+
+        obj_out['status'] = 'error'
+        obj_out['description'] = 'unknown_foreground'
+
+    except ExtractorError as e:
+        print('[{}] error:  got error from extractor: {}'.format(props.correlation_id, e))
+
+        obj_out['status'] = 'error'
+        obj_out['description'] = 'unknown_error'
+
+    except Exception as e:
+        print('[{}] error: got unknown exception: {}'.format(props.correlation_id, e))
+        traceback.print_exc()
+
+        obj_out['status'] = 'error'
+        obj_out['description'] = 'unknown_error'
+
+    rep(obj_out)
 
 
-class RemovebgServer(ImageServer):
+def worker():
+    print('Initializing rabbitmq connection. host "{}", port "{}", queue "{}"'.format(os.environ['RABBITMQ_HOST'],
+                                                                                      os.environ['RABBITMQ_PORT'],
+                                                                                      os.environ['REQUEST_QUEUE']))
 
-    PROCESSING_FILE = "currently_processing"
+    try:
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(os.environ['RABBITMQ_HOST'], os.environ['RABBITMQ_PORT'], '/',
+                                      pika.PlainCredentials(os.environ['RABBITMQ_USER'],
+                                                            os.environ['RABBITMQ_PASSWORD'])))
+        channel = connection.channel()
+        channel.queue_declare(queue=os.environ['REQUEST_QUEUE'], durable=True)
+        channel.basic_qos(prefetch_count=1)  # fair dispatch
 
-    def __init__(
-        self,
-        request_queue: str,
-        rabbitmq_host: str,
-        rabbitmq_port: int,
-        rabbitmq_user: str,
-        rabbitmq_password: str,
-        *,
-        worker_class: Optional[Type[Worker]],
-        mock_response: bool,
-        require_models: bool,
-        worker_init_kwargs: Optional[Dict[str, Any]] = None,
-    ) -> None:
-        super().__init__(
-            request_queue,
-            rabbitmq_host,
-            rabbitmq_port,
-            rabbitmq_user,
-            rabbitmq_password,
-            worker_class,
-            worker_init_kwargs,
-        )
-        self.removebg = None
-        self.identifier = None
-        self.error_count = 0
-        self.mock_response = mock_response
-        self.require_models = require_models
-        if not self.mock_response:
-            self.logger.info("initializing extractor...")
-            from removebg.removebg import Identifier, Removebg
+        channel.basic_consume(queue=os.environ['REQUEST_QUEUE'], on_message_callback=callback)
 
-            self.removebg = Removebg(
-                "networks-trained/",
-                require_models=self.require_models,
-                trimap_flip_mean=True,
-            )
-            self.identifier = Identifier(
-                "networks-trained/", require_models=self.require_models
-            )
-            assert self.removebg, "Failed to initialize Removebg"
-            assert self.identifier, "Failed to initialize Identifier"
-
-    def _process(self, data: ImageProcessingData) -> None:
-        processing_data = data.data
-        im, shadow = processing_data["im_cv"], processing_data["shadow"]
-        result = data.result
-
-        t = time.time()
-
-        processing_data["data"] = None
-
-        if self.mock_response:
-            processing_data["data"] = np.dstack((im, np.ones_like(im[:, :, 0]) * 128))
-            processing_data["api"] = "mock"
-        else:
-            # transfer to gpu
-            im_tr = to_tensor(im, bgr2rgb=True)
-
-            # overwrite if auto
-            if processing_data["api"] == "auto":
-                processing_data["api"] = self.identifier(im_tr)
-
-            # be stricter with previews. this way (hopefully) no preview
-            # gets accepted while the highres gets rejected.
-            trimap_confidence_thresh = (
-                0.25 if im_tr.shape[-1] * im_tr.shape[-2] < 250000 else 0.15
-            )
-            try:
-                # extract background
-                im_tr_rgb, im_tr_alpha = self.removebg(
-                    im_tr,
-                    color_enabled=(
-                        processing_data["api"] == "person"
-                        or processing_data["api"] == "animal"
-                    ),
-                    shadow_enabled=(processing_data["api"] == "car" and shadow),
-                    trimap_confidence_thresh=trimap_confidence_thresh,
-                )
-            except UnknownForegroundException:
-                self.logger.exception(
-                    f"[{data.correlation_id}] could not detect foreground"
-                )
-                result.status = ERROR_STATUS
-                result.description = UNKNOWN_FOREGROUND
-            else:
-                im_rgb = to_numpy(im_tr_rgb, rgb2bgr=True)
-                im_alpha = to_numpy(im_tr_alpha)
-
-                processing_data["data"] = np.dstack(
-                    (im_rgb, np.expand_dims(im_alpha, axis=2))
-                )
-
-        processing_data["time"] = time.time() - t
-        self._send_to_post_processing(data)
+        print(' [*] Waiting for messages. To exit press CTRL+C')
+        channel.start_consuming()
+    except Exception as e:
+        print('got an error creating rabbitmq connection: {}'.format(e))
+        traceback.print_exc()
 
 
 def main():
-    rabbitmq_args = read_rabbitmq_env_variables()
-    mock_response = bool(int(os.environ.get("MOCK_RESPONSE", 0)))
-    require_models = bool(int(os.environ.get("REQUIRE_MODELS", 1)))
-    server = RemovebgServer(
-        *rabbitmq_args,
-        require_models=require_models,
-        worker_class=RemovebgWorker,
-        mock_response=mock_response,
-    )
-    server.start()
+
+    assert('REQUEST_QUEUE' in os.environ)
+    assert('RABBITMQ_HOST' in os.environ)
+    assert('RABBITMQ_PORT' in os.environ)
+    assert('RABBITMQ_USER' in os.environ)
+    assert('RABBITMQ_PASSWORD' in os.environ)
+
+    print('Starting up...')
+
+    if os.environ.get('MOCK_RESPONSE', '0') == '0':
+        print('initializing extractor...')
+
+        from removebg.removebg import Removebg, Identifier
+
+        require_models = os.environ.get('REQUIRE_MODELS', '1') == '1'
+
+        removebg = Removebg('networks-trained/', require_models=require_models, trimap_flip_mean=True)
+        identifier = Identifier('networks-trained/', require_models=require_models)
+
+    print('starting workers...')
+
+    time.sleep(5)
+    pool = multiprocessing.Pool(processes=workers)
+    for i in range(workers):
+        pool.apply_async(worker)
+
+    print('finished startup')
+
+    # create startup completed file
+    with open('startup-completed', 'w+') as f:
+        pass
+
+    initializing.value = 0
+    error_count = 0
+
+    fname_processing = 'currently_processing'
+
+    while True:
+        im, d, api, shadow, correlation_id = queue_in.get()
+
+        # create processing file
+        with open(fname_processing, 'w+') as f:
+            pass
+
+        t = time.time()
+
+        try:
+            d['data'] = None
+            d['api'] = api
+
+            if os.environ.get('MOCK_RESPONSE', '0') != '0':
+                d['data'] = np.dstack((im,  np.ones_like(im[:, :, 0]) * 128))
+                d['api'] = 'mock'
+            else:
+                # transfer to gpu
+
+                im_tr = to_tensor(im, bgr2rgb=True)
+
+                # overwrite if auto
+                if d['api'] == 'auto':
+                    d['api'] = identifier(im_tr)
+
+                # be stricter with previews. this way (hopefully) no preview gets accepted while the highres gets rejected.
+                trimap_confidence_thresh = 0.25 if im_tr.shape[-1] * im_tr.shape[-2] < 250000 else 0.15
+
+                # extract background
+                im_tr_rgb, im_tr_alpha = removebg(im_tr, color_enabled=(d['api'] == 'person' or d['api'] == 'animal'), shadow_enabled=(d['api'] == 'car' and shadow), trimap_confidence_thresh=trimap_confidence_thresh)
+
+                im_rgb = to_numpy(im_tr_rgb, rgb2bgr=True)
+                im_alpha = to_numpy(im_tr_alpha)
+
+                d['data'] = np.dstack((im_rgb, np.expand_dims(im_alpha, axis=2)))
+
+                # reset cuda errors
+                error_count = 0
+
+        except UnknownForegroundException as e:
+            print('[{}] could not detect foreground: {}'.format(correlation_id, e))
+            d['error_fg'] = True
+
+        except Exception as e:
+            print('[{}] there occured an error during the extraction: {}'.format(correlation_id, e))
+            traceback.print_exc()
+
+            d['error'] = str(e)
+
+            # count errors to detect unhealty state
+            error_count += 1
+
+            # more than 10 errors in a row - kill application
+            if error_count >= 10:
+                exit('close due to unhealthy state')
+
+        # remove processing file (if there is any)
+        try:
+            os.remove(fname_processing)
+        except Exception as e:
+            print('[{}] could not remove processing file! {}'.format(correlation_id, e))
+            traceback.print_exc()
+
+        d['time'] = time.time() - t
+        d['finished'] = True
 
 
 if __name__ == "__main__":

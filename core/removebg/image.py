@@ -4,7 +4,6 @@ import zipfile
 import numpy as np
 
 from PIL import Image as ImagePIL
-from kaleido.image.encode import encode_image
 
 from kaleido.image.imread import read_image
 from kaleido.image.icc import rgb2mode
@@ -244,12 +243,19 @@ class SmartAlphaImage(object):
             im = _restore_cmyk_colors(im)
 
             # encode color
-            bytes_color = encode_image(im, icc_profile=self.icc if icc_valid else None, **kwargs_jpg)
+
+            with io.BytesIO() as o:
+                im.save(o, icc_profile=self.icc if icc_valid else None, **kwargs_jpg)
+                bytes_color = o.getvalue()
 
             # encode alpha
-            bytes_alpha = encode_image(im_alpha, **kwargs_png)
+
+            with io.BytesIO() as o:
+                im_alpha.save(o, **kwargs_png)
+                bytes_alpha = o.getvalue()
 
             # zip it
+
             with io.BytesIO() as mem_zip:
                 with zipfile.ZipFile(mem_zip, mode='w', compression=zipfile.ZIP_STORED) as zf:
                     zf.writestr('color.jpg', bytes_color)
@@ -265,8 +271,12 @@ class SmartAlphaImage(object):
             im[:, :, :3][im[:, :, 3] == 0] = 0
 
             # create pil image
-            kwargs_png["icc_profile"] = self.icc if self.mode_original in ['RGB', 'RGBA'] else None
-            res = encode_image(im, **kwargs_png)
+
+            im_rgba = ImagePIL.fromarray(im)
+
+            with io.BytesIO() as o:
+                im_rgba.save(o, icc_profile=self.icc if self.mode_original in ['RGB', 'RGBA'] else None, **kwargs_png)
+                res = o.getvalue()
 
         elif format == 'jpg':
 
@@ -292,15 +302,36 @@ class SmartAlphaImage(object):
                 res = o.getvalue()
 
         elif format == 'jpg_alpha':
+
             # only alpha
-            res = encode_image(self.im_alpha, **kwargs_jpg)
+
+            im_alpha = ImagePIL.fromarray(self.im_alpha)
+
+            with io.BytesIO() as o:
+                im_alpha.save(o, **kwargs_jpg)
+                res = o.getvalue()
+
         elif format == 'png_alpha':
+
             # only alpha
-            res = encode_image(self.im_alpha, **kwargs_png)
+
+            im_alpha = ImagePIL.fromarray(self.im_alpha)
+
+            with io.BytesIO() as o:
+                im_alpha.save(o, **kwargs_png)
+                res = o.getvalue()
+
         elif format == 'jpg_color':
+
             # only alpha
-            res = encode_image(self.im_rgb, **kwargs_png)
+
+            im_color = ImagePIL.fromarray(self.im_rgb)
+
+            with io.BytesIO() as o:
+                im_color.save(o, **kwargs_png)
+                res = o.getvalue()
+
         else:
-            raise Exception(f'method {format} not supported!')
+            raise Exception('method {} not supported!'.format(format))
 
         return res

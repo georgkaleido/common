@@ -13,7 +13,7 @@ trim_trailing_whitespace = true
 charset = utf-8
 
 [*.py]
-quote_type = double
+quote_type = single
 indent_size = 4
 
 [*.md]
