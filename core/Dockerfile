@@ -73,7 +73,7 @@ RUN --mount=type=secret,id=fury_auth_token,mode=0444 --mount=type=cache,target=/
 
 
 # https://github.com/remove-bg/kaleido-models
-ARG KALEIDO_MODELS_VERSION="1.6.0"
+ARG KALEIDO_MODELS_VERSION="1.7.0"
 ARG KALEIDO_MODELS_FILES="^(identifier-mobilenetv2-c9\..+|matting-fba\..+|shadowgen256_car\..+|trimap513-deeplab-res2net\..+)$"
 
 # https://github.com/remove-bg/downscale-area-cuda/
