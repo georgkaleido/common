@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.1 (16/09/2021)
+*No changelog for this release.* 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.6.1`
+* `eu.gcr.io/removebg-226919/removebg-core:1.6.1-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.6.1-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.6.1-cc86`
+---
+
 ## 1.6.0 (10/09/2021)
 
 #### 🚀 Enhancements:
