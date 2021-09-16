@@ -360,8 +360,8 @@ jobs:
             while IFS="" read -r p || [ -n "$p" ]
             do
               tag=$(cut -d ':' -f2 \<<< "$p")
-              docker tag "${p}" "${CANVA_ECR_REGISTRY_URI}/kaleido/kaleido-api:${tag}"
-              docker push "${CANVA_ECR_REGISTRY_URI}/kaleido/kaleido-api:${tag}"
+              docker tag "${p}" "${CANVA_ECR_REGISTRY_URI}/kaleido/removebg-api:${tag}"
+              docker push "${CANVA_ECR_REGISTRY_URI}/kaleido/removebg-api:${tag}"
             done <api/tags-api.txt
 
             while IFS="" read -r p || [ -n "$p" ]
