@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.6.2 (17/09/2021)
+
+#### 🐞 Bugfixes:
+
+- Disable nudging for old ps plugin [#28](https://github.com/remove-bg/kaleido-removebg/pull/28) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.6.2`
+* `eu.gcr.io/removebg-226919/removebg-core:1.6.2-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.6.2-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.6.2-cc86`
+---
+
 ## 1.6.1 (16/09/2021)
 *No changelog for this release.* 
 
