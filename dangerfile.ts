@@ -70,7 +70,7 @@ if (danger.github.pr.additions + danger.github.pr.deletions > bigPRThreshold && 
  * Reason: It's the most efficient way to jump from Github to Notion to update the
  *         ticket.
  */
-const prBody = danger.github.pr.body
+const prBody = String(danger.github.pr.body)
 const ticketUrlPattern = /https:\/\/www\.notion\.so\/kaleidoai\/(.+)/g
 if (!ticketUrlPattern.test(prBody) && !(isDepfuPR || declaredTrivial)) {
   message(`I can't find a Notion card URL in the PR description.`, { icon: '🔍' })
@@ -81,7 +81,7 @@ if (!ticketUrlPattern.test(prBody) && !(isDepfuPR || declaredTrivial)) {
  * Reason: Mainly to encourage writing up some reasoning about the PR,
  *         rather than just leaving a title
  */
-if (danger.github.pr.body.length < 5 && !(isDepfuPR || declaredTrivial)) {
+if (prBody.length < 5 && !(isDepfuPR || declaredTrivial)) {
   fail(":writing_hand: Please provide a summary in the Pull Request description")
 }
 

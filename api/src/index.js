@@ -40,8 +40,8 @@ const ipRangeCheck = require("ip-range-check");
 const { Improve, applyImproveRateLimit} = require("./improve");
 
 const apiPort = process.env.API_PORT || 9443
-const useSSL = toBoolean(process.env.API_SSL || true) 
-                && process.env.API_SSL_KEY 
+const useSSL = toBoolean(process.env.API_SSL || true)
+                && process.env.API_SSL_KEY
                 && process.env.API_SSL_CRT
 const maxFileSize = 12*1024*1024;
 
@@ -114,7 +114,7 @@ function startServer() {
   app.options('/v1.0/apps/:name', cors());
   app.get('/v1.0/apps/:name', cors(), (req, res) => {
     logger.info(`[${res.locals.requestId}]   App: ${req.params.name} / Version: ${req.query.v}`);
-    
+
     // All OK:            res.json({"status": "ok"});
     // Optional update:   res.json({"status": "warning", "message": "Thanks for testing remove.bg for Adobe Photoshop. Feedback? team@remove.bg"});
     // Required update:   res.json({"status": "error", "message": "This plugin is no longer supported. Please update at www.remove.bg/photoshop"});
@@ -123,11 +123,12 @@ function startServer() {
       case "photoshop":
         // req.query.v == "1.0.0"
         // req.query.v == "1.0.1"
-        if (req.query.v.split('.')[0]=="1") { // send warning nudge to all users of CEP plugin
-          res.json({"status": "warning", "message": "<b>⚠️ This plugin is outdated</b><br>Learn how to upgrade to the new version in the FAQ section. www.remove.bg/photoshop"});
-        } else {
-          res.json({"status": "ok"});
-        }
+        // if (req.query.v.split('.')[0]=="1") { // send warning nudge to all users of CEP plugin
+        //   res.json({"status": "warning", "message": "<b>⚠️ This plugin is outdated</b><br>Learn how to upgrade to the new version in the FAQ section. www.remove.bg/photoshop"});
+        // } else {
+        //   res.json({"status": "ok"});
+        // }
+        res.json({"status": "ok"});
         break;
       case "desktop":
         // req.query.v == "1.0.0"
@@ -211,10 +212,10 @@ function startServer() {
     passphrase: process.env.API_SSL_PASS,
   } : {}
 
-  const server = useSSL ? 
+  const server = useSSL ?
     https.createServer(serverOptions, app) :
     http.createServer(serverOptions, app)
-  
+
   server.listen(apiPort, () => logger.info(`remove bg API listening on ${serverType} port ${apiPort}!`));
 
   var httpTerminator = createHttpTerminator({
@@ -266,12 +267,12 @@ function prepare(req, res, wrapperFormat) {
     var type = getType(req);
     var typeLevel = getTypeLevel(req);
     var crop = getCrop(req);
-    
+
     var format = getFormat(req);
     if(!format) {
       return sendError(res, 400, "Invalid format parameter given", { code: "invalid_format" });
     }
-    
+
     var megapixels = 0.25;
     switch(size) {
       case "full":
@@ -289,7 +290,7 @@ function prepare(req, res, wrapperFormat) {
         megapixels = 1.5;
         break;
     }
-    
+
     var roi = getRoi(req);
     if(roi == null) {
       return sendError(res, 400, "Invalid roi parameter given", { code: "invalid_roi" });
@@ -299,7 +300,7 @@ function prepare(req, res, wrapperFormat) {
     if(semitransparency == null) {
       return sendError(res, 400, "Invalid semitransparency parameter given", { code: "invalid_semitransparency" });
     }
-    
+
     var cropMargin = getCropMargin(req);
     if(cropMargin == null) {
       return sendError(res, 400, "Invalid crop_margin parameter given", { code: "invalid_crop_margin" });
@@ -320,7 +321,7 @@ function prepare(req, res, wrapperFormat) {
       return sendError(res, 400, "Invalid bg_color parameter given", { code: "invalid_bg_color" });
     }
     var bgColorVisible = bgColor[3] > 0;
-    
+
     var bgImageUrl = req.body.bg_image_url;
     if(bgImageUrl && !validUrl.isWebUri(bgImageUrl)) {
       return sendError(res, 400, "Invalid bg_image_url: Please provide a valid URL.", { code: "invalid_bg_image_url" });
@@ -437,7 +438,7 @@ function validate(data, backgroundData, res, wrapperFormat, megapixels, type, ch
       var pixels = dataValid.width * dataValid.height;
       logger.info(`[${res.locals.requestId}]   Enterprise user ${res.locals.user_id}, input resolution ${pixels} px`)
     }
-    
+
     processImage(data, backgroundData, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel);
   }).catch(() => {
     // no-op
@@ -493,11 +494,11 @@ function processImage(data, backgroundData, res, wrapperFormat, megapixels, type
           if(result.type == 'car' && addShadow) {
             logger.info(`[${res.locals.requestId}]   Car shadow for ${res.locals.user_id}, shadow user agent: ${res.locals.user_agent}`);
           }
-          
+
           var resolution = result.width_uncropped * result.height_uncropped;
 
           var data = Buffer.from(result.data, "binary");
-          
+
           var chargeInfo = auth.charge(resolution);
           res.set('X-Credits-Charged', chargeInfo.credits_charged);
 
@@ -515,7 +516,7 @@ function processImage(data, backgroundData, res, wrapperFormat, megapixels, type
             result.width,
             result.height,
           ].join(",")
-      
+
           logger.info(processedImageLog)
 
           if(wrapperFormat == "binary") {
@@ -793,7 +794,7 @@ else {
     res.set("X-RateLimit-Limit", applicableRateLimit);
 
     var megapixels = Math.ceil(pixelCount / 1000000);
-    
+
     return new Promise((resolve, reject) => {
       ratelimit.per_minute('rbgapirl', user_id, applicableRateLimit, megapixels).then((rateLimiterRes) => {
         setSharedRateLimitHeaders(res, rateLimiterRes);
