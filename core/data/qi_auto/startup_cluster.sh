@@ -5,9 +5,9 @@ set -e
 CLUSTER_NAME=trimap-qi-auto
 
 # Create images
-python -m kaleido_utils.gce.create_and_upload_docker -i ${CLUSTER_NAME}-initialization -r /home/jerome/Workspace/removebg/kaleido-removebg/core/ -f ./data/qi_auto/Dockerfile.initialization -t v2
-python -m kaleido_utils.gce.create_and_upload_docker -i ${CLUSTER_NAME}-trainer -r /home/jerome/Workspace/removebg/kaleido-removebg/core/ -f ./data/qi_auto/Dockerfile.trainer -t v2
-python -m kaleido_utils.gce.create_and_upload_docker -i ${CLUSTER_NAME}-postprocessing -r /home/jerome/Workspace/removebg/kaleido-removebg/core/ -f ./data/qi_auto/Dockerfile.postprocessing -t v2
+python -m kaleido_utils.gce.create_and_upload_docker -i ${CLUSTER_NAME}-initialization -r /home/jerome/Workspace/removebg/kaleido-removebg/core/ -f ./data/qi_auto/Dockerfile.initialization -t v3
+python -m kaleido_utils.gce.create_and_upload_docker -i ${CLUSTER_NAME}-trainer -r /home/jerome/Workspace/removebg/kaleido-removebg/core/ -f ./data/qi_auto/Dockerfile.trainer -t v3
+python -m kaleido_utils.gce.create_and_upload_docker -i ${CLUSTER_NAME}-postprocessing -r /home/jerome/Workspace/removebg/kaleido-removebg/core/ -f ./data/qi_auto/Dockerfile.postprocessing -t v3
 
 # Create cluster
 gcloud container clusters create ${CLUSTER_NAME} --machine-type=n1-standard-4 --zone=europe-west4-b --num-nodes=1 --scopes=storage-rw --release-channel=rapid --cluster-version=1.21

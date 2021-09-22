@@ -11,9 +11,9 @@ spec:
         spec:
           containers:
             - name: qi-auto-initialization
-              image: eu.gcr.io/kaleido-train/trimap-qi-auto-initialization:v2
+              image: eu.gcr.io/kaleido-train/trimap-qi-auto-initialization:v3
               imagePullPolicy: Always
               args:
-                - "--danni_user=[...]"
-                - "--danni_token=[...]"
+                - "--danni_user=jerome.nicolaou"
+                - "--danni_token=GK3A2RFyVCDnkpNXHHPfHpGI"
           restartPolicy: OnFailure

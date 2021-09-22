@@ -19,7 +19,7 @@ spec:
             medium: Memory
       containers:
         - name: removebg-trimap513
-          image: eu.gcr.io/kaleido-train/trimap-qi-auto-trainer:v2
+          image: eu.gcr.io/kaleido-train/trimap-qi-auto-trainer:v3
           imagePullPolicy: Always
           command: ["python", "/workspace/kaleido/removebg-train-trimap-cloud-qi.py"]
           args:

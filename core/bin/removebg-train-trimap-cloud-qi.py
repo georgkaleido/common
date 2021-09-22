@@ -57,18 +57,17 @@ class BestCheckpointNameFixer(Callback):
         self.name_pattern = name_pattern
 
     def on_validation_end(self, trainer, pl_module):
-        if not os.path.exists(self.base_name):
+        base_path = os.path.join(self.dir_path, self.base_name)
+        if not os.path.exists(base_path):
             return
         # Get mtime of best.ckpt
-        base_path = os.path.join(self.dir_path, self.base_name)
         base_mtime = os.path.getmtime(base_path)
 
         # Get list of files matching the name pattern
-        for name in glob.glob(os.path.join(self.dir_path, self.name_pattern)):
-            new_path = os.path.join(self.dir_path, name)
+        for new_path in glob.glob(os.path.join(self.dir_path, self.name_pattern)):
             new_mtime = os.path.getmtime(new_path)
             if new_mtime > base_mtime:
-                logging.info(f"Best checkpoint {name} is newer than {self.base_name}. Replacing {self.base_name} by {name}")
+                logging.info(f"Best checkpoint {new_path} is newer than {self.base_name}. Replacing {self.base_name} by {new_path}")
                 os.rename(new_path, base_path)
                 base_mtime = new_mtime
 
