@@ -86,7 +86,7 @@ def callback(ch, method, props, body):
         if im_bytes_bg is not None:
             image_bg = SmartAlphaImage(im_bytes_bg, megapixel_limit=megapixels)
 
-        if image.signal_beacon():
+        if image.signal_beacon:
             print('[{}] {}'.format(props.correlation_id, 'SIGNAL BEACON DETECTED'))
 
         times.append(time.time() - t)
@@ -111,7 +111,7 @@ def callback(ch, method, props, body):
             x0 = int(x0 * image.scale_pre_mplimit)
             y0 = int(y0 * image.scale_pre_mplimit)
 
-            crop_roi = [x0, y0, w, h]
+            crop_roi = (x0, y0, w, h)
 
         im_cv = image.get('bgr', crop=crop_roi)
 
@@ -211,7 +211,7 @@ def callback(ch, method, props, body):
         # encoding
 
         if format == 'zip':
-            res = image.encode('zip')
+            res = image.zip()
             obj_out['format'] = 'zip'
 
         else:
@@ -224,7 +224,7 @@ def callback(ch, method, props, body):
                     res = image.encode('png_alpha')
                     obj_out['format'] = 'png'
             else:
-                if format == 'png' or (format == 'auto' and image.has_transparency()):
+                if format == 'png' or (format == 'auto' and image.has_transparency):
                     res = image.encode('png')
                     obj_out['format'] = 'png'
 

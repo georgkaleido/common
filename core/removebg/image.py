@@ -1,26 +1,29 @@
-
 import io
 import zipfile
-import numpy as np
+from typing import Any, Optional, Tuple, Union
 
+import numpy
+import numpy as np
+import PIL
+from kaleido.alpha.imops import (crop_subject, fill_holes, position_subject,
+                                 scale_subject, underlay_background)
+from kaleido.image import (ALPHA, BGR, BGRA, RGB, RGBA, CouldNotReadImage,
+                           encode_image)
+from kaleido.image.icc import rgb2mode
+from kaleido.image.imread import read_image
 from PIL import Image as ImagePIL
 
-from kaleido.image.imread import read_image
-from kaleido.image.icc import rgb2mode
-from kaleido.alpha.imops import fill_holes, crop_subject, scale_subject, position_subject, underlay_background
 
-
-class CouldNotReadImage(Exception):
-    """Raised when image could not be read fails"""
-    pass
-
-
-class SmartAlphaImage(object):
-    def __init__(self, im_bytes, megapixel_limit=None):
+class SmartAlphaImage:
+    def __init__(
+        self, im_bytes: bytes, megapixel_limit: Optional[float] = None
+    ) -> None:
         try:
-            im, im_raw, icc, mode, dpi, size_prescale, scale, exif_rot = read_image(im_bytes, megapixel_limit=megapixel_limit)
+            im, im_raw, icc, mode, dpi, size_prescale, scale, exif_rot = read_image(
+                im_bytes, megapixel_limit=megapixel_limit
+            )
         except Exception as e:
-            raise CouldNotReadImage(str(e)) from None
+            raise CouldNotReadImage(str(e))
 
         # im is rgb and im_raw is in the original colorspace (mode)
         self.im_raw = im_raw
@@ -56,88 +59,113 @@ class SmartAlphaImage(object):
         # this mask is used later when cmyk colors are restored
         self.pre_background_mask = None
 
-    def _validate_crop(self, crop):
-        if len(crop) != 4:
-            raise Exception('crop format is invalid! {}'.format(crop))
+    def _validate_crop(self, crop_roi: Tuple[int, int, int, int]) -> None:
+        assert len(crop_roi) == 4, f"crop format is invalid! {crop_roi}"
+        x, y, w, h = crop_roi
+        assert (
+            h + y <= self.height
+        ), f"crop invalid, {h + x} out of height {self.height} bound"
+        assert (
+            w + x <= self.width
+        ), f"crop invalid, {w + x} out of width {self.width} bound"
+        assert (
+            w != 0 and h != 0 and x > 0 and y > 0
+        ), f"crop invalid zero value in width={w}, height={h}, x={x} y={y}"
 
-        x, y, w, h = crop
-        if h + y > self.height or w + x > self.width or w == 0 or h == 0 or x < 0 or y < 0:
-            raise Exception('crop is invalid! width={}, height={}, crop x={}, y={}, width={}, height={}'.format(self.width, self.height, x, y, w, h))
-
-    def _validate_alpha(self):
-        if self.im_alpha is None:
-            raise Exception('alpha was not set yet!')
-
-    def get(self, mode='rgb', crop=None):
-
-        if mode == 'rgb':
+    def get(
+        self,
+        mode: str = RGB,
+        crop: Tuple[int, int, int, int] = tuple(),
+        ascontiguousarray: bool = True,
+    ) -> Optional[np.ndarray]:
+        assert mode in {RGB, BGR, BGRA, ALPHA}, f"Mode '{mode}' is not supported"
+        im = None
+        if mode == RGB:
             im = self.im_rgb
-        elif mode == 'bgr':
+        elif mode == BGR:
             im = self.im_rgb[:, :, ::-1]
-        elif mode == 'bgra':
-            if self.im_alpha is None:
-                raise Exception('alpha channel is not available!')
+        elif mode == BGRA:
+            assert self.im_alpha is not None, "alpha was not set yet!"
             im = np.dstack((self.im_rgb[:, :, ::-1], self.im_alpha))
-        elif mode == 'alpha':
-            if self.im_alpha is None:
-                raise Exception('alpha channel is not available!')
+        elif mode == ALPHA:
+            assert self.im_alpha is not None, "alpha was not set yet!"
             im = self.im_alpha
-        else:
-            raise Exception('mode {} not available'.format(mode))
-
-        # crop
 
         if crop:
-            self._validate_crop(crop)
+            im = self._crop(im, crop)
 
-            x, y, w, h = crop
-            im = im[y:y+h, x:x+w]
+        if ascontiguousarray:
+            return np.ascontiguousarray(im)
+        return im
 
-        return np.ascontiguousarray(im)
+    def _crop(
+        self, image: np.ndarray, crop_roi: Tuple[int, int, int, int]
+    ) -> np.ndarray:
+        self._validate_crop(crop_roi)
+        x, y, w, h = crop_roi
+        return image[y : y + h, x : x + w]
 
-    def set(self, im, mode='bgra', limit_alpha=True, crop=None):
+    def set(
+        self,
+        im: np.ndarray,
+        mode: str = BGRA,
+        limit_alpha: bool = True,
+        crop: Optional[Tuple[int, int, int, int]] = None,
+    ) -> None:
+        assert mode in {BGRA, ALPHA}, f"mode {mode} not available"
 
         if crop:
-            im = self.uncrop(im, crop[0], crop[1])
+            im = self._uncrop(im, crop[0], crop[1])
 
-        if im.shape[0] != self.im_rgb.shape[0] or im.shape[1] != self.im_rgb.shape[1]:
-            raise Exception('shape {} does not match original shape {}!'.format(im.shape, self.im_rgb.shape))
+        assert (
+            im.shape[0] == self.im_rgb.shape[0] or im.shape[1] == self.im_rgb.shape[1]
+        ), f"shape {im.shape} does not match original shape {self.im_rgb.shape}!"
 
         def _limit_alpha(im_alpha):
             # new alpha values can not be larger than old one (enabled by default)
-
             if self.im_alpha is None or not limit_alpha:
                 return im_alpha
-
             mask = im_alpha > self.im_alpha
             im_alpha[mask] = self.im_alpha[mask]
-
             return im_alpha
 
-        if mode == 'bgra':
-            if im.shape[2] != 4:
-                raise Exception('bgra images should have 4 dimensions. only has {}'.format(im.shape[2]))
-
+        if mode == BGRA:
+            assert (
+                im.shape[2] == 4
+            ), f"bgra images should have 4 dimensions. only has {im.shape[2]}"
             self.im_rgb = im[..., :3][..., ::-1]
             self.im_alpha = _limit_alpha(im[..., 3])
-        elif mode == 'alpha':
-            if len(im.shape) != 2:
-                raise Exception('alpha image has {} dimensions but should only have 2'.format(len(im.shape)))
-
+        elif mode == ALPHA:
+            assert (
+                len(im.shape) == 2
+            ), f"alpha image has {len(im.shape)} dimensions but should only have 2"
             self.im_alpha = _limit_alpha(im)
-        else:
-            raise Exception('mode {} not available'.format(mode))
 
-    def uncrop(self, im, x, y):
-        self._validate_crop([x, y, im.shape[1], im.shape[0]])
+    def _uncrop(self, im: np.ndarray, x: int, y: int) -> np.ndarray:
+        self._validate_crop((x, y, im.shape[1], im.shape[0]))
+        return np.pad(
+            im,
+            [(y, self.height - (im.shape[0] + y)), (x, self.width - (im.shape[1] + x))]
+            + ([] if len(im.shape) == 2 else [(0, 0)]),
+            "constant",
+        )
 
-        return np.pad(im, [(y, self.height - (im.shape[0] + y)), (x, self.width - (im.shape[1] + x))] + ([] if len(im.shape) == 2 else [(0, 0)]), 'constant')
+    @property
+    def signal_beacon(self) -> bool:
+        return (
+            self.im_rgb[0, 0, 0] >= 254
+            and self.im_rgb[0, 0, 1] == 0
+            and self.im_rgb[0, 0, 2] == 0
+        )
 
-    def signal_beacon(self):
-        return self.im_rgb[0, 0, 0] >= 254 and self.im_rgb[0, 0, 1] == 0 and self.im_rgb[0, 0, 2] == 0
-
-    def fill_holes(self, fill_value, mode, average, im_rgb_precolorcorr):
-        self._validate_alpha()
+    def fill_holes(
+        self,
+        fill_value: Any,
+        mode: str,
+        average: bool,
+        im_rgb_precolorcorr: numpy.ndarray,
+    ) -> None:
+        assert self.im_alpha is not None, "alpha was not set yet!"
 
         im = np.dstack((im_rgb_precolorcorr, self.im_alpha))
         im = fill_holes(im, fill_value, mode=mode, average=average)
@@ -148,17 +176,17 @@ class SmartAlphaImage(object):
         self.im_rgb = im[..., :3]
         self.im_alpha = im[..., 3]
 
-    def postproc_fn(self, name, **kwargs):
-        self._validate_alpha()
+    def postproc_fn(self, name: str, **kwargs: Any) -> None:
+        assert self.im_alpha is not None, "alpha was not set yet!"
 
-        if name == 'crop_subject':
+        if name == "crop_subject":
             fn = crop_subject
-        elif name == 'scale_subject':
+        elif name == "scale_subject":
             fn = scale_subject
-        elif name == 'position_subject':
+        elif name == "position_subject":
             fn = position_subject
         else:
-            raise Exception('postproc function {} not supported!'.format(name))
+            raise ValueError(f"postproc function {name} not supported!")
 
         self.im_rgb = fn(self.im_rgb, self.im_alpha, **kwargs)
         self.im_raw = fn(self.im_raw, self.im_alpha, **kwargs)
@@ -167,21 +195,18 @@ class SmartAlphaImage(object):
         self.width = self.im_rgb.shape[1]
         self.height = self.im_rgb.shape[0]
 
-    def underlay_background(self, background):
-        self._validate_alpha()
+    def underlay_background(self, background: Union[list, "SmartAlphaImage"]) -> None:
+        assert self.im_alpha is not None, "alpha was not set yet!"
 
         if isinstance(background, list):
-            if len(background) != 4:
-                raise Exception('background list must have exactly 4 entries!'.format(len(background)))
-
+            assert (
+                len(background) == 4
+            ), f"background list must have exactly 4 entries! has {len(background)}"
             # expected mode: RGB
-
             # completely transparent - return
             if background[3] == 0:
-                return
-
+                return None
             background_ = background
-
         elif isinstance(background, SmartAlphaImage):
             if background.im_alpha is None:
                 background_ = background.im_rgb
@@ -199,139 +224,101 @@ class SmartAlphaImage(object):
         self.im_rgb = im[..., :3]
         self.im_alpha = im[..., 3]
 
+    @property
     def has_transparency(self):
         return self.im_alpha is not None and (self.im_alpha < 255).any()
 
-    def encode(self, format):
+    def _restore_cmyk_colors(
+        self, im: Union[np.ndarray, ImagePIL.Image]
+    ) -> Union[np.ndarray, ImagePIL.Image]:
+        # only supported if icc profile is set and mode is cmyk
+        if self.icc is None or self.mode_original != "CMYK":
+            return im
 
-        self._validate_alpha()
+        im_np = np.array(im)
+        mask = (self.im_alpha == 0) | (self.im_alpha == 255)
 
-        kwargs_jpg = {'format': 'jpeg', 'quality': 90}
-        kwargs_png = {'format': 'png', 'compress_level': 3}
+        # backgrounds make this step complicated... dont restore areas
+        if self.pre_background_mask is not None:
+            mask = mask & self.pre_background_mask
 
-        if self.dpi:
-            kwargs_jpg['dpi'] = self.dpi
-            kwargs_png['dpi'] = self.dpi
+        im_np[mask] = self.im_raw[mask]
+        return ImagePIL.fromarray(im_np, mode=self.mode_original)
 
-        def _restore_cmyk_colors(im):
-            # only supported if icc profile is set and mode is cmyk
-            if self.icc is None or self.mode_original != 'CMYK':
-                return im
+    def encode(self, im_format: str = "png", **encoding_kwargs: Any) -> bytes:
+        """Encodes an image to the specified image format.
 
-            im_np = np.array(im)
-            mask = (self.im_alpha == 0) | (self.im_alpha == 255)
+        Args:
+            im_format: Format to encode image to e.g. png, jpeg, jpeg_alpha, jpeg_color
+            png_alpha.
+            **encoding_kwargs: Additional PIL encoding args.
 
-            # backgrounds make this step complicated... dont restore areas
-            if self.pre_background_mask is not None:
-                mask = mask & self.pre_background_mask
-
-            im_np[mask] = self.im_raw[mask]
-            return ImagePIL.fromarray(im_np, mode=self.mode_original)
-
-        if format == 'zip':
-            # to pil
-
-            im_rgb = ImagePIL.fromarray(self.im_rgb)
-            im_alpha = ImagePIL.fromarray(self.im_alpha)
-
-            # convert back to mode
-
-            im, icc_valid = rgb2mode(im_rgb, self.icc, self.mode_original)
-
-            # restore the original colors
-
-            im = _restore_cmyk_colors(im)
-
-            # encode color
-
-            with io.BytesIO() as o:
-                im.save(o, icc_profile=self.icc if icc_valid else None, **kwargs_jpg)
-                bytes_color = o.getvalue()
-
-            # encode alpha
-
-            with io.BytesIO() as o:
-                im_alpha.save(o, **kwargs_png)
-                bytes_alpha = o.getvalue()
-
-            # zip it
-
-            with io.BytesIO() as mem_zip:
-                with zipfile.ZipFile(mem_zip, mode='w', compression=zipfile.ZIP_STORED) as zf:
-                    zf.writestr('color.jpg', bytes_color)
-                    zf.writestr('alpha.png', bytes_alpha)
-
-                res = mem_zip.getvalue()
-
-        elif format == 'png':
-
-            # delete colors that are completely transparent to make encoded image smaller
-
-            im = np.dstack((self.im_rgb, self.im_alpha))
-            im[:, :, :3][im[:, :, 3] == 0] = 0
-
+        Returns:
+            Encoded image in bytes.
+        """
+        assert im_format in {
+            "png",
+            "jpeg",
+            "jpeg_alpha",
+            "jpeg_color",
+            "png_alpha",
+        }, f"Image format: '{im_format}' not supported to encode."
+        if im_format == "jpeg":
             # create pil image
-
-            im_rgba = ImagePIL.fromarray(im)
-
-            with io.BytesIO() as o:
-                im_rgba.save(o, icc_profile=self.icc if self.mode_original in ['RGB', 'RGBA'] else None, **kwargs_png)
-                res = o.getvalue()
-
-        elif format == 'jpg':
-
-            # create pil image
-
-            im_rgb = ImagePIL.fromarray(self.im_rgb)
-
+            im_rgb = PIL.Image.fromarray(self.get(mode=RGB))
             # convert back to mode
-
             im, icc_valid = rgb2mode(im_rgb, self.icc, self.mode_original)
 
             # restore original colors
-
-            im = _restore_cmyk_colors(im)
+            im = self._restore_cmyk_colors(im)
 
             # if there is an icc profile and its not the alpha mat
-
             if self.icc and icc_valid:
-                kwargs_jpg['icc_profile'] = self.icc
+                encoding_kwargs["icc_profile"] = self.icc
 
-            with io.BytesIO() as o:
-                im.save(o, **kwargs_jpg)
-                res = o.getvalue()
+            return encode_image(im, im_format, **encoding_kwargs)
+        elif im_format == "jpeg_alpha":
+            im_alpha = PIL.Image.fromarray(self.im_alpha)
+            return encode_image(im_alpha, im_format="jpeg", **encoding_kwargs)
+        elif im_format == "jpeg_color":
+            im_color = PIL.Image.fromarray(self.im_rgb)
+            im_color = im_color.convert(mode=RGB)
+            return encode_image(im_color, im_format="jpeg", **encoding_kwargs)
+        elif im_format == "png_alpha":
+            im_alpha = PIL.Image.fromarray(self.im_alpha, **encoding_kwargs)
+            return encode_image(im_alpha)
 
-        elif format == 'jpg_alpha':
+        # delete colors that are completely transparent to make encoded image smaller
+        im = np.dstack((self.im_rgb, self.im_alpha))
+        im[:, :, :3][im[:, :, 3] == 0] = 0
+        # create pil image
+        im_rgba = PIL.Image.fromarray(im)
+        return encode_image(
+            im_rgba, icc_profile=self.icc if self.mode_original in {RGB, RGBA} else None
+        )
 
-            # only alpha
+    def zip(self) -> bytes:
+        """Returns images alpha.png and color.jpg zipped."""
+        # to pil
+        im_rgb = PIL.Image.fromarray(self.im_rgb)
+        im_alpha = PIL.Image.fromarray(self.im_alpha)
+        # convert back to mode
+        im, icc_valid = rgb2mode(im_rgb, self.icc, self.mode_original)
+        # restore the original colors
+        im = self._restore_cmyk_colors(im)
 
-            im_alpha = ImagePIL.fromarray(self.im_alpha)
+        # encode color
+        bytes_color = encode_image(
+            im, "jpeg", icc_profile=self.icc if icc_valid else None
+        )
+        # encode alpha
+        bytes_alpha = encode_image(im_alpha)
 
-            with io.BytesIO() as o:
-                im_alpha.save(o, **kwargs_jpg)
-                res = o.getvalue()
-
-        elif format == 'png_alpha':
-
-            # only alpha
-
-            im_alpha = ImagePIL.fromarray(self.im_alpha)
-
-            with io.BytesIO() as o:
-                im_alpha.save(o, **kwargs_png)
-                res = o.getvalue()
-
-        elif format == 'jpg_color':
-
-            # only alpha
-
-            im_color = ImagePIL.fromarray(self.im_rgb)
-
-            with io.BytesIO() as o:
-                im_color.save(o, **kwargs_png)
-                res = o.getvalue()
-
-        else:
-            raise Exception('method {} not supported!'.format(format))
-
-        return res
+        # zip it
+        with io.BytesIO() as mem_zip:
+            with zipfile.ZipFile(
+                mem_zip, mode="w", compression=zipfile.ZIP_STORED
+            ) as zf:
+                zf.writestr("color.jpg", bytes_color)
+                zf.writestr("alpha.png", bytes_alpha)
+            return mem_zip.getvalue()

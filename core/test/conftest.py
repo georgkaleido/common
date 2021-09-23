@@ -62,3 +62,8 @@ def req_fn(request):
 
     return _fn
 
+
+@pytest.fixture(scope="session")
+def test_image_alpha_bytes() -> bytes:
+    with open("core/test/data/lena_alpha.png", "rb") as image_file:
+        yield image_file.read()
