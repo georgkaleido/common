@@ -5,19 +5,15 @@ from typing import Any, Optional, Tuple, Union
 import numpy
 import numpy as np
 import PIL
-from kaleido.alpha.imops import (crop_subject, fill_holes, position_subject,
-                                 scale_subject, underlay_background)
-from kaleido.image import (ALPHA, BGR, BGRA, RGB, RGBA, CouldNotReadImage,
-                           encode_image)
+from kaleido.alpha.imops import crop_subject, fill_holes, position_subject, scale_subject, underlay_background
+from kaleido.image import ALPHA, BGR, BGRA, RGB, RGBA, CouldNotReadImage, encode_image
 from kaleido.image.icc import rgb2mode
 from kaleido.image.imread import read_image
 from PIL import Image as ImagePIL
 
 
 class SmartAlphaImage:
-    def __init__(
-        self, im_bytes: bytes, megapixel_limit: Optional[float] = None
-    ) -> None:
+    def __init__(self, im_bytes: bytes, megapixel_limit: Optional[float] = None) -> None:
         try:
             im, im_raw, icc, mode, dpi, size_prescale, scale, exif_rot = read_image(
                 im_bytes, megapixel_limit=megapixel_limit
@@ -62,12 +58,8 @@ class SmartAlphaImage:
     def _validate_crop(self, crop_roi: Tuple[int, int, int, int]) -> None:
         assert len(crop_roi) == 4, f"crop format is invalid! {crop_roi}"
         x, y, w, h = crop_roi
-        assert (
-            h + y <= self.height
-        ), f"crop invalid, {h + x} out of height {self.height} bound"
-        assert (
-            w + x <= self.width
-        ), f"crop invalid, {w + x} out of width {self.width} bound"
+        assert h + y <= self.height, f"crop invalid, {h + x} out of height {self.height} bound"
+        assert w + x <= self.width, f"crop invalid, {w + x} out of width {self.width} bound"
         assert (
             w != 0 and h != 0 and x > 0 and y > 0
         ), f"crop invalid zero value in width={w}, height={h}, x={x} y={y}"
@@ -78,6 +70,7 @@ class SmartAlphaImage:
         crop: Tuple[int, int, int, int] = tuple(),
         ascontiguousarray: bool = True,
     ) -> Optional[np.ndarray]:
+        mode = mode.upper()
         assert mode in {RGB, BGR, BGRA, ALPHA}, f"Mode '{mode}' is not supported"
         im = None
         if mode == RGB:
@@ -98,9 +91,7 @@ class SmartAlphaImage:
             return np.ascontiguousarray(im)
         return im
 
-    def _crop(
-        self, image: np.ndarray, crop_roi: Tuple[int, int, int, int]
-    ) -> np.ndarray:
+    def _crop(self, image: np.ndarray, crop_roi: Tuple[int, int, int, int]) -> np.ndarray:
         self._validate_crop(crop_roi)
         x, y, w, h = crop_roi
         return image[y : y + h, x : x + w]
@@ -112,6 +103,7 @@ class SmartAlphaImage:
         limit_alpha: bool = True,
         crop: Optional[Tuple[int, int, int, int]] = None,
     ) -> None:
+        mode = mode.upper()
         assert mode in {BGRA, ALPHA}, f"mode {mode} not available"
 
         if crop:
@@ -130,15 +122,11 @@ class SmartAlphaImage:
             return im_alpha
 
         if mode == BGRA:
-            assert (
-                im.shape[2] == 4
-            ), f"bgra images should have 4 dimensions. only has {im.shape[2]}"
+            assert im.shape[2] == 4, f"bgra images should have 4 dimensions. only has {im.shape[2]}"
             self.im_rgb = im[..., :3][..., ::-1]
             self.im_alpha = _limit_alpha(im[..., 3])
         elif mode == ALPHA:
-            assert (
-                len(im.shape) == 2
-            ), f"alpha image has {len(im.shape)} dimensions but should only have 2"
+            assert len(im.shape) == 2, f"alpha image has {len(im.shape)} dimensions but should only have 2"
             self.im_alpha = _limit_alpha(im)
 
     def _uncrop(self, im: np.ndarray, x: int, y: int) -> np.ndarray:
@@ -152,11 +140,7 @@ class SmartAlphaImage:
 
     @property
     def signal_beacon(self) -> bool:
-        return (
-            self.im_rgb[0, 0, 0] >= 254
-            and self.im_rgb[0, 0, 1] == 0
-            and self.im_rgb[0, 0, 2] == 0
-        )
+        return self.im_rgb[0, 0, 0] >= 254 and self.im_rgb[0, 0, 1] == 0 and self.im_rgb[0, 0, 2] == 0
 
     def fill_holes(
         self,
@@ -199,9 +183,7 @@ class SmartAlphaImage:
         assert self.im_alpha is not None, "alpha was not set yet!"
 
         if isinstance(background, list):
-            assert (
-                len(background) == 4
-            ), f"background list must have exactly 4 entries! has {len(background)}"
+            assert len(background) == 4, f"background list must have exactly 4 entries! has {len(background)}"
             # expected mode: RGB
             # completely transparent - return
             if background[3] == 0:
@@ -256,6 +238,7 @@ class SmartAlphaImage:
         Returns:
             Encoded image in bytes.
         """
+        im_format = im_format.lower()
         assert im_format in {
             "png",
             "jpeg",
@@ -294,7 +277,7 @@ class SmartAlphaImage:
         # create pil image
         im_rgba = PIL.Image.fromarray(im)
         return encode_image(
-            im_rgba, icc_profile=self.icc if self.mode_original in {RGB, RGBA} else None
+            im_rgba, icc_profile=self.icc if self.mode_original.upper() in {RGB, RGBA} else None
         )
 
     def zip(self) -> bytes:
@@ -308,17 +291,13 @@ class SmartAlphaImage:
         im = self._restore_cmyk_colors(im)
 
         # encode color
-        bytes_color = encode_image(
-            im, "jpeg", icc_profile=self.icc if icc_valid else None
-        )
+        bytes_color = encode_image(im, "jpeg", icc_profile=self.icc if icc_valid else None)
         # encode alpha
         bytes_alpha = encode_image(im_alpha)
 
         # zip it
         with io.BytesIO() as mem_zip:
-            with zipfile.ZipFile(
-                mem_zip, mode="w", compression=zipfile.ZIP_STORED
-            ) as zf:
+            with zipfile.ZipFile(mem_zip, mode="w", compression=zipfile.ZIP_STORED) as zf:
                 zf.writestr("color.jpg", bytes_color)
                 zf.writestr("alpha.png", bytes_alpha)
             return mem_zip.getvalue()

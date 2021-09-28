@@ -2,3 +2,4 @@
 max-line-length = 110
 exclude = build,*.egg-info,dist,core/.circleci,core/.github,core/.eggs,api,core/data,core/
 per-file-ignores = core/test/*:E501
+ignore = E203,W503
