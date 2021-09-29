@@ -1,5 +1,6 @@
 import os
 import tempfile
+from unittest.mock import patch, ANY
 
 import cv2
 from kaleido.image import RGB, BGR, BGRA, ALPHA
@@ -69,6 +70,32 @@ class TestSmartAlphaImage:
         image = SmartAlphaImage(test_image_alpha_bytes)
         check_encode(image, "png")
 
+    def test_encode_png_dpi(self, test_image_alpha_bytes):
+        image = SmartAlphaImage(test_image_alpha_bytes)
+        image.dpi = (72, 72)
+        with patch("removebg.image.encode_image") as mocked_encode:
+            image.encode()
+            mocked_encode.assert_called_with(ANY, icc_profile=None, dpi=(72, 72))
+
+    def test_encode_jpeg_dpi(self, test_image_alpha_bytes):
+        image = SmartAlphaImage(test_image_alpha_bytes)
+        image.dpi = (72, 72)
+        with patch("removebg.image.encode_image") as mocked_encode:
+            image.encode(im_format="jpeg")
+            mocked_encode.assert_called_with(ANY, "jpeg", dpi=(72, 72))
+
+    def test_encode_jpg(self, test_image_alpha_bytes):
+        image = SmartAlphaImage(test_image_alpha_bytes)
+        check_encode(image, "jpg")
+
+    def test_encode_jpg_alpha(self, test_image_alpha_bytes):
+        image = SmartAlphaImage(test_image_alpha_bytes)
+        check_encode(image, "jpg")
+
+    def test_encode_jpg_color(self, test_image_alpha_bytes):
+        image = SmartAlphaImage(test_image_alpha_bytes)
+        check_encode(image, "jpg")
+
     def test_encode_jpeg(self, test_image_alpha_bytes):
         image = SmartAlphaImage(test_image_alpha_bytes)
         check_encode(image, "jpeg")
@@ -87,3 +114,10 @@ class TestSmartAlphaImage:
             with open(os.path.join(tmp_dir, "my.zip"), "wb") as file:
                 file.write(image.zip())
             assert os.path.exists(os.path.join(tmp_dir, "my.zip"))
+
+    def test_zip_dpi(self, test_image_alpha_bytes):
+        image = SmartAlphaImage(test_image_alpha_bytes)
+        image.dpi = (72, 72)
+        with patch("removebg.image.encode_image") as mocked_encode:
+            image.encode(im_format="jpeg")
+            mocked_encode.assert_called_with(ANY, "jpeg", dpi=(72, 72))

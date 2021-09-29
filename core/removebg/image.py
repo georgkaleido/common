@@ -238,7 +238,10 @@ class SmartAlphaImage:
         Returns:
             Encoded image in bytes.
         """
-        im_format = im_format.lower()        
+        if self.dpi:
+            encoding_kwargs["dpi"] = self.dpi
+
+        im_format = im_format.lower()
         # PIL only support jpeg not jpg as format to encode
         if 'jpg' in im_format:
             im_format = im_format.replace('jpg', 'jpeg')
@@ -272,7 +275,7 @@ class SmartAlphaImage:
             return encode_image(im_color, im_format="jpeg", **encoding_kwargs)
         elif im_format == "png_alpha":
             im_alpha = PIL.Image.fromarray(self.im_alpha, **encoding_kwargs)
-            return encode_image(im_alpha)
+            return encode_image(im_alpha, **encoding_kwargs)
 
         # delete colors that are completely transparent to make encoded image smaller
         im = np.dstack((self.im_rgb, self.im_alpha))
@@ -280,11 +283,14 @@ class SmartAlphaImage:
         # create pil image
         im_rgba = PIL.Image.fromarray(im)
         return encode_image(
-            im_rgba, icc_profile=self.icc if self.mode_original.upper() in {RGB, RGBA} else None
+            im_rgba, icc_profile=self.icc if self.mode_original.upper() in {RGB, RGBA} else None, **encoding_kwargs
         )
 
     def zip(self) -> bytes:
         """Returns images alpha.png and color.jpg zipped."""
+        encoding_kwargs = {}
+        if self.dpi:
+            encoding_kwargs['dpi'] = self.dpi
         # to pil
         im_rgb = PIL.Image.fromarray(self.im_rgb)
         im_alpha = PIL.Image.fromarray(self.im_alpha)
@@ -294,9 +300,9 @@ class SmartAlphaImage:
         im = self._restore_cmyk_colors(im)
 
         # encode color
-        bytes_color = encode_image(im, "jpeg", icc_profile=self.icc if icc_valid else None)
+        bytes_color = encode_image(im, "jpeg", icc_profile=self.icc if icc_valid else None, **encoding_kwargs)
         # encode alpha
-        bytes_alpha = encode_image(im_alpha)
+        bytes_alpha = encode_image(im_alpha, **encoding_kwargs)
 
         # zip it
         with io.BytesIO() as mem_zip:
