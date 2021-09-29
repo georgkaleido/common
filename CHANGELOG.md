@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.7.0 (29/09/2021)
+
+#### 🚀 Enhancements:
+
+- Added python tooling config [#9](https://github.com/remove-bg/kaleido-removebg/pull/9)
+- Refactored image module [#27](https://github.com/remove-bg/kaleido-removebg/pull/27)
+
+#### 🐞 Bugfixes:
+
+- Removed encoding_kwargs PIL.Image.fromarray [#36](https://github.com/remove-bg/kaleido-removebg/pull/36)
+- Added missing dpi argument in encoding [#35](https://github.com/remove-bg/kaleido-removebg/pull/35)
+- Fix PIL not handling jpg but only jpeg [#34](https://github.com/remove-bg/kaleido-removebg/pull/34)
+- Assertion fix in _validate_crop() [#33](https://github.com/remove-bg/kaleido-removebg/pull/33)
+- Lower/upper str before assertion [#32](https://github.com/remove-bg/kaleido-removebg/pull/32)
+- Fix BestCheckpointNameFixer for QI training [#29](https://github.com/remove-bg/kaleido-removebg/pull/29)
+
+#### 🔀 Dependencies
+
+- Update dependency to shadowgen-core [#31](https://github.com/remove-bg/kaleido-removebg/pull/31)
+- [api] Update all Yarn dependencies (2021-09-22) [#30](https://github.com/remove-bg/kaleido-removebg/pull/30) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.7.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.7.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.7.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.7.0-cc86`
+---
+
 ## 1.6.2 (17/09/2021)
 
 #### 🐞 Bugfixes:
