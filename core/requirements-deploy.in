@@ -9,7 +9,7 @@ kaleido-core>=1.4.0,<2.0.0
 # torch dependencies from the base image as the one from pypi might cause issues.
 torch==1.8.0
 torchvision==0.9.0
-shadowgen-core<1.5.0
+shadowgen-core<2.0.0
 numpy>=1.17,<1.22.0
 opencv-python>=4.1,<5.0.0
 wandb<0.12

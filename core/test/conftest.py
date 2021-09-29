@@ -65,5 +65,5 @@ def req_fn(request):
 
 @pytest.fixture(scope="session")
 def test_image_alpha_bytes() -> bytes:
-    with open("core/test/data/lena_alpha.png", "rb") as image_file:
+    with open("./data/lena_alpha.png", "rb") as image_file:
         yield image_file.read()

@@ -45,19 +45,11 @@ class Removebg:
         self.max_color_mp = 4
         self.aug_color_scale = aug_img.Scale(self.max_color_mp * 1000000, random=False, mode='area', allow_scale_up=False)
 
-        self.aug_shadow_reframe = aug_mask.NormSubjectDeprecated(256, 205, 205)
-        self.aug_shadow_gray = aug_img.Grayscale(False)
-        self.aug_shadow_bg = aug_mask.ReplaceBackground(modes=['white'])
-
-        self.aug_shadow2_reframe = aug_img.ReFrame(256, border=0.2, noise=0, mode='constant', fill_value=0)
-        self.gauss_k = 5
-        self.gauss = GaussianSmoothing(1, self.gauss_k, 1.0)
-
         self.aug_norm = aug_img.Normalize()
 
         torch.cuda.set_device(0)
 
-        def load_model(model, path, k='state_dict'):
+        def load_model(model, path, k='state_dict', strict=True):
             if not os.path.exists(path):
                 error_msg = 'warning! model {} does not exist!'.format(path)
 
@@ -71,7 +63,7 @@ class Removebg:
                 if k:
                     cp = cp[k]
 
-                model.load_state_dict(cp)
+                model.load_state_dict(cp, strict=strict)
 
             model.cuda()
             model.half()
@@ -84,8 +76,8 @@ class Removebg:
         load_model(self.model_matting, os.path.join(model_paths, 'matting-fba.pth.tar'))
         self.model_matting.float()
 
-        self.model_shadow = OrientedShadow()
-        load_model(self.model_shadow, os.path.join(model_paths, 'shadowgen256_car.pth.tar'), k=None)
+        self.model_shadow = OrientedShadow(initialize_extra=True, extra_reframe_border=0.3)
+        load_model(self.model_shadow, os.path.join(model_paths, 'shadowgen256_car.pth.tar'), k=None, strict=False)
 
     def __call__(self, im, color_enabled=False, shadow_enabled=False, trimap_confidence_thresh=0.5):
 
@@ -310,32 +302,17 @@ class Removebg:
 
     def shadow(self, im, alpha, darkness=0.9):
 
-        # reframe
+        # Make RGBA image
         im_input = torch.cat((im, alpha), dim=1)
-        in_input_ = self.aug_shadow2_reframe(im_input, mask=alpha > 0)
-        im_input = in_input_['result']
 
-        # adjust shape and normalize
+        # adjust shape
         im_input[:, :3] *= im_input[:, 3:4] > 0
-        im_input[:, :3] = self.aug_norm(im_input[:, :3])['result']
 
         # forward
-        _, shadow = self.model_shadow(im_input, torch.zeros(1, 1, dtype=im.dtype, device=im.device))
+        shadow, _, _ = self.model_shadow.process(im_input.squeeze(0), angle_deg=0., boundary_mode="original")
+        shadow = shadow.unsqueeze(0)
 
-        # apply some postprocessing (blur + remap)
-
-        lut = torch.tensor([0, 0.1 * 0.1, 0.2 * 0.5, 0.3 * 0.8, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], dtype=im.dtype, device=im.device)
-
-        shadow = shadow.permute(0, 2, 3, 1)
-        shadow = torch.cat((shadow, torch.zeros_like(shadow)), dim=3)
-        shadow = torch.nn.functional.grid_sample(lut.view(1, 1, 1, -1), (shadow - .5) * 2., align_corners=True)
-
-        # blur
-        shadow = self.gauss(shadow)
-
-        # restore original size
-        shadow = self.aug_shadow2_reframe.to_original(shadow[0], in_input_['reframe_info'])[None]
-
+        # Ensure values do not exceed those of alpha's
         alpha_new = torch.max(alpha, shadow * darkness)
         im = im * (alpha + (shadow == 0)).clamp(0, 1)
 
