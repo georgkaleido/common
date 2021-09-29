@@ -61,7 +61,7 @@ class SmartAlphaImage:
         assert h + y <= self.height, f"crop invalid, {h + x} out of height {self.height} bound"
         assert w + x <= self.width, f"crop invalid, {w + x} out of width {self.width} bound"
         assert (
-            w != 0 and h != 0 and x > 0 and y > 0
+            w != 0 and h != 0 and x >= 0 and y >= 0
         ), f"crop invalid zero value in width={w}, height={h}, x={x} y={y}"
 
     def get(
