@@ -70,6 +70,10 @@ class TestSmartAlphaImage:
         image = SmartAlphaImage(test_image_alpha_bytes)
         check_encode(image, "png")
 
+    def test_encode_png_alpha(self, test_image_alpha_bytes):
+        image = SmartAlphaImage(test_image_alpha_bytes)
+        check_encode(image, "png_alpha")
+
     def test_encode_png_dpi(self, test_image_alpha_bytes):
         image = SmartAlphaImage(test_image_alpha_bytes)
         image.dpi = (72, 72)

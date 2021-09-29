@@ -252,9 +252,10 @@ class SmartAlphaImage:
             "jpeg_color",
             "png_alpha",
         }, f"Image format: '{im_format}' not supported to encode."
+
         if im_format == "jpeg":
             # create pil image
-            im_rgb = PIL.Image.fromarray(self.get(mode=RGB))
+            im_rgb = PIL.Image.fromarray(self.im_rgb)
             # convert back to mode
             im, icc_valid = rgb2mode(im_rgb, self.icc, self.mode_original)
 
@@ -271,10 +272,9 @@ class SmartAlphaImage:
             return encode_image(im_alpha, im_format="jpeg", **encoding_kwargs)
         elif im_format == "jpeg_color":
             im_color = PIL.Image.fromarray(self.im_rgb)
-            im_color = im_color.convert(mode=RGB)
             return encode_image(im_color, im_format="jpeg", **encoding_kwargs)
         elif im_format == "png_alpha":
-            im_alpha = PIL.Image.fromarray(self.im_alpha, **encoding_kwargs)
+            im_alpha = PIL.Image.fromarray(self.im_alpha)
             return encode_image(im_alpha, **encoding_kwargs)
 
         # delete colors that are completely transparent to make encoded image smaller
