@@ -1240,10 +1240,10 @@ ioredis@^4.27.3:
     redis-parser "^3.0.0"
     standard-as-callback "^2.1.0"
 
-ioredis@^4.27.8:
-  version "4.27.8"
-  resolved "https://registry.yarnpkg.com/ioredis/-/ioredis-4.27.8.tgz#822c2d1ac44067a8f7b92fb673070fc9d661c56e"
-  integrity sha512-AcMEevap2wKxNcYEybZ/Qp+MR2HbNNUwGjG4sVCC3cAJ/zR9HXKAkolXOuR6YcOGPf7DHx9mWb/JKtAGujyPow==
+ioredis@^4.27.9:
+  version "4.27.9"
+  resolved "https://registry.yarnpkg.com/ioredis/-/ioredis-4.27.9.tgz#c27bbade9724f0b8f84c279fb1d567be785ba33d"
+  integrity sha512-hAwrx9F+OQ0uIvaJefuS3UTqW+ByOLyLIV+j0EH8ClNVxvFyH9Vmb08hCL4yje6mDYT5zMquShhypkd50RRzkg==
   dependencies:
     cluster-key-slot "^1.1.0"
     debug "^4.3.1"
@@ -2458,10 +2458,10 @@ write-file-atomic@^3.0.0:
     signal-exit "^3.0.2"
     typedarray-to-buffer "^3.1.5"
 
-ws@^7.5.4:
-  version "7.5.4"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.4.tgz#56bfa20b167427e138a7795de68d134fe92e21f9"
-  integrity sha512-zP9z6GXm6zC27YtspwH99T3qTG7bBFv2VIkeHstMLrLlDJuzA7tQ5ls3OJ1hOGGCzTQPniNJoHXIAOS0Jljohg==
+ws@^7.5.5:
+  version "7.5.5"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.5.tgz#8b4bc4af518cfabd0473ae4f99144287b33eb881"
+  integrity sha512-BAkMFcAzl8as1G/hArkxOxq3G7pjUqQ3gzYbLL0/5zNkph70e+lCoxBGnm6AW1+/aiNeV4fnKqZ8m4GZewmH2w==
 
 xdg-basedir@^4.0.0:
   version "4.0.0"

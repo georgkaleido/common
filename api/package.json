@@ -28,7 +28,7 @@
     "hex-rgb": "^4.3.0",
     "http-terminator": "^2.0.3",
     "image-size": "^0.8.3",
-    "ioredis": "^4.27.8",
+    "ioredis": "^4.27.9",
     "ip-range-check": "^0.2.0",
     "jsonwebtoken": "^8.5.1",
     "kaleido-api": "^1.1.5",
@@ -36,6 +36,6 @@
     "request": "^2.88.2",
     "uuid": "^7.0.3",
     "valid-url": "^1.0.9",
-    "ws": "^7.5.4"
+    "ws": "^7.5.5"
   }
 }
