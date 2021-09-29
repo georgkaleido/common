@@ -238,7 +238,10 @@ class SmartAlphaImage:
         Returns:
             Encoded image in bytes.
         """
-        im_format = im_format.lower()
+        im_format = im_format.lower()        
+        # PIL only support jpeg not jpg as format to encode
+        if 'jpg' in im_format:
+            im_format = im_format.replace('jpg', 'jpeg')
         assert im_format in {
             "png",
             "jpeg",
