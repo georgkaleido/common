@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: removebg-trimap513-qi-auto
+  name: removebg-trimap513-qi-auto-[{DATE}]
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: removebg-trimap513-qi-auto
+      app: removebg-trimap513-qi-auto-[{DATE}]
   template:
     metadata:
       labels:
-        app: removebg-trimap513-qi-auto
+        app: removebg-trimap513-qi-auto-[{DATE}]
     spec:
       # Necessary to have enough shared memory
       volumes:
@@ -19,17 +19,27 @@ spec:
             medium: Memory
       containers:
         - name: removebg-trimap513
-          image: eu.gcr.io/kaleido-train/trimap-qi-auto-trainer:v3
+          image: eu.gcr.io/kaleido-train/trimap-qi-auto-trainer:v4
           imagePullPolicy: Always
           command: ["python", "/workspace/kaleido/removebg-train-trimap-cloud-qi.py"]
           args:
             - "--config=/workspace/kaleido/removebg/data/trimap.json"
-            - "--wandb_api_key=2b738a8a39d37ad301baa70560881931b3bee07e"
             - "--danni_metadata_path=[{DANNI_METADATA_PATH}]"
             - "--name=[{NAME}]"
             - "--lr=0.00001"
-            - "--checkpoint_url=[{CHECKPOINT_URL}]"
+            - "--initialize_with_prod_weights"
             - "--fresh"
+          env:
+            - name: WANDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secrets
+                  key: wandb-token
+            - name: GITHUB_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secrets
+                  key: github-token
           # Ensure that the node has a GPU
           resources:
             limits:

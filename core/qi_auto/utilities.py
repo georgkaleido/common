@@ -3,11 +3,18 @@ import os
 from google.cloud import storage
 import logging
 import subprocess
+from datetime import datetime
 
 # logging.basicConfig(
 #     format='%(asctime)s %(levelname)-8s %(message)s',
 #     level=logging.INFO,
 #     datefmt='%Y-%m-%d %H:%M:%S')
+
+
+def compute_days_between_dates(date1_str, date2_str):
+    date1 = datetime.strptime(date1_str, "%Y-%m-%d")
+    date2 = datetime.strptime(date2_str, "%Y-%m-%d")
+    return abs((date2 - date1).days)
 
 
 def run_bash(cmd_str, realtime_output=True):

@@ -10,6 +10,11 @@ ARG DEBCONF_NONINTERACTIVE_SEEN=true
 RUN apt-get update
 RUN apt-get install ffmpeg libsm6 libxext6  -y
 
+# Install github fetch
+ARG GITHUB_FETCH_VERSION="v0.4.2"
+RUN curl -Lo /usr/bin/fetch https://github.com/gruntwork-io/fetch/releases/download/${GITHUB_FETCH_VERSION}/fetch_linux_$(dpkg --print-architecture) \
+ && chmod +x /usr/bin/fetch
+
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-sdk -y
 
 WORKDIR /workspace
@@ -34,6 +39,10 @@ RUN mkdir -p removebg/data
 COPY data/trimap.json removebg/data/trimap.json
 COPY bin/removebg-train-trimap-cloud-qi.py removebg-train-trimap-cloud-qi.py
 COPY liveness.training.sh liveness.training.sh
+RUN mkdir -p qi_auto
+COPY ./qi_auto/utilities.py ./qi_auto/utilities.py
+RUN mkdir -p scripts
+COPY ./scripts/fetch-models.sh ./scripts/fetch-models.sh
 
 # Set PYTHONPATH to directory where the framework is
 ENV PYTHONPATH=/workspace/kaleido/removebg

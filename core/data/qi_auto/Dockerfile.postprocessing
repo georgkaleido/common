@@ -7,6 +7,11 @@ ARG DEBCONF_NONINTERACTIVE_SEEN=true
 RUN apt-get update
 RUN apt-get install ffmpeg libsm6 libxext6  -y
 
+# Install github fetch
+ARG GITHUB_FETCH_VERSION="v0.4.2"
+RUN curl -Lo /usr/bin/fetch https://github.com/gruntwork-io/fetch/releases/download/${GITHUB_FETCH_VERSION}/fetch_linux_$(dpkg --print-architecture) \
+ && chmod +x /usr/bin/fetch
+
 # Install libGL
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --fix-missing \
@@ -69,6 +74,8 @@ COPY ./eval/plot_results.py ./eval/plot_results.py
 RUN mkdir -p qi_auto
 COPY ./qi_auto/utilities.py ./qi_auto/utilities.py
 COPY ./qi_auto/postprocessing.py ./qi_auto/postprocessing.py
+RUN mkdir -p scripts
+COPY ./scripts/fetch-models.sh ./scripts/fetch-models.sh
 
 # Set PYTHONPATH to the root of the framework
 ENV PYTHONPATH=/workspace/kaleido/

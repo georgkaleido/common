@@ -3,17 +3,25 @@ kind: CronJob
 metadata:
   name: qi-auto-initialization
 spec:
-  # Run once a month at 3am of the first day of the month
-  schedule: "0 3 1 * *"
+  # Run twice a month (1st and 15th) at 3am
+  schedule: "0 3 1,15 * *"
   jobTemplate:
     spec:
       template:
         spec:
           containers:
             - name: qi-auto-initialization
-              image: eu.gcr.io/kaleido-train/trimap-qi-auto-initialization:v3
+              image: eu.gcr.io/kaleido-train/trimap-qi-auto-initialization:v4
               imagePullPolicy: Always
-              args:
-                - "--danni_user=jerome.nicolaou"
-                - "--danni_token=GK3A2RFyVCDnkpNXHHPfHpGI"
+              env:
+                - name: DANNI_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: auth-secrets
+                      key: danni-user
+                - name: DANNI_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: auth-secrets
+                      key: danni-token
           restartPolicy: OnFailure

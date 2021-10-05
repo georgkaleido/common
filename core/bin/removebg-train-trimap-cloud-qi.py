@@ -23,6 +23,7 @@ from kaleido.training.gce.utilities import configure_cloud_training, configure_b
 
 # Local imports
 from removebg.training.trimap import PlTrimap
+from qi_auto.utilities import Bucket, run_bash
 
 
 logging.basicConfig(
@@ -81,16 +82,14 @@ def main():
     parser.add_argument('--lr', type=float, default=0.00001, help='batch size.')
     parser.add_argument('--workers', type=int, help='number of workers.', default=multiprocessing.cpu_count())
     parser.add_argument('--danni_metadata_path', required=True, type=str, help='JSON file with prefetched danni paths.')
-    parser.add_argument('--wandb_api_key', type=str, help='wandb api key.')
-    parser.add_argument('--checkpoint_url', type=str, help='checkpoint url to start.')
+    parser.add_argument('--initialize_with_prod_weights', action='store_true',
+                        help='Initialized model with pretrained weights from production')
     parser.add_argument('--danni_max_pages', type=int, help='limit pages.')
     parser.add_argument('--fresh', action='store_true', help='removes previous directory with results')
     args = parser.parse_args()
 
-    if not args.wandb_api_key:
-        os.environ['WANDB_MODE'] = 'dryrun'
-    else:
-        os.environ['WANDB_API_KEY'] = args.wandb_api_key
+    assert "WANDB_API_KEY" in os.environ, "Could not find environment variable WANDB_API_KEY"
+    assert "GITHUB_AUTH_TOKEN" in os.environ, "Could not find environment variable GITHUB_AUTH_TOKEN"
 
     # Download Danni dataset metadata
     danni_metadata_local_path = os.path.basename(args.danni_metadata_path)
@@ -184,9 +183,15 @@ def main():
     # Init model
     trimap_model = PlTrimap(lr=args.lr)
 
-    if not os.path.exists(last_checkpoint_path) and args.checkpoint_url:
-        checkpoint_local_path = os.path.basename(args.checkpoint_url)
-        download_from_bucket(args.checkpoint_url, checkpoint_local_path)
+    if not os.path.exists(last_checkpoint_path) and args.initialize_with_prod_weights:
+
+        # Download latest checkpoint from github
+        checkpoint_name = "trimap513-deeplab-res2net.pth.tar"
+        checkpoint_local_dir = "."
+        run_bash(f'./scripts/fetch-models.sh "{checkpoint_name}" "{checkpoint_local_dir}"', realtime_output=False)
+
+        # Load checkpoint
+        checkpoint_local_path = os.path.join(checkpoint_local_dir, checkpoint_name)
         checkpoint = torch.load(checkpoint_local_path)
         trimap_model.model.load_state_dict(checkpoint['state_dict'])
 
