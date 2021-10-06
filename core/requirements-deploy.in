@@ -2,7 +2,7 @@
 # Specify requirements which are used for removebg as a service here.
 
 --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/
-kaleido-core>=1.4.0,<2.0.0
+kaleido-core>=2.0.0,<3.0.0
 # We specify torch dependencies to same version
 # as specified in the pytorch base image to allow pip-compile resolve dependencies.
 # We exclude them however afterwards from requirements.txt and use
