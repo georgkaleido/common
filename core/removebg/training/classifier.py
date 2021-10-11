@@ -1,17 +1,12 @@
-
+import pytorch_lightning as pl
 import torch
-
-from removebg.models.classifier import Classifier
-
+from kaleido.tensor.utils import to_numpy
 from kaleido.training.loss.common import cross_entropy_loss
 from kaleido.training.optimizer.radam import RAdam
-from kaleido.tensor.utils import to_numpy
-
-import pytorch_lightning as pl
+from removebg.models.classifier import Classifier
 
 
 class PlClassifier(pl.LightningModule):
-
     def __init__(self, num_classes, lr=0.00001):
         super(PlClassifier, self).__init__()
 
@@ -49,7 +44,13 @@ class PlClassifier(pl.LightningModule):
 
         if batch_idx == 0 and wandb.run:
 
-            vis = [wandb.Image(to_numpy(image_input_, rgb2bgr=False, normalize=True), caption=self.to_label(label_output_)) for image_input_, label_output_ in zip(image_input, label_output)]
+            vis = [
+                wandb.Image(
+                    to_numpy(image_input_, rgb2bgr=False, normalize=True),
+                    caption=self.to_label(label_output_),
+                )
+                for image_input_, label_output_ in zip(image_input, label_output)
+            ]
             wandb.log({"val_visualizations": vis})
 
         return {"val_loss": loss}
@@ -58,7 +59,7 @@ class PlClassifier(pl.LightningModule):
         avg_loss = torch.stack([x["val_loss"] for x in outputs]).mean()
 
         self.log("avg_val_loss", avg_loss)
-        self.log("avg_val_accuracy", 1. / (avg_loss + 0.00001))
+        self.log("avg_val_accuracy", 1.0 / (avg_loss + 0.00001))
 
         # needed for tune
         self.log("epoch", torch.tensor(self.current_epoch))

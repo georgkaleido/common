@@ -1,12 +1,11 @@
 import os
 import tempfile
-from unittest.mock import patch, ANY
+from unittest.mock import ANY, patch
 
 import cv2
-from kaleido.image import RGB, BGR, BGRA, ALPHA
-
-from removebg.image import SmartAlphaImage
 import numpy as np
+from kaleido.image import ALPHA, BGR, BGRA, RGB
+from removebg.image import SmartAlphaImage
 
 
 def check_encode(image, im_format: str):

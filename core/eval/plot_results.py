@@ -1,30 +1,36 @@
-import json
-import matplotlib.pyplot as plt
-import cv2
-import numpy as np
 import argparse
-import os
+import json
 import math
+import os
+
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
 
 parser = argparse.ArgumentParser()
-parser.add_argument('old', help='path to first json')
-parser.add_argument('new', help='path to second json')
-parser.add_argument('--out', help='out path')
-parser.add_argument('--samples', type=int, default=0, help='number of good and bad samples to visualize')
-parser.add_argument('--minimum_samples', type=int, default=0, help='Minimum number of samples in a group to consider them')
+parser.add_argument("old", help="path to first json")
+parser.add_argument("new", help="path to second json")
+parser.add_argument("--out", help="out path")
+parser.add_argument("--samples", type=int, default=0, help="number of good and bad samples to visualize")
+parser.add_argument(
+    "--minimum_samples", type=int, default=0, help="Minimum number of samples in a group to consider them"
+)
 args = parser.parse_args()
 
 if not args.out:
-    args.out = 'results_{}_{}/'.format(os.path.splitext(os.path.basename(args.old))[0], os.path.splitext(os.path.basename(args.new))[0])
+    args.out = "results_{}_{}/".format(
+        os.path.splitext(os.path.basename(args.old))[0], os.path.splitext(os.path.basename(args.new))[0]
+    )
 
 if not os.path.exists(args.out):
     os.makedirs(args.out)
 
+
 class Subset:
     def __init__(self, data, path):
         self.path = path
-        self.title = path.split('/')[-2]
-        self.group = path.split('/')[-3]
+        self.title = path.split("/")[-2]
+        self.group = path.split("/")[-3]
 
         self.scores = [score for score in data[path].values()]
         self.names = [name for name in data[path].keys()]
@@ -34,12 +40,13 @@ class Subset:
 
     def compare(self, set):
         if sorted(self.names) != sorted(set.names):
-            raise Exception('sets are different!')
+            raise Exception("sets are different!")
 
         scores = [y / x for x, y in zip(self.scores, set.scores)]
         scores, names = zip(*sorted(zip(scores, self.names), key=lambda a: a[0]))
 
         return list(scores), list(names)
+
 
 def read_data(path):
     with open(path) as f:
@@ -53,6 +60,7 @@ def read_data(path):
 
     return data
 
+
 data1 = read_data(args.old)
 data2 = read_data(args.new)
 
@@ -64,11 +72,11 @@ d2_keys_missing = 0
 
 for path in data1.keys():
     if path not in data2.keys():
-        print('error with {} - not in new result'.format(path))
+        print("error with {} - not in new result".format(path))
         continue
 
     if len(data1[path]) != len(data2[path]):
-        print('error with {} - length mismatch: {} and {}'.format(path, len(data1[path]), len(data2[path])))
+        print("error with {} - length mismatch: {} and {}".format(path, len(data1[path]), len(data2[path])))
 
         d1_keys = set(data1[path].keys())
         d2_keys = set(data2[path].keys())
@@ -83,20 +91,28 @@ for path in data1.keys():
 
     sample_number = len(data1[path])
     if args.minimum_samples > sample_number:
-        print(f"Ignored because path does not have enough samples ({sample_number} < {args.minimum_samples}): {path}")
+        print(
+            f"Ignored because path does not have enough samples ({sample_number} < {args.minimum_samples}): {path}"
+        )
         continue
 
     paths.append(path)
 
-print('keys: {}/{} ({}), {}/{} ({})'.format(keys_total - d1_keys_missing, keys_total, args.old, keys_total - d2_keys_missing, keys_total, args.new))
+print(
+    "keys: {}/{} ({}), {}/{} ({})".format(
+        keys_total - d1_keys_missing, keys_total, args.old, keys_total - d2_keys_missing, keys_total, args.new
+    )
+)
 
 if not paths:
     import sys
-    print('did not find any paths')
+
+    print("did not find any paths")
     sys.exit(0)
 
 sets1 = [Subset(data1, path) for path in paths]
 sets2 = [Subset(data2, path) for path in paths]
+
 
 def save_plot(scores, median, path_out, title):
 
@@ -106,25 +122,25 @@ def save_plot(scores, median, path_out, title):
     x = range(len(scores))
 
     ax.set_title(title)
-    ax.set_yscale('log')
+    ax.set_yscale("log")
 
-    ax.set_ylim(min(scores + [1])*0.95, max(scores + [1])*1.05)
+    ax.set_ylim(min(scores + [1]) * 0.95, max(scores + [1]) * 1.05)
     ax.scatter(x, scores, s=5)
-    ax.plot((0, len(x)-1), (median, median), c='r')
+    ax.plot((0, len(x) - 1), (median, median), c="r")
 
-    ax.spines['top'].set_position(('data', 1))
-    ax.spines['right'].set_color('none')
-    ax.spines['bottom'].set_color('none')
+    ax.spines["top"].set_position(("data", 1))
+    ax.spines["right"].set_color("none")
+    ax.spines["bottom"].set_color("none")
     ax.set_xticks([], [])
-    ax.set_xlabel('{:.2f}%'.format((1. - median) * 100.), color=('green' if median < 1. else 'red'))
+    ax.set_xlabel("{:.2f}%".format((1.0 - median) * 100.0), color=("green" if median < 1.0 else "red"))
 
     ax.yaxis.set_major_formatter(plt.ScalarFormatter())
     ax.yaxis.set_minor_formatter(plt.NullFormatter())
     ax.yaxis.set_major_locator(plt.AutoLocator())
 
-
     plt.savefig(path_out)
     plt.close()
+
 
 # compare individuals
 
@@ -133,13 +149,18 @@ for set1, set2 in zip(sets1, sets2):
     scores, names = set1.compare(set2)
     median = np.median(scores)
 
-    path_out = os.path.join(args.out, 'individual')
+    path_out = os.path.join(args.out, "individual")
     if not os.path.exists(path_out):
         os.makedirs(path_out)
 
-    dirname = '{:.4f}_{}_{}'.format(median, set1.title, set1.group)
+    dirname = "{:.4f}_{}_{}".format(median, set1.title, set1.group)
 
-    save_plot(scores, median, os.path.join(path_out, '{}.png'.format(dirname)), '{} ({})'.format(set1.title, set1.group))
+    save_plot(
+        scores,
+        median,
+        os.path.join(path_out, "{}.png".format(dirname)),
+        "{} ({})".format(set1.title, set1.group),
+    )
 
     # create folder
 
@@ -148,25 +169,42 @@ for set1, set2 in zip(sets1, sets2):
 
     # save info
 
-    with open(os.path.join(path_out, dirname, 'data.txt'), 'w') as f:
+    with open(os.path.join(path_out, dirname, "data.txt"), "w") as f:
         for score, x, y, fname in zip(scores, set1.get_scores(names), set2.get_scores(names), names):
-            f.write('{:.4f} {:.4f} {:.4f} {}\n'.format(score, x, y, fname))
+            f.write("{:.4f} {:.4f} {:.4f} {}\n".format(score, x, y, fname))
 
     # stitch images
 
-    samples_good = list(zip(scores, names))[:args.samples]
-    samples_bad = list(zip(scores, names))[-args.samples:] if args.samples > 0 else []
+    samples_good = list(zip(scores, names))[: args.samples]
+    samples_bad = list(zip(scores, names))[-args.samples :] if args.samples > 0 else []
 
     def save_samples(samples):
 
         for score, name in samples:
-            path_col = os.path.join(os.path.join(set1.path, name, 'color.jpg'))
-            path_gt = os.path.join(os.path.join(set1.path, name, 'alpha.png'))
-            path_old = os.path.join(os.path.join(set1.path, name, '{}_result.png'.format(os.path.splitext(os.path.basename(args.old))[0])))
-            path_new = os.path.join(os.path.join(set1.path, name, '{}_result.png'.format(os.path.splitext(os.path.basename(args.new))[0])))
+            path_col = os.path.join(os.path.join(set1.path, name, "color.jpg"))
+            path_gt = os.path.join(os.path.join(set1.path, name, "alpha.png"))
+            path_old = os.path.join(
+                os.path.join(
+                    set1.path, name, "{}_result.png".format(os.path.splitext(os.path.basename(args.old))[0])
+                )
+            )
+            path_new = os.path.join(
+                os.path.join(
+                    set1.path, name, "{}_result.png".format(os.path.splitext(os.path.basename(args.new))[0])
+                )
+            )
 
-            if not (os.path.exists(path_col) and os.path.exists(path_gt) and os.path.exists(path_old) and os.path.exists(path_new)):
-                print('could not generate visualization. images are missing: \n\t{}\n\t{}\n\t{}\n\t{}'.format(path_col, path_gt, path_old, path_new))
+            if not (
+                os.path.exists(path_col)
+                and os.path.exists(path_gt)
+                and os.path.exists(path_old)
+                and os.path.exists(path_new)
+            ):
+                print(
+                    "could not generate visualization. images are missing: \n\t{}\n\t{}\n\t{}\n\t{}".format(
+                        path_col, path_gt, path_old, path_new
+                    )
+                )
                 return
 
             # read images and pad them
@@ -190,28 +228,31 @@ for set1, set2 in zip(sets1, sets2):
 
             # blend on red
 
-            im_gt = im[:, :, :3] * (im[:, :, 3:4] / 255.) + [0, 0, 255] * (1. - im[:, :, 3:4] / 255.)
-            im_old = im_old[:, :, :3] * (im_old[:, :, 3:4] / 255.) + [0, 0, 255] * (1. - im_old[:, :, 3:4] / 255.)
-            im_new = im_new[:, :, :3] * (im_new[:, :, 3:4] / 255.) + [0, 0, 255] * (1. - im_new[:, :, 3:4] / 255.)
+            im_gt = im[:, :, :3] * (im[:, :, 3:4] / 255.0) + [0, 0, 255] * (1.0 - im[:, :, 3:4] / 255.0)
+            im_old = im_old[:, :, :3] * (im_old[:, :, 3:4] / 255.0) + [0, 0, 255] * (
+                1.0 - im_old[:, :, 3:4] / 255.0
+            )
+            im_new = im_new[:, :, :3] * (im_new[:, :, 3:4] / 255.0) + [0, 0, 255] * (
+                1.0 - im_new[:, :, 3:4] / 255.0
+            )
 
             # concatenate
 
             im = np.vstack((np.hstack((im[:, :, :3], im_gt)), np.hstack((im_old, im_new))))
-
 
             def putText(text, pos):
                 cv2.putText(im, text, pos, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 5, cv2.LINE_AA)
                 cv2.putText(im, text, pos, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
             offset = 25
-            putText('color', (offset, offset))
-            putText('gt', (offset + w, offset))
-            putText('old', (offset, offset + h))
-            putText('new', (offset + w, offset + h))
+            putText("color", (offset, offset))
+            putText("gt", (offset + w, offset))
+            putText("old", (offset, offset + h))
+            putText("new", (offset + w, offset + h))
 
             # save
 
-            cv2.imwrite(os.path.join(path_out, dirname, '{:.4f}.png'.format(score)), im)
+            cv2.imwrite(os.path.join(path_out, dirname, "{:.4f}.png".format(score)), im)
 
     save_samples(samples_good)
     save_samples(samples_bad)
@@ -230,13 +271,12 @@ scores_all = []
 for group, scores in groups_scores.items():
 
     mean = np.mean(scores)
-    dirname = '{:.4f}_{}'.format(mean, group)
+    dirname = "{:.4f}_{}".format(mean, group)
 
-    save_plot(sorted(scores), mean, os.path.join(args.out, '{}.png'.format(dirname)), '{}'.format(group))
+    save_plot(sorted(scores), mean, os.path.join(args.out, "{}.png".format(dirname)), "{}".format(group))
 
     scores_all.append(mean)
 
 # all
 
-save_plot(sorted(scores_all), np.mean(scores_all), os.path.join(args.out, 'all.png'), 'all')
-
+save_plot(sorted(scores_all), np.mean(scores_all), os.path.join(args.out, "all.png"), "all")

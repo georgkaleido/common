@@ -1,8 +1,9 @@
 def test_car_shadow(req_fn):
-    im, _, _, _ = req_fn('data/RGB.png', {'format': 'png', 'size': 'preview', 'add_shadow': 'false'})
-    im_s,  _, _, _ = req_fn('data/RGB.png', {'format': 'png', 'size': 'preview', 'add_shadow': 'true'})
+    im, _, _, _ = req_fn("data/RGB.png", {"format": "png", "size": "preview", "add_shadow": "false"})
+    im_s, _, _, _ = req_fn("data/RGB.png", {"format": "png", "size": "preview", "add_shadow": "true"})
 
     import numpy as np
+
     im = np.array(im)
     im_s = np.array(im_s)
 
@@ -26,10 +27,11 @@ def test_car_shadow(req_fn):
 
 
 def test_person_shadow(req_fn):
-    im, _, _, _ = req_fn('data/CMYK.jpg', {'format': 'png', 'size': 'preview', 'add_shadow': 'false'})
-    im_s,  _, _, _ = req_fn('data/CMYK.jpg', {'format': 'png', 'size': 'preview', 'add_shadow': 'true'})
+    im, _, _, _ = req_fn("data/CMYK.jpg", {"format": "png", "size": "preview", "add_shadow": "false"})
+    im_s, _, _, _ = req_fn("data/CMYK.jpg", {"format": "png", "size": "preview", "add_shadow": "true"})
 
     import numpy as np
+
     im = np.array(im)
     im_s = np.array(im_s)
 

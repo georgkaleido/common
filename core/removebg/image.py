@@ -243,8 +243,8 @@ class SmartAlphaImage:
 
         im_format = im_format.lower()
         # PIL only support jpeg not jpg as format to encode
-        if 'jpg' in im_format:
-            im_format = im_format.replace('jpg', 'jpeg')
+        if "jpg" in im_format:
+            im_format = im_format.replace("jpg", "jpeg")
         assert im_format in {
             "png",
             "jpeg",
@@ -283,14 +283,16 @@ class SmartAlphaImage:
         # create pil image
         im_rgba = PIL.Image.fromarray(im)
         return encode_image(
-            im_rgba, icc_profile=self.icc if self.mode_original.upper() in {RGB, RGBA} else None, **encoding_kwargs
+            im_rgba,
+            icc_profile=self.icc if self.mode_original.upper() in {RGB, RGBA} else None,
+            **encoding_kwargs,
         )
 
     def zip(self) -> bytes:
         """Returns images alpha.png and color.jpg zipped."""
         encoding_kwargs = {}
         if self.dpi:
-            encoding_kwargs['dpi'] = self.dpi
+            encoding_kwargs["dpi"] = self.dpi
         # to pil
         im_rgb = PIL.Image.fromarray(self.im_rgb)
         im_alpha = PIL.Image.fromarray(self.im_alpha)

@@ -1,31 +1,33 @@
 # Standard import
-import os
-import logging
-import re
 import argparse
+import logging
+import os
+import re
 from datetime import datetime
 
 # Local imports
-from qi_auto.utilities import Bucket, run_bash, compute_days_between_dates
-
+from qi_auto.utilities import Bucket, compute_days_between_dates, run_bash
 
 logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
-    level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S')
+    format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 
 def main():
 
-    parser = argparse.ArgumentParser(description='Terminate trainings.')
-    parser.add_argument('--min_day_delta',
-                        default=8*7,
-                        type=int,
-                        help=f"Stop jobs with more than this minimum number of days since training start. Default {8*7}")
-    parser.add_argument('--max_day_delta',
-                        default=10*7,
-                        type=int,
-                        help=f"Stop jobs with less than this maximum number of days since training start. Default {10*7}")
+    parser = argparse.ArgumentParser(description="Terminate trainings.")
+    parser.add_argument(
+        "--min_day_delta",
+        default=8 * 7,
+        type=int,
+        help=f"Stop jobs with more than this minimum number of days since training start. Default {8*7}",
+    )
+    parser.add_argument(
+        "--max_day_delta",
+        default=10 * 7,
+        type=int,
+        help=f"Stop jobs with less than this maximum number of days since training start. Default {10*7}",
+    )
     args = parser.parse_args()
 
     # Initialize Bucket
@@ -45,7 +47,9 @@ def main():
     dir_list = new_dir_list
 
     if not dir_list:
-        raise RuntimeError(f"No entry found matching the pattern 'YYYY-MM-DD_qi', in bucket: {qi_bucket_main_path}")
+        raise RuntimeError(
+            f"No entry found matching the pattern 'YYYY-MM-DD_qi', in bucket: {qi_bucket_main_path}"
+        )
 
     # Sort list in descending order
     dir_list.sort(reverse=True)
@@ -54,7 +58,7 @@ def main():
     min_day_delta = args.min_day_delta
     max_day_delta = args.max_day_delta
     # Make string with today's date
-    str_today = datetime.today().strftime('%Y-%m-%d')
+    str_today = datetime.today().strftime("%Y-%m-%d")
     for qi_bucket_name in dir_list:
         # Get date
         qi_date_str = qi_bucket_name[:10]
@@ -78,5 +82,5 @@ def main():
             run_bash(str_command_line)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

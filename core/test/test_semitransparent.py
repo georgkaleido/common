@@ -1,8 +1,9 @@
 def test_car_semitransparency(req_fn):
-    im, _, _, _ = req_fn('data/RGB.png', {'format': 'png', 'size': 'preview', 'semitransparency': 'false'})
-    im_s,  _, _, _ = req_fn('data/RGB.png', {'format': 'png', 'size': 'preview', 'semitransparency': 'true'})
+    im, _, _, _ = req_fn("data/RGB.png", {"format": "png", "size": "preview", "semitransparency": "false"})
+    im_s, _, _, _ = req_fn("data/RGB.png", {"format": "png", "size": "preview", "semitransparency": "true"})
 
     import numpy as np
+
     im = np.array(im)
     im_s = np.array(im_s)
 
@@ -21,11 +22,17 @@ def test_car_semitransparency(req_fn):
     # color std must be smaller when semi transparency is on due to window averaging
     assert im[..., :3][mask].std() > im_s[..., :3][mask_s].std() * 1.2
 
+
 def test_carinterior_semitransparency(req_fn):
-    im, _, _, _ = req_fn('data/car_interior.jpg', {'format': 'png', 'size': 'preview', 'semitransparency': 'false'})
-    im_s,  _, _, _ = req_fn('data/car_interior.jpg', {'format': 'png', 'size': 'preview', 'semitransparency': 'true'})
+    im, _, _, _ = req_fn(
+        "data/car_interior.jpg", {"format": "png", "size": "preview", "semitransparency": "false"}
+    )
+    im_s, _, _, _ = req_fn(
+        "data/car_interior.jpg", {"format": "png", "size": "preview", "semitransparency": "true"}
+    )
 
     import numpy as np
+
     im = np.array(im)
     im_s = np.array(im_s)
 

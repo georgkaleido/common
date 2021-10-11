@@ -1,16 +1,12 @@
-import torch
-
-from removebg.models.trimap import Trimap
-
-from kaleido.aug import image as aug_img
-from kaleido.training.optimizer.radam import RAdam
-from kaleido.training.loss.common import cross_entropy_loss
-
 import pytorch_lightning as pl
+import torch
+from kaleido.aug import image as aug_img
+from kaleido.training.loss.common import cross_entropy_loss
+from kaleido.training.optimizer.radam import RAdam
+from removebg.models.trimap import Trimap
 
 
 class PlTrimap(pl.LightningModule):
-
     def __init__(self, lr=0.00001, **kwargs_model):
         super(PlTrimap, self).__init__()
 
@@ -39,7 +35,7 @@ class PlTrimap(pl.LightningModule):
         image_input, trimap_target, crop_info, sample_index = train_batch
 
         if image_input.shape[0] == 1:
-            raise RuntimeError('batch size 1 is not supported!')
+            raise RuntimeError("batch size 1 is not supported!")
 
         trimap_output = self.forward(image_input)
         weights = aug_img.Crop.to_weights(trimap_target, crop_info)
@@ -76,11 +72,13 @@ class PlTrimap(pl.LightningModule):
         if batch_idx == 0 and wandb.run:
             trimap_output = trimap_output.argmax(dim=1, keepdim=True).float()
 
-            wandb.log({
-                'input image': [wandb.Image(image.cpu()) for image in image_input],
-                'output trimap': [wandb.Image(image.cpu()) for image in trimap_output],
-                'target trimap': [wandb.Image(image.cpu()) for image in trimap_target]
-            })
+            wandb.log(
+                {
+                    "input image": [wandb.Image(image.cpu()) for image in image_input],
+                    "output trimap": [wandb.Image(image.cpu()) for image in trimap_output],
+                    "target trimap": [wandb.Image(image.cpu()) for image in trimap_target],
+                }
+            )
 
         return {"val_loss": loss, "val_accuracy": accuracy}
 

@@ -1,9 +1,10 @@
 # Standard import
-import os
-from google.cloud import storage
 import logging
+import os
 import subprocess
 from datetime import datetime
+
+from google.cloud import storage
 
 # logging.basicConfig(
 #     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -26,9 +27,9 @@ def run_bash(cmd_str, realtime_output=True):
         logging.info(f"Output of shell command:")
         while True:
             out = process.stderr.readline()
-            if out == '' and process.poll() is not None:
+            if out == "" and process.poll() is not None:
                 break
-            if out != '':
+            if out != "":
                 logging.info(out.strip())
     else:
         # Print output of command once it is finished
@@ -50,7 +51,7 @@ class Bucket:
 
     @staticmethod
     def human_readable_bucket_name(path):
-        return path.replace('/b/', 'gs://').replace('/o/', '/').replace('%2F', '/')
+        return path.replace("/b/", "gs://").replace("/o/", "/").replace("%2F", "/")
 
     def download(self, blob_path, local_path):
         blob = self.bucket.blob(blob_path)
@@ -60,7 +61,9 @@ class Bucket:
         if blob.exists():
             # Create destination folder
             os.makedirs(dir_local_path, exist_ok=True)
-            logging.info(f"Downloading file from bucket {self.human_readable_bucket_name(blob.path)} to {local_path}")
+            logging.info(
+                f"Downloading file from bucket {self.human_readable_bucket_name(blob.path)} to {local_path}"
+            )
             blob.download_to_filename(local_path)
         else:
             raise RuntimeError(f"No file exists at {self.human_readable_bucket_name(blob.path)}")
@@ -73,7 +76,9 @@ class Bucket:
                 continue
             file_name = os.path.basename(blob.name)
             file_local_path = os.path.join(local_path, file_name)
-            logging.info(f"Downloading file from bucket {self.human_readable_bucket_name(blob.path)} to {file_local_path}")
+            logging.info(
+                f"Downloading file from bucket {self.human_readable_bucket_name(blob.path)} to {file_local_path}"
+            )
             blob.download_to_filename(file_local_path)
 
     def upload(self, local_path, blob_path):
@@ -81,9 +86,13 @@ class Bucket:
         tmp_blob = self.bucket.blob(tmp_blob_path)
         if os.path.exists(local_path):
             # Upload is done on a tmp file first, to limit the risk of corruption if the node is taken down during copy
-            logging.info(f"Uploading file to bucket {self.human_readable_bucket_name(tmp_blob.path)} from {local_path}")
+            logging.info(
+                f"Uploading file to bucket {self.human_readable_bucket_name(tmp_blob.path)} from {local_path}"
+            )
             tmp_blob.upload_from_filename(local_path)
-            logging.info(f"Rename bucket file from {self.human_readable_bucket_name(tmp_blob.path)} to {blob_path}")
+            logging.info(
+                f"Rename bucket file from {self.human_readable_bucket_name(tmp_blob.path)} to {blob_path}"
+            )
             tmp_blob = self.bucket.rename_blob(tmp_blob, blob_path)
         else:
             raise RuntimeError(f"File does not exist: {local_path}")

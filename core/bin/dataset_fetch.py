@@ -1,5 +1,5 @@
-import os
 import argparse
+import os
 
 # Extra imports
 from kaleido.data.danni.download import download_single
@@ -8,7 +8,7 @@ from kaleido.data.danni.loader import DanniMetadataSerializer
 
 def fetch_dataset(metadata_path, output_path):
 
-    print('initializing danni loader...')
+    print("initializing danni loader...")
     samples = DanniMetadataSerializer.read_samples_list(metadata_path)
 
     for rel_path, url in samples.items():
@@ -18,13 +18,17 @@ def fetch_dataset(metadata_path, output_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Fetch metadata from Danni and save the dataset paths in a json file.')
-    parser.add_argument('-i', '--metadata_path', required=True, type=str, help='Path to a .json file containing the metadata.')
-    parser.add_argument('-o', '--output_path', required=True, type=str, help='Path where to save the dataset')
+    parser = argparse.ArgumentParser(
+        description="Fetch metadata from Danni and save the dataset paths in a json file."
+    )
+    parser.add_argument(
+        "-i", "--metadata_path", required=True, type=str, help="Path to a .json file containing the metadata."
+    )
+    parser.add_argument("-o", "--output_path", required=True, type=str, help="Path where to save the dataset")
     args = parser.parse_args()
 
     fetch_dataset(args.metadata_path, args.output_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
