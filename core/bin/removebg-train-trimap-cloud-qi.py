@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-# Standard import
 import argparse
 import glob
 import json
@@ -14,16 +13,13 @@ import pytorch_lightning as pl
 import torch
 from google.cloud import storage
 from kaleido.data.danni.loader import DanniOfflineLoader
-
-# Extra imports
 from kaleido.training.dataset import Dataset
 from kaleido.training.gce.utilities import (
     configure_best_model_checkpoint_for_cloud_training,
     configure_cloud_training,
 )
 from pytorch_lightning.callbacks import Callback
-from pytorch_lightning.loggers import TensorBoardLogger
-from qi_auto.utilities import Bucket, run_bash
+from qi_auto.utilities import run_bash
 
 # Local imports
 from removebg.training.trimap import PlTrimap
@@ -70,7 +66,8 @@ class BestCheckpointNameFixer(Callback):
             new_mtime = os.path.getmtime(new_path)
             if new_mtime > base_mtime:
                 logging.info(
-                    f"Best checkpoint {new_path} is newer than {self.base_name}. Replacing {self.base_name} by {new_path}"
+                    f"Best checkpoint {new_path} is newer than {self.base_name}. "
+                    f"Replacing {self.base_name} by {new_path}"
                 )
                 os.rename(new_path, base_path)
                 base_mtime = new_mtime
@@ -145,9 +142,9 @@ def main():
         if os.path.exists(path):
             logging.info(f"Argument --fresh was passed: Erasing previous checkpoint in {path}")
             if "/" == path:
-                raise Exception(f"The script was about to delete '/'.")
+                raise Exception("The script was about to delete '/'.")
             elif "*" in path:
-                raise Exception(f"The script was about to delete a path with a wildcard, this is unsafe.")
+                raise Exception("The script was about to delete a path with a wildcard, this is unsafe.")
             else:
                 shutil.rmtree(path)
 
@@ -162,7 +159,8 @@ def main():
     # Define callbacks
     callbacks = []
 
-    # Callback to ensure the best checkpoint is always called best.cpkt, and not best-v1.ckpt, best-v2.ckpt etc.
+    # Callback to ensure the best checkpoint is always called best.cpkt
+    # and not best-v1.ckpt, best-v2.ckpt etc.
     callbacks.append(BestCheckpointNameFixer(checkpoint_dir_local_path))
 
     # Checkpoints creation

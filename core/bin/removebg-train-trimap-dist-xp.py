@@ -17,13 +17,8 @@ from kaleido.training.distributed.utilities import (
     configure_distributed,
     is_distributed_enabled,
 )
-from kaleido.training.gce.utilities import (
-    configure_best_model_checkpoint_for_cloud_training,
-    configure_cloud_training,
-)
 from kaleido.training.helpers import download_checkpoint
 from kaleido.training.sampler import DistributedSampler as KaleidoDistributedSampler
-from pytorch_lightning.loggers import TensorBoardLogger
 from removebg.training.trimap import PlTrimap
 
 
@@ -55,7 +50,8 @@ def main():
         parser.error("Either --danni_user and --danni_token, or --danni_metadata_path is required.")
     if args.danni_user and args.danni_token and args.danni_metadata_path:
         parser.error(
-            "The argument --danni_metadata_path and the two arguments --danni_user and --danni_token are mutually exclusive."
+            "The argument --danni_metadata_path and the two arguments "
+            "--danni_user and --danni_token are mutually exclusive."
         )
 
     if not args.wandb_api_key:
@@ -163,9 +159,9 @@ def main():
         if os.path.exists(path):
             print(f"Argument --fresh was passed: Erasing previous checkpoint in {path}")
             if "/" == path:
-                raise Exception(f"The script was about to delete '/'.")
+                raise Exception("The script was about to delete '/'.")
             elif "*" in path:
-                raise Exception(f"The script was about to delete a path with a wildcard, this is unsafe.")
+                raise Exception("The script was about to delete a path with a wildcard, this is unsafe.")
             else:
                 shutil.rmtree(path)
 
@@ -189,7 +185,8 @@ def main():
     )
 
     # best_model_checkpoint_path = os.path.join(checkpoint_dir_local_path, "best.ckpt")
-    # configure_best_model_checkpoint_for_cloud_training(best_model_checkpoint_path, model_checkppint_callback)
+    # configure_best_model_checkpoint_for_cloud_training(best_model_checkpoint_path,
+    # model_checkppint_callback)
     callbacks.append(model_checkppint_callback)
 
     # Progress bar
@@ -197,7 +194,8 @@ def main():
 
     # Configure cloud training on GCP -> Checkpoint synchronization on bucket
 
-    # configure_cloud_training(checkpoint_dir_local_path, callbacks, 'removebg', args.name, bucket_category="torchelastic", checkpoint_names=["last.ckpt", "best.ckpt"])
+    # configure_cloud_training(checkpoint_dir_local_path, callbacks, 'removebg',
+    # args.name, bucket_category="torchelastic", checkpoint_names=["last.ckpt", "best.ckpt"])
 
     # Create trainer
 

@@ -62,7 +62,6 @@ def demo(args):
     identifier = Identifier(args.path_networks, require_models=False)
 
     eval_data = {}
-    path_eval = "evaluation/"
     if args.evaluate:
         args.disable_confidence_thresh = True
 
@@ -76,7 +75,7 @@ def demo(args):
         with open(args.evaluate_file) as f:
             try:
                 eval_data = json.load(f)
-            except:
+            except Exception:
                 pass
 
     if args.bg_image:
@@ -277,7 +276,8 @@ def demo(args):
             # timing
 
             print(
-                "finished {:.2f}mp after (+{:.2f}s imread + preproc) {:.2f}s (+{:.2f}s postproc) (+{:.2f}s saving), class {} [{}]".format(
+                "finished {:.2f}mp after (+{:.2f}s imread + preproc) "
+                "{:.2f}s (+{:.2f}s postproc) (+{:.2f}s saving), class {} [{}]".format(
                     image.width * image.height / 1000000.0,
                     t1 - t0,
                     t4 - t1,

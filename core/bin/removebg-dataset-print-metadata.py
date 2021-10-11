@@ -1,5 +1,4 @@
 import argparse
-import os
 
 from kaleido.data.danni.loader import DanniOfflineLoader
 

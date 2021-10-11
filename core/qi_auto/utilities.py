@@ -24,7 +24,7 @@ def run_bash(cmd_str, realtime_output=True):
 
     if realtime_output:
         # Print output of command in real time
-        logging.info(f"Output of shell command:")
+        logging.info("Output of shell command:")
         while True:
             out = process.stderr.readline()
             if out == "" and process.poll() is not None:
@@ -77,7 +77,8 @@ class Bucket:
             file_name = os.path.basename(blob.name)
             file_local_path = os.path.join(local_path, file_name)
             logging.info(
-                f"Downloading file from bucket {self.human_readable_bucket_name(blob.path)} to {file_local_path}"
+                f"Downloading file from bucket "
+                f"{self.human_readable_bucket_name(blob.path)} to {file_local_path}"
             )
             blob.download_to_filename(file_local_path)
 
@@ -85,7 +86,8 @@ class Bucket:
         tmp_blob_path = f"{blob_path}.tmp"
         tmp_blob = self.bucket.blob(tmp_blob_path)
         if os.path.exists(local_path):
-            # Upload is done on a tmp file first, to limit the risk of corruption if the node is taken down during copy
+            # Upload is done on a tmp file first, to limit the risk
+            # of corruption if the node is taken down during copy
             logging.info(
                 f"Uploading file to bucket {self.human_readable_bucket_name(tmp_blob.path)} from {local_path}"
             )

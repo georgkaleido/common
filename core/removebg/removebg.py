@@ -9,7 +9,6 @@ from kaleido.alpha.trimap import force_transitions
 from kaleido.aug import image as aug_img
 from kaleido.aug import mask as aug_mask
 from kaleido.image.resize import resize_tensor
-from kaleido.models.gaussian import GaussianSmoothing
 from removebg.models import Classifier, Matting, Trimap
 from shadowgen.models.oriented_shadow import OrientedShadow
 
@@ -305,7 +304,9 @@ class Removebg:
             residual = im_original_postcrop - resize_tensor(im, "auto", size=(h, w))
             matting_output[:, 1:4] = matting_output[:, 1:4] + residual
 
-        l = ((matting_output[:, :1] > 0) & (matting_output[:, :1] < 1)).type(matting_output.type())
+        l = ((matting_output[:, :1] > 0) & (matting_output[:, :1] < 1)).type(  # noqa: E741
+            matting_output.type()
+        )
         matting_output[:, 1:4] = l * matting_output[:, 1:4] + (1 - l) * im_original_postcrop
 
         # uncrop

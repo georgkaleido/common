@@ -60,7 +60,7 @@ def main():
         f.write(job)
 
     # Save job.yaml in bucket
-    job_blob_path = os.path.join("removebg", "trimap-qi-auto", str_today_qi, f"job.yaml")
+    job_blob_path = os.path.join("removebg", "trimap-qi-auto", str_today_qi, "job.yaml")
     bucket.upload(local_path=job_local_path, blob_path=job_blob_path)
 
     # Start job

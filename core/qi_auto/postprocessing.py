@@ -1,17 +1,13 @@
-# Standard import
 import argparse
 import glob
 import logging
 import os
 import re
 import shutil
-import subprocess
 from collections import OrderedDict
 from datetime import datetime
 
 import torch
-
-# Local imports
 from bin.dataset_fetch import fetch_dataset
 from qi_auto.utilities import Bucket, compute_days_between_dates, run_bash
 
@@ -46,7 +42,8 @@ def main():
         "--max_day_delta",
         default=9 * 7,
         type=int,
-        help=f"Evaluate trainings with less than this maximum number of days since training start. Default {9*7}",
+        help=f"Evaluate trainings with less than this "
+        f"maximum number of days since training start. Default {9*7}",
     )
     args = parser.parse_args()
 
@@ -91,7 +88,8 @@ def main():
     # Download latest checkpoint from github
     logging.info("Download latest checkpoints from github")
     models_pattern = (
-        "^(identifier-mobilenetv2-c9\..+|matting-fba\..+|shadowgen256_car\..+|trimap513-deeplab-res2net\..+)$"
+        "^(identifier-mobilenetv2-c9\..+|matting-fba\..+|"  # noqa: W605
+        "shadowgen256_car\..+|trimap513-deeplab-res2net\..+)$"  # noqa: W605
     )
     kaleido_models_local_path = "./kaleido-models"
     os.makedirs(kaleido_models_local_path, exist_ok=True)

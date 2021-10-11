@@ -23,7 +23,6 @@ from kaleido.training.gce.utilities import (
 )
 from kaleido.training.helpers import download_checkpoint
 from kaleido.training.sampler import DistributedSampler as KaleidoDistributedSampler
-from pytorch_lightning.loggers import TensorBoardLogger
 from removebg.training.trimap import PlTrimap
 
 
@@ -55,7 +54,8 @@ def main():
         parser.error("Either --danni_user and --danni_token, or --danni_metadata_path is required.")
     if args.danni_user and args.danni_token and args.danni_metadata_path:
         parser.error(
-            "The argument --danni_metadata_path and the two arguments --danni_user and --danni_token are mutually exclusive."
+            "The argument --danni_metadata_path and the two arguments"
+            " --danni_user and --danni_token are mutually exclusive."
         )
 
     if not args.wandb_api_key:
@@ -163,9 +163,9 @@ def main():
         if os.path.exists(path):
             print(f"Argument --fresh was passed: Erasing previous checkpoint in {path}")
             if "/" == path:
-                raise Exception(f"The script was about to delete '/'.")
+                raise Exception("The script was about to delete '/'.")
             elif "*" in path:
-                raise Exception(f"The script was about to delete a path with a wildcard, this is unsafe.")
+                raise Exception("The script was about to delete a path with a wildcard, this is unsafe.")
             else:
                 shutil.rmtree(path)
 

@@ -1,18 +1,14 @@
 #!/usr/bin/env python
 
-# Standard import
-import copy
 import json
 import multiprocessing
 import os
 import time
 
-# Extra imports
 import pytorch_lightning as pl
 import torch
 from kaleido.data.danni.loader import DanniLoader
 from kaleido.training.dataset import Dataset
-from pytorch_lightning.loggers import TensorBoardLogger
 from removebg.training.trimap import PlTrimap
 
 

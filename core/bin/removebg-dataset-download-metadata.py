@@ -20,11 +20,11 @@ def main():
 
     # print(loader.samples)
 
-    l = len(loader.samples.keys())
-    for fpath, idx in zip(loader.samples.keys(), range(l)):
+    nr_of_samples = len(loader.samples.keys())
+    for fpath, idx in zip(loader.samples.keys(), range(nr_of_samples)):
         sample = loader.samples[fpath]
         fpath = os.path.join("danni-data", fpath)
-        print(f"{idx}/{l-1} - Download {sample} to {fpath}")
+        print(f"{idx}/{nr_of_samples-1} - Download {sample} to {fpath}")
         download_single((sample, fpath))
 
 

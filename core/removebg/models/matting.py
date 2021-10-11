@@ -10,7 +10,9 @@ class Matting(nn.Module):
     def __init__(self, fba_fusion=True, pretrained=False):
         super(Matting, self).__init__()
 
-        norm = lambda dim: nn.GroupNorm(32, dim)
+        def norm(dim):
+            return nn.GroupNorm(32, dim)
+
         conv = Conv2d_WN
 
         net_encoder = ResnetDilated(ResNet50(pretrained=pretrained, conv=conv, norm=norm), dilate_scale=8)

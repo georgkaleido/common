@@ -92,7 +92,8 @@ for path in data1.keys():
     sample_number = len(data1[path])
     if args.minimum_samples > sample_number:
         print(
-            f"Ignored because path does not have enough samples ({sample_number} < {args.minimum_samples}): {path}"
+            f"Ignored because path does not have enough samples"
+            f" ({sample_number} < {args.minimum_samples}): {path}"
         )
         continue
 

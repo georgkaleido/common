@@ -61,7 +61,7 @@ params = {
     "fields": ",".join(fields + ["set", "id"]),
     "filter": json.dumps(filter_),
     "limit": args.limit,
-    #'bucket_uris': False
+    # 'bucket_uris': False
 }
 
 page = 1

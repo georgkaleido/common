@@ -1,7 +1,6 @@
 import argparse
 import json
 import os
-import time
 from datetime import datetime
 
 import requests
@@ -26,11 +25,13 @@ def main():
 
     if "DANNI_USER" not in os.environ and args.user is None:
         raise RuntimeError(
-            "Missing user credential for Danni. Either as environment variable DANNI_USER or as argument --user"
+            "Missing user credential for Danni. "
+            "Either as environment variable DANNI_USER or as argument --user"
         )
     if "DANNI_TOKEN" not in os.environ and args.token is None:
         raise RuntimeError(
-            "Missing token credential for Danni. Either as environment variable DANNI_TOKEN or as argument --token"
+            "Missing token credential for Danni. "
+            "Either as environment variable DANNI_TOKEN or as argument --token"
         )
 
     os.environ["DANNI_HOST"] = "https://danni.kaleido.ai/"
