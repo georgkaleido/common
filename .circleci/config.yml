@@ -63,7 +63,7 @@ jobs:
   # Build job
   build_api:
     docker:
-      - image: cimg/node:14.18.0
+      - image: cimg/node:14.18.1
         auth:
           username: ${DOCKERHUB_USER}
           password: ${DOCKERHUB_PASSWORD}
@@ -379,7 +379,7 @@ jobs:
   # Danger
   danger:
     docker:
-      - image: cimg/node:14.18.0
+      - image: cimg/node:14.18.1
         auth:
           username: ${DOCKERHUB_USER}
           password: ${DOCKERHUB_PASSWORD}
