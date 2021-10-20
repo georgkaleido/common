@@ -1,9 +1,3 @@
-.idea/
-.vscode/
-.git/
-.gitignore
-.github/
-.circleci/
 .venv/
 log/*
 tmp/*
