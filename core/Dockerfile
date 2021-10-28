@@ -68,7 +68,7 @@ ARG REMOVEBG_CORE_PY_VERSION=main
 # Install required python packages
 RUN --mount=type=secret,id=fury_auth_token,mode=0444 --mount=type=cache,target=/root/.cache/pip pip install \
       --progress-bar off --extra-index-url https://$(cat /run/secrets/fury_auth_token):@deps.kaleido.ai/pypi/ \
-        removebg-core$([[ ${REMOVEBG_CORE_PY_VERSION} = "main" ]] && echo "" || echo "==${REMOVEBG_CORE_PY_VERSION}")
+        removebg-core$([ ${REMOVEBG_CORE_PY_VERSION} = "main" ] && echo "" || echo "==${REMOVEBG_CORE_PY_VERSION}")
 ########################################################################################################################
 
 

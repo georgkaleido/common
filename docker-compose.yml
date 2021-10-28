@@ -44,6 +44,11 @@ services:
       RESPONSE_QUEUE: remove_bg_api_result
       DOWNLOAD_POOL_SIZE: 15
 
+      # Use without rate limiting and auth
+      SKIP_AUTH: "1"
+      SKIP_RATELIMIT: "1"
+      SKIP_DB: "1"
+
       # Configure TLS certificates
       API_SSL_CRT: ssl/development.crt
       API_SSL_KEY: ssl/development.key
