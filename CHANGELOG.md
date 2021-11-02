@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.9.0 (02/11/2021)
+
+#### 🚀 Enhancements:
+
+- Fixed linting errors discovered by flake8 [#45](https://github.com/remove-bg/kaleido-removebg/pull/45)
+- Code formatting changes black and isort [#44](https://github.com/remove-bg/kaleido-removebg/pull/44)
+- Add script to query Danni for the number of valid Dans at a given date in a specific Batch [#41](https://github.com/remove-bg/kaleido-removebg/pull/41)
+- Refactored server code [#43](https://github.com/remove-bg/kaleido-removebg/pull/43)
+
+#### 🚨 Security
+
+- Update kaleido-api to fix critical vulnerability #yolo [#50](https://github.com/remove-bg/kaleido-removebg/pull/50)
+
+#### 🔀 Dependencies
+
+- [js] Update all Yarn dependencies (2021-10-20) [#48](https://github.com/remove-bg/kaleido-removebg/pull/48)
+- [api] Upgrade Node.js to 14.18.1 [#47](https://github.com/remove-bg/kaleido-removebg/pull/47)
+- [js] Upgrade Node.js to 14.18.1 [#46](https://github.com/remove-bg/kaleido-removebg/pull/46)
+- [js] Update all Yarn dependencies (2021-10-06) [#42](https://github.com/remove-bg/kaleido-removebg/pull/42) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.9.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.9.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.9.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.9.0-cc86`
+---
+
 ## 1.8.0 (05/10/2021)
 
 #### 🚀 Enhancements:
