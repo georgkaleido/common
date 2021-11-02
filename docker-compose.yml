@@ -68,6 +68,7 @@ services:
       args:
         - FURY_AUTH_TOKEN=$FURY_AUTH_TOKEN
         - GITHUB_AUTH_TOKEN=$GITHUB_AUTH_TOKEN
+        - COMPUTE_CAPABILITY=$COMPUTE_CAPABILITY
 
       # Add a 'development' label to the image
       labels:
