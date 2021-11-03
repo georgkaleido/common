@@ -14,7 +14,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG DEBCONF_NONINTERACTIVE_SEEN=true
 
 # Build dependencies (will be uninstalled later)
-ARG BUILD_DEPENDENCIES="pkg-config meson ninja-build texinfo yasm nasm autoconf automake build-essential cmake"
+ARG BUILD_DEPENDENCIES="pkg-config meson ninja-build texinfo yasm nasm autoconf automake build-essential cmake jq"
 ARG GITHUB_FETCH_VERSION="v0.4.2"
 
 # Install dependencies and configure user
@@ -33,17 +33,18 @@ RUN apt-get update \
       libgl1-mesa-glx \
  && curl -Lo /usr/bin/fetch https://github.com/gruntwork-io/fetch/releases/download/${GITHUB_FETCH_VERSION}/fetch_linux_$(dpkg --print-architecture) \
  && chmod +x /usr/bin/fetch \
+ && pip3 install yq \
  && useradd --create-home --user-group app \
  && chown app:app /app
 
 # Add PATH for python binaries
 ENV PATH="/home/app/.local/bin:${PATH}"
 
-# Add requirements
-COPY --chown=app:app requirements-deploy.txt .
-
 # Change user
 USER app
+
+# Add requirements
+COPY --chown=app:app requirements-deploy.txt .
 
 # Install Python project dependencies
 ARG FURY_AUTH_TOKEN
@@ -71,10 +72,25 @@ RUN --mount=type=secret,id=fury_auth_token,mode=0444 --mount=type=cache,target=/
         removebg-core$([ ${REMOVEBG_CORE_PY_VERSION} = "main" ] && echo "" || echo "==${REMOVEBG_CORE_PY_VERSION}")
 ########################################################################################################################
 
+# Add Kaleido Models
+ARG GITHUB_AUTH_TOKEN
 
-# https://github.com/remove-bg/kaleido-models
-ARG KALEIDO_MODELS_VERSION="1.9.3"
-ARG KALEIDO_MODELS_FILES="^(identifier-mobilenetv2-c9\..+|matting-fba\..+|shadowgen256_car\..+|trimap513-deeplab-res2net\..+)$"
+# Add requirements
+COPY --chown=app:app kaleido-models.yml .
+
+RUN --mount=type=secret,id=github_auth_token,mode=0444 \
+    if [ -f /run/secrets/github_auth_token ]; then export GITHUB_AUTH_TOKEN="$(cat /run/secrets/github_auth_token)"; fi \
+ && mkdir networks-trained \
+ && export KALEIDO_MODELS_VERSION=$(yq -r ".version" kaleido-models.yml) \
+ && while IFS=$'\n' read -r line ; do \
+      fetch --github-oauth-token="${GITHUB_AUTH_TOKEN}"                 \
+            --repo="https://github.com/remove-bg/kaleido-models"        \
+            --tag="${KALEIDO_MODELS_VERSION}"                           \
+            --release-asset="$(echo $line | awk '{print $1}')"          \
+            --release-asset-checksum="$(echo $line | awk '{print $2}')" \
+            --release-asset-checksum-algo="sha256"                      \
+      networks-trained/ ; \
+    done <<<$(cat kaleido-models.yml | yq -rc '.files | .[] | [.name, .hash] | @tsv')
 
 # https://github.com/remove-bg/downscale-area-cuda/
 ARG CUDA_DOWNSCALE_VERSION="v3.0.4"
@@ -83,18 +99,10 @@ ARG CUDA_CCL_VERSION="v3.0.4"
 # Requested Compute Capability
 ARG COMPUTE_CAPABILITY="75"
 
-# Add Kaleido Models
-ARG GITHUB_AUTH_TOKEN
 RUN --mount=type=secret,id=github_auth_token,mode=0444 \
     if [ -f /run/secrets/github_auth_token ]; then export GITHUB_AUTH_TOKEN="$(cat /run/secrets/github_auth_token)"; fi \
- && mkdir networks-trained \
  && mkdir -p /app/cuda_modules/downscale/ \
  && mkdir -p /app/cuda_modules/ccl/ \
- && fetch --github-oauth-token="${GITHUB_AUTH_TOKEN}"          \
-          --repo="https://github.com/remove-bg/kaleido-models" \
-          --tag="${KALEIDO_MODELS_VERSION}"                    \
-          --release-asset="${KALEIDO_MODELS_FILES}"            \
-      networks-trained/ \
  && curl -L -H "Authorization: token ${GITHUB_AUTH_TOKEN}" --output - \
     https://api.github.com/repos/remove-bg/connected-component-labeling-cuda/tarball/${CUDA_CCL_VERSION} | \
     tar -xz --strip-components=1 -C /app/cuda_modules/ccl/ \
@@ -104,16 +112,16 @@ RUN --mount=type=secret,id=github_auth_token,mode=0444 \
  && /app/cuda_modules/ccl/python/ccl_package/install.sh ${COMPUTE_CAPABILITY} \
  && /app/cuda_modules/downscale/python/da_package/install.sh ${COMPUTE_CAPABILITY}
 
-# Copy application
-COPY --chown=app:app bin/removebg-server.py bin/
-COPY --chown=app:app liveness.sh .
-
 # Remove build dependencies
 USER root
 RUN apt-get purge -y ${BUILD_DEPENDENCIES} \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /usr/bin/fetch
+
+# Copy application
+COPY --chown=app:app bin/removebg-server.py bin/
+COPY --chown=app:app liveness.sh .
 
 # Build arguments
 ARG VCS_REF=main \

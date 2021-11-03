@@ -1,0 +1,10 @@
+version: "1.9.4"
+files:
+  - name: identifier-mobilenetv2-c9.pth.tar
+    hash: 25bf45cb8cd7f3165395ac1194a4fac0aec4db0e0d8b818c3216b899794d3720
+  - name: matting-fba.pth.tar
+    hash: 1750f5e825ff411d3bcdcdbe3806f13c4211a5f090940011fc4eb106bcd22750
+  - name: shadowgen256_car.pth.tar
+    hash: fc3ca55b394ca30c85588c3f93fb18eb9ad6bc069cbab16a91c91b06dcc3b5d9
+  - name: trimap513-deeplab-res2net.pth.tar
+    hash: fd15798fc52478bd3eb22b0a90542d740c43f70d30c87118c362e4f19ddf1a2f
