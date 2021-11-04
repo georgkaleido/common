@@ -67,6 +67,9 @@ USER app
 ENV NODE_ENV="production" \
     API_PORT="9443" \
     API_SSL="true" \
+    API_SSL_CRT="ssl/development.crt" \
+    API_SSL_KEY="ssl/development.key" \
+    API_SSL_PASS="development" \
     NODE_OPTIONS="--max_old_space_size=4096"
 
 # Ports used by the listener
