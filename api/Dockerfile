@@ -35,7 +35,8 @@ RUN --mount=type=secret,id=npm_token,mode=0444 \
  && npm config set registry https://npm-proxy.fury.io/kaleido/ \
  && npm config set always-auth true \
  && echo '//npm-proxy.fury.io/kaleido/:_authToken=${NPM_TOKEN}' >> ~/.npmrc \
- && yarn install --immutable --frozen-lockfile --production --non-interactive --check-files
+ && yarn install --immutable --frozen-lockfile --production --non-interactive --check-files \
+ && rm ~/.npmrc
 
 # Copy app
 COPY --chown=app:app . .
