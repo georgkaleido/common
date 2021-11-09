@@ -35,30 +35,20 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - venv-v{{ .Environment.CACHE_VERSION }}-{{ checksum "core/requirements.in" }}
-            - venv-v{{ .Environment.CACHE_VERSION }}
+            - venv-v{{ .Environment.CACHE_VERSION }}}
       - run:
           name: Create virtualenv
           command: |
-            cd core
             python3 -m venv .venv
-      - run:
-          name: Install packages
-          command: |
-            cd core
-            . .venv/bin/activate
-            pip install -r requirements.in --progress-bar off
       - run:
           name: Check and install
           command: |
-            cd core
             . .venv/bin/activate
-            python setup.py check
-            python setup.py install
+            pip install . --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/ --progress-bar off
       - save_cache:
           paths:
             - core/.venv
-          key: venv-v{{ .Environment.CACHE_VERSION }}-{{ checksum "core/requirements.in" }}
+          key: venv-v{{ .Environment.CACHE_VERSION }}
 
   # Build job
   build_api:
@@ -154,35 +144,16 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - venv-v{{ .Environment.CACHE_VERSION }}-{{ checksum "core/requirements.in" }}
             - venv-v{{ .Environment.CACHE_VERSION }}
       - run:
           name: Create virtualenv
           command: |
-            cd core
             python3 -m venv .venv
       - run:
           name: Install packages
           command: |
-            cd core
             . .venv/bin/activate
-            pip install -r requirements.in --progress-bar off
-      - run:
-          name: Init .pypirc
-          command: |
-            tee -a /home/circleci/.pypirc > /dev/null \<<EOT
-            [distutils]
-            index-servers =
-                pypi
-                fury
-            [pypi]
-            username =
-            password =
-            [fury]
-            repository: https://deps.kaleido.ai/pypi/
-            username = ${FURY_PUSH_TOKEN}
-            password =
-            EOT
+            pip install . --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/ --progress-bar off
       - run:
           name: Deploy to Gemfury
           command: |
@@ -190,13 +161,11 @@ jobs:
               echo "Not publishing library"
               exit 0
             fi
-
-            cd core
             . .venv/bin/activate
-            python setup.py check
-            python setup.py sdist upload -r fury --show-response
-            python setup.py bdist upload -r fury --show-response
-            python setup.py bdist_wheel upload -r fury --show-response
+            pip install build
+            python -m build
+            twine check dist/*
+            twine upload dist/* --repository-url https://deps.kaleido.ai/pypi/ -u ${FURY_PUSH_TOKEN} -p "" --disable-progress-bar
 
   # Docker
   docker:
