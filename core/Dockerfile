@@ -33,7 +33,6 @@ RUN apt-get update \
       libgl1-mesa-glx \
  && curl -Lo /usr/bin/fetch https://github.com/gruntwork-io/fetch/releases/download/${GITHUB_FETCH_VERSION}/fetch_linux_$(dpkg --print-architecture) \
  && chmod +x /usr/bin/fetch \
- && pip3 install yq \
  && useradd --create-home --user-group app \
  && chown app:app /app
 
@@ -80,8 +79,10 @@ COPY --chown=app:app kaleido-models.yml .
 
 RUN --mount=type=secret,id=github_auth_token,mode=0444 \
     if [ -f /run/secrets/github_auth_token ]; then export GITHUB_AUTH_TOKEN="$(cat /run/secrets/github_auth_token)"; fi \
+ && pip install yq \
  && mkdir networks-trained \
  && export KALEIDO_MODELS_VERSION=$(yq -r ".version" kaleido-models.yml) \
+ && yq -rc '.files | .[] | [.name, .hash] | @tsv' kaleido-models.yml > kaleido-models.tsv \
  && while IFS=$'\n' read -r line ; do \
       fetch --github-oauth-token="${GITHUB_AUTH_TOKEN}"                 \
             --repo="https://github.com/remove-bg/kaleido-models"        \
@@ -90,8 +91,9 @@ RUN --mount=type=secret,id=github_auth_token,mode=0444 \
             --release-asset-checksum="$(echo $line | awk '{print $2}')" \
             --release-asset-checksum-algo="sha256"                      \
       networks-trained/ ; \
-    done <<<$(cat kaleido-models.yml | yq -rc '.files | .[] | [.name, .hash] | @tsv') \
- && rm kaleido-models.yml
+    done <kaleido-models.tsv \
+ && pip uninstall -y yq \
+ && rm kaleido-models.yml kaleido-models.tsv
 
 # https://github.com/remove-bg/downscale-area-cuda/
 ARG CUDA_DOWNSCALE_VERSION="v3.0.4"
