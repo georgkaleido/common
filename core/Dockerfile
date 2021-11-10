@@ -90,7 +90,8 @@ RUN --mount=type=secret,id=github_auth_token,mode=0444 \
             --release-asset-checksum="$(echo $line | awk '{print $2}')" \
             --release-asset-checksum-algo="sha256"                      \
       networks-trained/ ; \
-    done <<<$(cat kaleido-models.yml | yq -rc '.files | .[] | [.name, .hash] | @tsv')
+    done <<<$(cat kaleido-models.yml | yq -rc '.files | .[] | [.name, .hash] | @tsv') \
+ && rm kaleido-models.yml
 
 # https://github.com/remove-bg/downscale-area-cuda/
 ARG CUDA_DOWNSCALE_VERSION="v3.0.4"
