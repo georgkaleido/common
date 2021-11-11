@@ -131,3 +131,25 @@ Make sure to stick to SemVer tag names (e.g. `1.0.0`, no prefix).
 Tagged releases are deployed automatically to the production environment for both the API and Core images. There is no need to write
 a Description for released versions, as this is filled automatically by the CD process. A [CHANGELOG.md](CHANGELOG.md) file is also
 generated automatically.
+
+## :clipboard: Testing
+
+### How to run core tests locally
+
+1. Make rabbitmq port available by uncommenting the rabbitmq service port section in `docker-compose.yaml`
+2. Start core and rabbitmq via the following docker-compose command:
+`COMPUTE_CAPABILITY=[your GPU compute capability] DOCKER_BUILDKIT=1 FURY_AUTH_TOKEN=[your GemFury token] GITHUB_AUTH_TOKEN=[your GitHub Access token]  docker-compose up --build core rabbitmq`
+3. Set the following environment variables in your shell:
+```bash
+REQUEST_QUEUE=remove_bg
+RABBITMQ_HOST=127.0.0.1
+RABBITMQ_PORT=5672
+RABBITMQ_USER=rabbitmq
+RABBITMQ_PASSWORD=rabbitmq
+```
+4. Execute tests as the following:
+```bash
+# change to test directory
+$ cd core/test/
+$ pytest core/
+```

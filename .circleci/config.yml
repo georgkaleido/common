@@ -162,7 +162,7 @@ jobs:
               exit 0
             fi
             . .venv/bin/activate
-            pip install build
+            pip install build twine
             python -m build
             twine check dist/*
             twine upload dist/* --repository-url https://deps.kaleido.ai/pypi/ -u ${FURY_PUSH_TOKEN} -p "" --disable-progress-bar

@@ -127,10 +127,10 @@ services:
     volumes:
       - rabbitmq:/var/lib/rabbitmq
 
-    # !!! Leave this commented out in the repository. Only uncomment locally
-    # if you need to access the rabbitmq ports.
-    # ports:
-    #  - "5672:5672"
+#     !!! Leave this commented out in the repository. Only uncomment locally
+#     if you need to access the rabbitmq ports.
+#    ports:
+#      - "5672:5672"
 
 volumes:
   rabbitmq:

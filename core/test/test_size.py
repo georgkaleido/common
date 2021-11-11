@@ -1,22 +1,23 @@
 from test.helpers import scaled_im
 
 
-def check_sizes(im_in, im_out, mp_target, headers):
+def check_sizes(im_in, im_out, mp_target, headers=None):
     mp_in = im_in.width * im_in.height
     mp_out = im_out.width * im_out.height
-    mp_res_max = int(headers.get("X-Max-Width")) * int(headers.get("X-Max-Height"))
+    if headers:
+        mp_res_max = int(headers.get("X-Max-Width")) * int(headers.get("X-Max-Height"))
 
-    assert headers.get("X-Width") == str(im_out.width)
-    assert headers.get("X-Height") == str(im_out.height)
+        assert headers.get("X-Width") == str(im_out.width)
+        assert headers.get("X-Height") == str(im_out.height)
+
+        if mp_in > 25000000:
+            # should be capped at the limit
+            assert 0 < 25000000 - mp_res_max < mp_res_max * 0.005
+        else:
+            # must match with the original mp
+            assert mp_in == mp_res_max
 
     assert 0 < mp_target * 1000000 - mp_out < mp_out * 0.005
-
-    if mp_in > 25000000:
-        # should be capped at the limit
-        assert 0 < 25000000 - mp_res_max < mp_res_max * 0.005
-    else:
-        # must match with the original mp
-        assert mp_in == mp_res_max
 
 
 # test small (0 - 0.25mp)

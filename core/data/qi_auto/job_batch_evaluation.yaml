@@ -15,11 +15,11 @@ spec:
             medium: Memory
       containers:
         - name: qi-batch-evaluation-manual
-        image: eu.gcr.io/kaleido-train/trimap-qi-auto-batch-evaluation:v1 # Name of the docker image
-        imagePullPolicy: Always
-        args:
-          - "--batch_names=Livia"
-          - "--qi_names=2021-09-07_qi"
+          image: eu.gcr.io/kaleido-train/trimap-qi-auto-batch-evaluation:v1 # Name of the docker image
+          imagePullPolicy: Always
+          args:
+            - "--batch_names=Livia"
+            - "--qi_names=2021-09-07_qi"
         env:
           - name: GITHUB_AUTH_TOKEN
               valueFrom:

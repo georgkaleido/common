@@ -32,8 +32,13 @@ pip-compile -U requirements-deploy.in requirements-dev.in -o requirements-dev.tx
 sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\n\n/' requirements-dev.txt
 echo "Successfully updated requirements-dev.txt"
 
+echo "Removing torch,torchvision and torchtext dependencies from requirements-dev.txt, install manually using conda."
+sed -i '/torch==/d' requirements-dev.txt
+sed -i '/torchvision==/d' requirements-dev.txt
+sed -i '/torchtext==/d' requirements-dev.txt
+
 echo "Updating requirements-train.txt. This may take a while..."
-pip-compile -U requirements.in requirements-train.in -o requirements-train.txt --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
+pip-compile -U requirements-train.in -o requirements-train.txt --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
 # add --extra-index-url to beginning of file
 sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\n\n/' requirements-train.txt
 echo "Successfully updated requirements-train.txt"

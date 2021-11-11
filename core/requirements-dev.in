@@ -1,9 +1,10 @@
 # requirements-dev.in extends requirements-deploy.in when running update-requirements.sh
 # Additionally development requirements can be specified here.
 
-pbr>=5.5.1,<6.0.0
 pytest>=6.2.0,<6.3.0
 flake8==3.9.2
 black==21.7b0
 isort==5.9.3
 pre-commit<3.0.0
+build
+twine
