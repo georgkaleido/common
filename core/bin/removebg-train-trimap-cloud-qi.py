@@ -159,10 +159,6 @@ def main():
     # Define callbacks
     callbacks = []
 
-    # Callback to ensure the best checkpoint is always called best.cpkt
-    # and not best-v1.ckpt, best-v2.ckpt etc.
-    callbacks.append(BestCheckpointNameFixer(checkpoint_dir_local_path))
-
     # Checkpoints creation
     model_checkppint_callback = pl.callbacks.ModelCheckpoint(
         save_last=True,
@@ -197,8 +193,6 @@ def main():
         logger=logger,
         callbacks=callbacks,
         default_root_dir=path,
-        deterministic=True,
-        progress_bar_refresh_rate=1,
         gpus=-1,
         # max_epochs=20,
         precision=16,

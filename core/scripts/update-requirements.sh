@@ -43,3 +43,16 @@ echo "Removing torch,torchvision and torchtext dependencies from requirements-tr
 sed -i '/torch==/d' requirements-train.txt
 sed -i '/torchvision==/d' requirements-train.txt
 sed -i '/torchtext==/d' requirements-train.txt
+
+
+echo "Updating requirements-eval.txt. This may take a while..."
+pip-compile -U requirements.in requirements-eval.in -o requirements-eval.txt --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
+# add --extra-index-url to beginning of file
+sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\n\n/' requirements-eval.txt
+echo "Successfully updated requirements-eval.txt"
+
+echo "Removing torch,torchvision and torchtext dependencies from requirements-eval.txt as already shipped in base image."
+# remove torch, torchvision dependencies from deployment dependencies as we have them in base image
+sed -i '/torch==/d' requirements-eval.txt
+sed -i '/torchvision==/d' requirements-eval.txt
+sed -i '/torchtext==/d' requirements-eval.txt

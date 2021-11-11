@@ -132,7 +132,6 @@ def save_plot(scores, median, path_out, title):
     ax.spines["top"].set_position(("data", 1))
     ax.spines["right"].set_color("none")
     ax.spines["bottom"].set_color("none")
-    ax.set_xticks([], [])
     ax.set_xlabel("{:.2f}%".format((1.0 - median) * 100.0), color=("green" if median < 1.0 else "red"))
 
     ax.yaxis.set_major_formatter(plt.ScalarFormatter())

@@ -10,43 +10,43 @@ beautifulsoup4==4.10.0
     # via google
 black==21.7b0
     # via -r requirements-dev.in
-certifi==2021.5.30
+certifi==2021.10.8
     # via
     #   requests
     #   sentry-sdk
 cfgv==3.3.1
     # via pre-commit
-charset-normalizer==2.0.6
+charset-normalizer==2.0.7
     # via requests
-click==8.0.1
+click==8.0.3
     # via
     #   black
     #   wandb
-configparser==5.0.2
+configparser==5.1.0
     # via wandb
 distlib==0.3.3
     # via virtualenv
 docker-pycreds==0.4.0
     # via wandb
-filelock==3.3.0
+filelock==3.3.2
     # via virtualenv
 flake8==3.9.2
     # via -r requirements-dev.in
-gitdb==4.0.7
+gitdb==4.0.9
     # via gitpython
 gitpython==3.1.24
     # via wandb
 google==3.0.0
     # via kaleido-core
-identify==2.3.0
+identify==2.3.4
     # via pre-commit
-idna==3.2
+idna==3.3
     # via requests
 iniconfig==1.1.1
     # via pytest
 isort==5.9.3
     # via -r requirements-dev.in
-kaleido-core==2.0.0
+kaleido-core==2.3.0
     # via -r requirements-deploy.in
 mccabe==0.6.1
     # via flake8
@@ -60,7 +60,7 @@ nibabel==2.4.1
     # via -r requirements-deploy.in
 nodeenv==1.6.0
     # via pre-commit
-numpy==1.21.2
+numpy==1.21.4
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
@@ -70,25 +70,25 @@ numpy==1.21.2
     #   scipy
     #   torch
     #   torchvision
-opencv-python==4.5.3.56
+opencv-python==4.5.4.58
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
-packaging==21.0
+packaging==21.2
     # via pytest
-pandas==1.3.3
+pandas==1.3.4
     # via -r requirements-deploy.in
 pathspec==0.9.0
     # via black
 pathtools==0.1.2
     # via wandb
-pbr==5.6.0
+pbr==5.7.0
     # via -r requirements-dev.in
 pika==1.2.0
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
-pillow==8.3.2
+pillow==8.4.0
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
@@ -101,11 +101,11 @@ pre-commit==2.15.0
     # via -r requirements-dev.in
 promise==2.3
     # via wandb
-protobuf==3.18.0
+protobuf==3.19.1
     # via wandb
 psutil==5.8.0
     # via wandb
-py==1.10.0
+py==1.11.0
     # via pytest
 pycodestyle==2.7.0
     # via flake8
@@ -121,25 +121,25 @@ python-dateutil==2.8.2
     #   wandb
 pytz==2021.3
     # via pandas
-pyyaml==5.4.1
+pyyaml==6.0
     # via
     #   pre-commit
     #   wandb
-regex==2021.9.30
+regex==2021.11.2
     # via black
-removebg-core==1.8.0
+removebg-core==1.9.1
     # via -r requirements-deploy.in
 requests==2.26.0
     # via
     #   kaleido-core
     #   wandb
-scipy==1.7.1
+scipy==1.7.2
     # via kaleido-core
 sentry-sdk==1.4.3
     # via wandb
 shadowgen-core==1.7.1
     # via -r requirements-deploy.in
-shortuuid==1.0.1
+shortuuid==1.0.3
     # via wandb
 six==1.16.0
     # via
@@ -149,9 +149,9 @@ six==1.16.0
     #   python-dateutil
     #   virtualenv
     #   wandb
-smmap==4.0.0
+smmap==5.0.0
     # via gitdb
-soupsieve==2.2.1
+soupsieve==2.3
     # via beautifulsoup4
 subprocess32==3.5.4
     # via wandb
@@ -159,7 +159,7 @@ toml==0.10.2
     # via
     #   pre-commit
     #   pytest
-tomli==1.2.1
+tomli==1.2.2
     # via black
 torch==1.8.0
     # via
@@ -181,7 +181,7 @@ urllib3==1.26.7
     #   requests
     #   sentry-sdk
     #   wandb
-virtualenv==20.8.1
+virtualenv==20.10.0
     # via pre-commit
 wandb==0.11.2
     # via -r requirements-deploy.in

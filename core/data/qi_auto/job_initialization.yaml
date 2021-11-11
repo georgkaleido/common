@@ -11,7 +11,7 @@ spec:
         spec:
           containers:
             - name: qi-auto-initialization
-              image: eu.gcr.io/kaleido-train/trimap-qi-auto-initialization:v4
+              image: eu.gcr.io/kaleido-train/trimap-qi-auto-initialization:v5
               imagePullPolicy: Always
               env:
                 - name: DANNI_USER

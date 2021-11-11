@@ -1,10 +1,12 @@
 --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/
 
-absl-py==0.14.1
+absl-py==0.15.0
     # via tensorboard
-aiohttp==3.7.4.post0
+aiohttp==3.8.0
     # via fsspec
-async-timeout==3.0.1
+aiosignal==1.2.0
+    # via aiohttp
+async-timeout==4.0.0
     # via aiohttp
 attrs==21.2.0
     # via aiohttp
@@ -12,17 +14,17 @@ beautifulsoup4==4.10.0
     # via google
 cachetools==4.2.4
     # via google-auth
-certifi==2021.5.30
+certifi==2021.10.8
     # via
     #   requests
     #   sentry-sdk
-chardet==4.0.0
-    # via aiohttp
-charset-normalizer==2.0.6
-    # via requests
-click==8.0.1
+charset-normalizer==2.0.7
+    # via
+    #   aiohttp
+    #   requests
+click==8.0.3
     # via wandb
-configparser==5.0.2
+configparser==5.1.0
     # via wandb
 crcmod==1.7
     # via -r requirements-train.in
@@ -30,24 +32,28 @@ dnspython==2.1.0
     # via python-etcd
 docker-pycreds==0.4.0
     # via wandb
-fsspec[http]==2021.10.0
+frozenlist==1.2.0
+    # via
+    #   aiohttp
+    #   aiosignal
+fsspec[http]==2021.11.0
     # via pytorch-lightning
 future==0.18.2
     # via pytorch-lightning
-gitdb==4.0.7
+gitdb==4.0.9
     # via gitpython
 gitpython==3.1.24
     # via wandb
 google==3.0.0
     # via kaleido-core
-google-api-core==2.0.1
+google-api-core==2.2.2
     # via
     #   google-api-python-client
     #   google-cloud-core
     #   google-cloud-storage
-google-api-python-client==2.24.0
+google-api-python-client==2.29.0
     # via -r requirements-train.in
-google-auth==1.35.0
+google-auth==2.3.3
     # via
     #   google-api-core
     #   google-api-python-client
@@ -62,45 +68,45 @@ google-auth-oauthlib==0.4.6
     # via tensorboard
 google-cloud==0.34.0
     # via -r requirements-train.in
-google-cloud-core==2.0.0
+google-cloud-core==2.1.0
     # via
     #   -r requirements-train.in
     #   google-cloud-storage
 google-cloud-storage==1.42.3
     # via -r requirements-train.in
-google-crc32c==1.2.0
+google-crc32c==1.3.0
     # via
     #   -r requirements-train.in
     #   google-resumable-media
-google-resumable-media==2.0.3
+google-resumable-media==2.1.0
     # via google-cloud-storage
 googleapis-common-protos==1.53.0
     # via google-api-core
-grpcio==1.41.0
+grpcio==1.41.1
     # via tensorboard
-httplib2==0.19.1
+httplib2==0.20.2
     # via
     #   google-api-python-client
     #   google-auth-httplib2
-idna==3.2
+idna==3.3
     # via
     #   requests
     #   yarl
-kaleido-core==1.3.14
-    # via
-    #   -r requirements-train.in
-    #   -r requirements.in
+kaleido-core==2.3.0
+    # via -r requirements.in
 markdown==3.3.4
     # via tensorboard
 msgpack==0.6.2
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   kaleido-core
 multidict==5.2.0
     # via
     #   aiohttp
     #   yarl
 nibabel==2.4.1
     # via -r requirements.in
-numpy==1.21.2
+numpy==1.21.4
     # via
     #   -r requirements.in
     #   kaleido-core
@@ -116,28 +122,30 @@ numpy==1.21.2
     #   torchvision
 oauthlib==3.1.1
     # via requests-oauthlib
-opencv-python==4.5.3.56
+opencv-python==4.5.4.58
     # via
     #   -r requirements.in
     #   kaleido-core
-packaging==21.0
+packaging==21.2
     # via
     #   pytorch-lightning
     #   torchmetrics
-pandas==1.3.3
+pandas==1.3.4
     # via -r requirements.in
 pathtools==0.1.2
     # via wandb
 pika==1.2.0
-    # via -r requirements.in
-pillow==8.3.2
+    # via
+    #   -r requirements.in
+    #   kaleido-core
+pillow==8.4.0
     # via
     #   -r requirements.in
     #   kaleido-core
     #   torchvision
 promise==2.3
     # via wandb
-protobuf==3.18.0
+protobuf==3.19.1
     # via
     #   google-api-core
     #   google-cloud-storage
@@ -146,7 +154,7 @@ protobuf==3.18.0
     #   wandb
 psutil==5.8.0
     # via wandb
-pyarrow==5.0.0
+pyarrow==6.0.0
     # via -r requirements-train.in
 pyasn1==0.4.8
     # via
@@ -166,11 +174,11 @@ python-dateutil==2.8.2
     #   wandb
 python-etcd==0.4.5
     # via torchelastic
-pytorch-lightning==1.4.9
+pytorch-lightning==1.5.0
     # via -r requirements-train.in
 pytz==2021.3
     # via pandas
-pyyaml==5.4.1
+pyyaml==6.0
     # via
     #   pytorch-lightning
     #   wandb
@@ -187,13 +195,13 @@ requests-oauthlib==1.3.0
     # via google-auth-oauthlib
 rsa==4.7.2
     # via google-auth
-scipy==1.7.1
+scipy==1.7.2
     # via kaleido-core
 sentry-sdk==1.4.3
     # via wandb
 shadowgen-core==1.7.1
     # via -r requirements.in
-shortuuid==1.0.1
+shortuuid==1.0.3
     # via wandb
 six==1.16.0
     # via
@@ -207,13 +215,13 @@ six==1.16.0
     #   promise
     #   python-dateutil
     #   wandb
-smmap==4.0.0
+smmap==5.0.0
     # via gitdb
-soupsieve==2.2.1
+soupsieve==2.3
     # via beautifulsoup4
 subprocess32==3.5.4
     # via wandb
-tensorboard==2.6.0
+tensorboard==2.7.0
     # via pytorch-lightning
 tensorboard-data-server==0.6.1
     # via tensorboard
@@ -228,7 +236,7 @@ tensorboard-plugin-wit==1.8.0
     #   torchvision
 torchelastic==0.2.0
     # via -r requirements-train.in
-torchmetrics==0.5.1
+torchmetrics==0.6.0
     # via pytorch-lightning
     # via
     #   -r requirements.in
@@ -239,11 +247,11 @@ tqdm==4.62.3
     #   pytorch-lightning
 typing-extensions==3.10.0.2
     # via
-    #   aiohttp
+    #   async-timeout
     #   gitpython
     #   pytorch-lightning
     #   torch
-uritemplate==3.0.1
+uritemplate==4.1.1
     # via google-api-python-client
 urllib3==1.26.7
     # via
@@ -253,13 +261,14 @@ urllib3==1.26.7
     #   wandb
 wandb==0.11.2
     # via -r requirements.in
-werkzeug==2.0.1
+werkzeug==2.0.2
     # via tensorboard
 wheel==0.37.0
     # via
     #   -r requirements.in
+    #   kaleido-core
     #   tensorboard
-yarl==1.6.3
+yarl==1.7.2
     # via aiohttp
 
 # The following packages are considered to be unsafe in a requirements file:

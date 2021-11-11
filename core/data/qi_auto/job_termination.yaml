@@ -12,7 +12,7 @@ spec:
         spec:
           containers:
           - name: qi-auto-termination
-            image: eu.gcr.io/kaleido-train/trimap-qi-auto-initialization:v4
+            image: eu.gcr.io/kaleido-train/trimap-qi-auto-initialization:v5
             imagePullPolicy: Always
             command: ["python", "-m", "qi_auto.termination"]
           restartPolicy: OnFailure

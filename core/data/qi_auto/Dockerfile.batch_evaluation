@@ -39,7 +39,7 @@ RUN mkdir /app
 WORKDIR /app/
 
 # https://github.com/remove-bg/downscale-area-cuda/
-ARG CUDA_DOWNSCALE_VERSION=3.0.6
+ARG CUDA_DOWNSCALE_VERSION=v3.0.4
 # https://github.com/remove-bg/connected-component-labeling-cuda
 ARG CUDA_CCL_VERSION=v3.0.4
 
@@ -55,7 +55,7 @@ RUN --mount=type=secret,id=github_auth_token \
  && rm -rf /tmp/*
 
 # Requested Compute Capability
-ARG COMPUTE_CAPABILITY=70
+ARG COMPUTE_CAPABILITY=86
 
 RUN /app/cuda_modules/ccl/python/ccl_package/install.sh ${COMPUTE_CAPABILITY} \
  && /app/cuda_modules/downscale/python/da_package/install.sh ${COMPUTE_CAPABILITY}
@@ -68,12 +68,13 @@ RUN mkdir -p bin
 COPY ./bin/__init__.py ./bin/__init__.py
 COPY ./bin/dataset_fetch.py ./bin/dataset_fetch.py
 COPY ./bin/removebg-demo.py ./bin/removebg-demo.py
+COPY ./bin/dataset_fetch_metadata.py ./bin/dataset_fetch_metadata.py
 COPY ./removebg ./removebg
 RUN mkdir -p eval
 COPY ./eval/plot_results.py ./eval/plot_results.py
 RUN mkdir -p qi_auto
 COPY ./qi_auto/utilities.py ./qi_auto/utilities.py
-COPY ./qi_auto/postprocessing.py ./qi_auto/postprocessing.py
+COPY ./qi_auto/batch_evaluation.py ./qi_auto/batch_evaluation.py
 RUN mkdir -p scripts
 COPY ./scripts/fetch-models.sh ./scripts/fetch-models.sh
 
@@ -81,5 +82,5 @@ COPY ./scripts/fetch-models.sh ./scripts/fetch-models.sh
 ENV PYTHONPATH=/workspace/kaleido/
 
 USER root
-ENTRYPOINT ["python", "-m", "qi_auto.postprocessing"]
+ENTRYPOINT ["python", "-m", "qi_auto.batch_evaluation"]
 CMD ["--help"]
