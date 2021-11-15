@@ -1,5 +1,7 @@
 --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/
 
+--find-links https://download.pytorch.org/whl/torch_stable.html
+
 appdirs==1.4.4
     # via black
 attrs==21.2.0
@@ -90,7 +92,6 @@ numpy==1.21.4
     #   opencv-python
     #   pandas
     #   scipy
-    #   torch
     #   torchvision
 opencv-python==4.5.4.58
     # via
@@ -206,10 +207,12 @@ tomli==1.2.2
     #   black
     #   build
     #   pep517
+torch==1.10.0+cu113
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
     #   torchvision
+torchvision==0.11.1+cu113
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
@@ -219,7 +222,7 @@ tqdm==4.62.3
     #   twine
 twine==3.6.0
     # via -r requirements-dev.in
-typing-extensions==3.10.0.2
+typing-extensions==4.0.0
     # via
     #   gitpython
     #   torch

@@ -2,7 +2,7 @@
 
 absl-py==1.0.0
     # via tensorboard
-aiohttp==3.8.0
+aiohttp==3.8.1
     # via fsspec
 aiosignal==1.2.0
     # via aiohttp
@@ -249,7 +249,7 @@ tqdm==4.62.3
     #   kaleido-core
     #   pytorch-lightning
     #   torchtext
-typing-extensions==3.10.0.2
+typing-extensions==4.0.0
     # via
     #   async-timeout
     #   gitpython
