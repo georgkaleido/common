@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.10.0 (16/11/2021)
+
+#### 🚀 Enhancements:
+
+- QI Improvement [#59](https://github.com/remove-bg/kaleido-removebg/pull/59)
+- Update kaleido-models.yml [#60](https://github.com/remove-bg/kaleido-removebg/pull/60)
+- Smaller docker image [#57](https://github.com/remove-bg/kaleido-removebg/pull/57)
+- Torch dependencies with cuda [#58](https://github.com/remove-bg/kaleido-removebg/pull/58)
+- Added core server tests [#54](https://github.com/remove-bg/kaleido-removebg/pull/54)
+- QI enhancement [#56](https://github.com/remove-bg/kaleido-removebg/pull/56)
+- Removed setup.py [#55](https://github.com/remove-bg/kaleido-removebg/pull/55)
+- Add verification to Kaleido Models when fetching [#52](https://github.com/remove-bg/kaleido-removebg/pull/52)
+
+#### 🐞 Bugfixes:
+
+- Temporary fix for "Deploy on Gemfury" on CircleCI [#62](https://github.com/remove-bg/kaleido-removebg/pull/62)
+- Add --verbose in "Deploy to Gemfury" step to investigate Bad Request error [#61](https://github.com/remove-bg/kaleido-removebg/pull/61) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.10.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.10.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.10.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.10.0-cc86`
+---
+
 ## 1.9.1 (02/11/2021)
 
 #### 🚀 Enhancements:
