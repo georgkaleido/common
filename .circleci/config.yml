@@ -165,7 +165,7 @@ jobs:
             pip install build twine
             python -m build
             twine check dist/*
-            twine upload dist/* --repository-url https://deps.kaleido.ai/pypi/ -u ${FURY_PUSH_TOKEN} -p "" --disable-progress-bar
+            twine upload dist/* --repository-url https://deps.kaleido.ai/pypi/ -u ${FURY_PUSH_TOKEN} -p "" --disable-progress-bar --verbose
 
   # Docker
   docker:
