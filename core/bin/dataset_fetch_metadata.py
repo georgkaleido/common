@@ -11,7 +11,7 @@ def dataset_fetch_metadata(user, token, metadata_output_path, max_pages, test_sp
 
     filter_ = {"worker_history.danni-image-remove_background-alpha-thumbnails": True}
 
-    fields = ["image.file300k.url", "image.remove_background.alpha[].file300k.url"]
+    fields = ["image.file300k.url", "image.remove_background.alpha[].file300k.url", "image.remove_background.batches"]
     result_fn_names = ["color.jpg", "alpha.png"]
 
     if test_split:
@@ -61,13 +61,20 @@ def dataset_fetch_metadata(user, token, metadata_output_path, max_pages, test_sp
                 group = d["source"]["user_id"]
         return group
 
+    def batch_fn(d):
+        batch = "other"
+        if "image" in d and "remove_background" in d["image"] and "batches" in d["image"]["remove_background"]:
+            if d["image"]["remove_background"]["batches"]:
+                batch = d["image"]["remove_background"]["batches"][0]
+        return batch
+
     print("initializing danni loader...")
     danni_loader = DanniLoader(
         filter_,
         fields,
         result_fn,
         result_fn_names,
-        group_fn=group_fn if test_split else None,
+        group_fn=(batch_fn if batch_names else group_fn) if test_split else None,
         mode="save",
         metadata_output_path=metadata_output_path,
         limit=1000,

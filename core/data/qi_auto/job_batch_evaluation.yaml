@@ -19,6 +19,7 @@ spec:
           imagePullPolicy: Always
           args:
             - "--batch_names=Wealhmaer Quincy Eustacia Nery1 Nery2 Frederica Livia Pearline"
+            - "--models_version=1.9.3"
             - "--qi_names=2021-10-01_qi"
           env:
             - name: GITHUB_AUTH_TOKEN

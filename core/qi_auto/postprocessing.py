@@ -175,7 +175,7 @@ def main():
         str_command_line = (
             f"python -m eval.plot_results reference.json {qi_date_str}.json "
             f"--out {evaluation_local_path} "
-            f" --samples 25 --minimum_samples 10"
+            f" --samples 3 --minimum_samples 10"
         )
         run_bash(str_command_line)
 

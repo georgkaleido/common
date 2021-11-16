@@ -55,7 +55,7 @@ RUN --mount=type=secret,id=github_auth_token \
  && rm -rf /tmp/*
 
 # Requested Compute Capability
-ARG COMPUTE_CAPABILITY=86
+ARG COMPUTE_CAPABILITY=70
 
 RUN /app/cuda_modules/ccl/python/ccl_package/install.sh ${COMPUTE_CAPABILITY} \
  && /app/cuda_modules/downscale/python/da_package/install.sh ${COMPUTE_CAPABILITY}

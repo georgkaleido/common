@@ -43,9 +43,16 @@ def main():
         "-b",
         "--batch_names",
         required=True,
-        nargs="+",
         type=str,
         help="",
+    )
+    parser.add_argument(
+        "-v",
+        "--models_version",
+        required=False,
+        default="",
+        type=str,
+        help="Model version in kaleido-models",
     )
     parser.add_argument(
         "-q",
@@ -56,6 +63,10 @@ def main():
         help="",
     )
     args = parser.parse_args()
+
+    args.batch_names = args.batch_names.split(" ")
+
+    logging.info(f"Batch list: {args.batch_names}")
 
     assert "GITHUB_AUTH_TOKEN" in os.environ, "Could not find environment variable GITHUB_AUTH_TOKEN"
     assert "DANNI_USER" in os.environ, "Could not find environment variable DANNI_USER"
@@ -90,7 +101,7 @@ def main():
     kaleido_models_local_path = "./kaleido-models"
     os.makedirs(kaleido_models_local_path, exist_ok=True)
     run_bash(
-        f'./scripts/fetch-models.sh "{models_pattern}" "{kaleido_models_local_path}"', realtime_output=False
+        f'./scripts/fetch-models.sh "{models_pattern}" "{kaleido_models_local_path}" "{args.models_version}"', realtime_output=False
     )
 
     # Download test dataset
@@ -158,7 +169,7 @@ def main():
         str_command_line = (
             f"python -m eval.plot_results reference.json {qi_date_str}.json "
             f"--out {evaluation_local_path} "
-            f" --samples 25 --minimum_samples 10"
+            f" --samples 99999"
         )
         run_bash(str_command_line)
 
