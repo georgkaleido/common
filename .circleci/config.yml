@@ -163,9 +163,9 @@ jobs:
             fi
             . .venv/bin/activate
             pip install build twine
-            python -m build
+            python -m build --wheel
             twine check dist/*
-            twine upload dist/* --repository-url https://deps.kaleido.ai/pypi/ -u ${FURY_PUSH_TOKEN} -p "" --disable-progress-bar --verbose
+            twine upload dist/* --repository-url https://deps.kaleido.ai/pypi/ -u ${FURY_PUSH_TOKEN} -p "" --disable-progress-bar
 
   # Docker
   docker:
