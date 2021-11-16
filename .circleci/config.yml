@@ -20,7 +20,7 @@ jobs:
   # Build job
   build_core:
     docker:
-      - image: cimg/python:3.9.5
+      - image: cimg/python:3.8.12
         auth:
           username: ${DOCKERHUB_USER}
           password: ${DOCKERHUB_PASSWORD}
@@ -82,7 +82,7 @@ jobs:
   # Lint
   lint:
     docker:
-      - image: cimg/python:3.9.5-node
+      - image: cimg/python:3.8.12-node
         auth:
           username: ${DOCKERHUB_USER}
           password: ${DOCKERHUB_PASSWORD}
@@ -129,7 +129,7 @@ jobs:
   # Publish
   publish:
     docker:
-      - image: cimg/python:3.9.5
+      - image: cimg/python:3.8.12
         auth:
           username: ${DOCKERHUB_USER}
           password: ${DOCKERHUB_PASSWORD}
