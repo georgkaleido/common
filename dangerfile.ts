@@ -15,7 +15,7 @@ import * as fs from 'fs';
 const isDepfuPR = danger.github.pr.user.login == 'depfu[bot]' && danger.github.pr.user.type == 'Bot'
 
 // Check if it's a trivial PR
-const declaredTrivial = danger.github.pr.title.includes("#trivial") || danger.github.pr.title.includes("#yolo")
+const declaredTrivial = danger.github.pr.title.toLowerCase().includes("#trivial") || danger.github.pr.title.toLowerCase().includes("#yolo")
 
 // Get stats
 const { additions = 0, deletions = 0 } = danger.github.pr
