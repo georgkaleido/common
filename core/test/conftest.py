@@ -100,8 +100,7 @@ class RemovebgMessage:
 
     def serialize(self):
         """Serialize to dict with byte encoded keys."""
-        if self.roi is None:
-            self.roi = [0, 0, 396, 639]
+
         if self.crop_margin is None:
             self.crop_margin = {
                 "top": 0,

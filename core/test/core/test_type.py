@@ -37,4 +37,4 @@ def test_animal(core_server_tester):
 
 
 def test_car(core_server_tester):
-    _test_type(core_server_tester, "../data/RGB.png", out_type="auto")
+    _test_type(core_server_tester, "../data/RGB.png", out_type="car")
