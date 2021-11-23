@@ -143,7 +143,8 @@ ENV VCS_REF="${VCS_REF}" \
 
 # Application configuration
 ENV PYTHONUNBUFFERED="true" \
-    PYTHONPATH="${PYTHONPATH}:../"
+    PYTHONPATH="${PYTHONPATH}:../" \
+    NVIDIA_VISIBLE_DEVICES="all"
 
 # Switch back to app user
 USER app
