@@ -5,7 +5,7 @@ from typing import Any, Optional, Tuple, Union
 import numpy
 import numpy as np
 import PIL
-from kaleido.alpha.imops import crop_subject, fill_holes, position_subject, scale_subject, underlay_background
+from kaleido.alpha.imops import bbox, crop_subject, fill_holes, position_subject, scale_subject, underlay_background
 from kaleido.image import ALPHA, BGR, BGRA, RGB, RGBA, CouldNotReadImage, encode_image
 from kaleido.image.icc import rgb2mode
 from kaleido.image.imread import read_image
@@ -54,6 +54,7 @@ class SmartAlphaImage:
 
         # this mask is used later when cmyk colors are restored
         self.pre_background_mask = None
+        self.foreground_bounding_box = None
 
     def _validate_crop(self, crop_roi: Tuple[int, int, int, int]) -> None:
         assert len(crop_roi) == 4, f"crop format is invalid! {crop_roi}"
@@ -160,11 +161,15 @@ class SmartAlphaImage:
         self.im_rgb = im[..., :3]
         self.im_alpha = im[..., 3]
 
+    def compute_foreground_bounding_box(self) -> None:
+        self.foreground_bounding_box = bbox(self.im_alpha)
+
     def postproc_fn(self, name: str, **kwargs: Any) -> None:
         assert self.im_alpha is not None, "alpha was not set yet!"
 
         if name == "crop_subject":
             fn = crop_subject
+            kwargs["precomputed_bbox"] = self.foreground_bounding_box
         elif name == "scale_subject":
             fn = scale_subject
         elif name == "position_subject":

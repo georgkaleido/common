@@ -346,3 +346,58 @@ def test_margin_abs_huge_png(core_server_tester):
     }
     im = process_image(core_server_tester, msg)["im"]
     assert im.width * im.height > 10000000
+
+
+def test_foreground_anchors(core_server_tester):
+    msg = RemovebgMessage()
+    msg.crop = True
+    msg.channels = "alpha"
+    im_in_bytes = read_image("../data/RGB.png")
+    im_in = convert_to_image(im_in_bytes)
+    msg.data = im_in_bytes
+    result = process_image(core_server_tester, msg, return_result_dict=True)
+    im = result["im"]
+
+    input_foreground_left = result["result"][b"input_foreground_left"]
+    input_foreground_top = result["result"][b"input_foreground_top"]
+    input_foreground_width = result["result"][b"input_foreground_width"]
+    input_foreground_height = result["result"][b"input_foreground_height"]
+
+    assert 0 < input_foreground_left < im_in.width
+    assert 0 < input_foreground_top < im_in.height
+    assert 0 < input_foreground_width
+    assert 0 < input_foreground_height
+    assert input_foreground_left + input_foreground_width <= im_in.width
+    assert input_foreground_top + input_foreground_height <= im_in.height
+    assert im.width == input_foreground_width
+    assert im.height == input_foreground_height
+    assert im_in.width > im.width
+    assert im_in.height > im.height
+
+
+def test_foreground_anchors_no_crop(core_server_tester):
+    msg = RemovebgMessage()
+    msg.crop = False
+    msg.channels = "alpha"
+    im_in_bytes = read_image("../data/RGB.png")
+    im_in = convert_to_image(im_in_bytes)
+    msg.data = im_in_bytes
+    result = process_image(core_server_tester, msg, return_result_dict=True)
+    im = result["im"]
+
+    input_foreground_left = result["result"][b"input_foreground_left"]
+    input_foreground_top = result["result"][b"input_foreground_top"]
+    input_foreground_width = result["result"][b"input_foreground_width"]
+    input_foreground_height = result["result"][b"input_foreground_height"]
+
+    assert 0 < input_foreground_left < im_in.width
+    assert 0 < input_foreground_top < im_in.height
+    assert 0 < input_foreground_width
+    assert 0 < input_foreground_height
+    assert input_foreground_left + input_foreground_width <= im_in.width
+    assert input_foreground_top + input_foreground_height <= im_in.height
+    assert im.width > input_foreground_width
+    assert im.height > input_foreground_height
+    assert im_in.width == im.width
+    assert im_in.height == im.height
+

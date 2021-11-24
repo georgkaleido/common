@@ -15,11 +15,14 @@ def unzip(im_bytes: bytes):
     return im_color, im_alpha
 
 
-def process_image(core_server_tester, msg):
+def process_image(core_server_tester, msg, return_result_dict=False):
     result = core_server_tester.request(msg.serialize())
     im_color, im_alpha, im = None, None, None
     if msg.format == "zip":
         im_color, im_alpha = unzip(result[b"data"])
     else:
         im = convert_to_image(result[b"data"])
-    return {"im": im, "im_color": im_color, "im_alpha": im_alpha}
+    output_dict = {"im": im, "im_color": im_color, "im_alpha": im_alpha}
+    if return_result_dict:
+        output_dict["result"] = result
+    return output_dict

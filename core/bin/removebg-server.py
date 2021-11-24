@@ -26,6 +26,10 @@ class RemovebgResult(ImageResult):
     height_medium: int = 0
     width_uncropped: int = 0
     height_uncropped: int = 0
+    input_foreground_left: int = 0
+    input_foreground_top: int = 0
+    input_foreground_width: int = 0
+    input_foreground_height: int = 0
     type: str = "auto"
 
 
@@ -184,6 +188,9 @@ class RemovebgWorker(Worker):
                 im_rgb_precolorcorr=im_rgb_precolorcorr,
             )
 
+        # Compute foreground coordinates
+        image.compute_foreground_bounding_box()
+
         # crop to subject
         if data["crop"]:
             kwargs = {}
@@ -260,6 +267,18 @@ class RemovebgWorker(Worker):
         result.height = image.height
         result.width_uncropped = image.width_original
         result.height_uncropped = image.height_original
+        bbox = image.foreground_bounding_box
+        if bbox:
+            scaling_ratio = image.width_original / image.width_pre_mplimit
+            result.input_foreground_top = int(scaling_ratio*bbox[0])
+            result.input_foreground_left = int(scaling_ratio*bbox[2])
+            result.input_foreground_height = int(scaling_ratio*(bbox[1] - bbox[0]))
+            result.input_foreground_width = int(scaling_ratio*(bbox[3] - bbox[2]))
+        else:
+            result.input_foreground_top = 0
+            result.input_foreground_left = 0
+            result.input_foreground_height = int(image.height_pre_mplimit)
+            result.input_foreground_width = int(image.width_pre_mplimit)
 
         scale = math.sqrt(1500000.0 / (image.width_pre_mplimit * image.height_pre_mplimit))
         result.width_medium = min(int(scale * image.width_pre_mplimit), image.width_pre_mplimit)
