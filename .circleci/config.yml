@@ -179,6 +179,7 @@ jobs:
 
             cd core
             . .venv/bin/activate
+            pip install wheel
             python setup.py check
             python setup.py sdist upload -r fury --show-response
             python setup.py bdist upload -r fury --show-response
