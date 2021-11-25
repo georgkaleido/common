@@ -66,29 +66,10 @@ RUN --mount=type=secret,id=fury_auth_token,mode=0444 \
      "downscale-area==${CUDA_DOWNSCALE_VERSION}+cc${COMPUTE_CAPABILITY}" \
      "connected-component-labeling==${CUDA_CCL_VERSION}+cc${COMPUTE_CAPABILITY}"
 
-########################################################################################################################
-# TODO: Remove this, once this ticket is resolved:
-# https://www.notion.so/kaleidoai/Split-kaleido-removebg-into-service-and-library-f3b8394d449a4505afff9636078e88c0
-#
-# The library should then be installed only through the requirements.txt file.
-#
-# If REMOVEBG_CORE_PY_VERSION=main, it installs the latest version of the library. If REMOVEBG_CORE_PY_VERSION is
-# set to a version number, it installs the specified version of the library instead.
-########################################################################################################################
-
-# https://github.com/remove-bg/kaleido-core-removebg
-ARG REMOVEBG_CORE_PY_VERSION=main
-
-# Install required python packages
-RUN --mount=type=secret,id=fury_auth_token,mode=0444 --mount=type=cache,target=/root/.cache/pip pip install \
-      --progress-bar off --extra-index-url https://$(cat /run/secrets/fury_auth_token):@deps.kaleido.ai/pypi/ \
-        removebg-core$([ ${REMOVEBG_CORE_PY_VERSION} = "main" ] && echo "" || echo "==${REMOVEBG_CORE_PY_VERSION}")
-########################################################################################################################
-
 # Add Kaleido Models
 ARG GITHUB_AUTH_TOKEN
 
-# Add requirements
+# Add models file description
 COPY --chown=app:app kaleido-models.yml .
 
 RUN --mount=type=secret,id=github_auth_token,mode=0444 \
@@ -108,6 +89,31 @@ RUN --mount=type=secret,id=github_auth_token,mode=0444 \
     done <kaleido-models.tsv \
  && pip uninstall -y yq \
  && rm kaleido-models.yml kaleido-models.tsv
+
+
+########################################################################################################################
+# TODO: Remove this, once this ticket is resolved:
+# https://www.notion.so/kaleidoai/Split-kaleido-removebg-into-service-and-library-f3b8394d449a4505afff9636078e88c0
+#
+# The library should then be installed only through the requirements.txt file.
+#
+# If REMOVEBG_CORE_PY_VERSION=main, it installs the latest version of the library. If REMOVEBG_CORE_PY_VERSION is
+# set to a version number, it installs the specified version of the library instead.
+########################################################################################################################
+
+# # https://github.com/remove-bg/kaleido-core-removebg
+# ARG REMOVEBG_CORE_PY_VERSION=main
+#
+# # Install required python packages
+# RUN --mount=type=secret,id=fury_auth_token,mode=0444 --mount=type=cache,target=/root/.cache/pip pip install \
+#       --progress-bar off --extra-index-url https://$(cat /run/secrets/fury_auth_token):@deps.kaleido.ai/pypi/ \
+#         removebg-core$([ ${REMOVEBG_CORE_PY_VERSION} = "main" ] && echo "" || echo "==${REMOVEBG_CORE_PY_VERSION}")
+########################################################################################################################
+
+# Manually copy removebg-core library
+RUN mkdir removebg
+COPY --chown=app:app removebg/models removebg/models
+COPY --chown=app:app removebg/*.py removebg/
 
 # Remove build dependencies
 USER root
