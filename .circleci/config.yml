@@ -42,6 +42,12 @@ jobs:
             cd core
             python3 -m venv .venv
       - run:
+          name: Install packages
+          command: |
+            cd core
+            . .venv/bin/activate
+            pip install --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/ -r requirements.in --progress-bar off
+      - run:
           name: Check and install
           command: |
             cd core
