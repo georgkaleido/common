@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.11.1 (25/11/2021)
+
+#### 🚀 Enhancements:
+
+- Try and fix CircleCI build #trivial [#71](https://github.com/remove-bg/kaleido-removebg/pull/71)
+- Remove removebg-core as a dependency #trivial [#68](https://github.com/remove-bg/kaleido-removebg/pull/68)
+
+#### 🐞 Bugfixes:
+
+- Update config.yml #trivial [#74](https://github.com/remove-bg/kaleido-removebg/pull/74)
+- Update config.yml [#73](https://github.com/remove-bg/kaleido-removebg/pull/73)
+- Update config.yml [#72](https://github.com/remove-bg/kaleido-removebg/pull/72)
+- Patch pyproject.toml without setuptools_scm #trivial [#70](https://github.com/remove-bg/kaleido-removebg/pull/70)
+- Patch CircleCI package installation #trivial [#69](https://github.com/remove-bg/kaleido-removebg/pull/69)
+- setup.py strikes back #yolo [#67](https://github.com/remove-bg/kaleido-removebg/pull/67) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.11.1`
+* `eu.gcr.io/removebg-226919/removebg-core:1.11.1-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.11.1-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.11.1-cc86`
+---
+
 ## 1.11.0 (24/11/2021)
 
 #### 🚀 Enhancements:
