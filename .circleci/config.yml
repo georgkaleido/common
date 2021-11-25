@@ -39,12 +39,15 @@ jobs:
       - run:
           name: Create virtualenv
           command: |
+            cd core
             python3 -m venv .venv
       - run:
           name: Check and install
           command: |
+            cd core
             . .venv/bin/activate
-            pip install . --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/ --progress-bar off
+            python setup.py check
+            python setup.py install
       - save_cache:
           paths:
             - core/.venv
@@ -148,6 +151,7 @@ jobs:
       - run:
           name: Create virtualenv
           command: |
+            cd core
             python3 -m venv .venv
       - run:
           name: Install packages
@@ -161,11 +165,13 @@ jobs:
               echo "Not publishing library"
               exit 0
             fi
+
+            cd core
             . .venv/bin/activate
-            pip install build twine
-            python -m build --wheel
-            twine check dist/*
-            twine upload dist/* --repository-url https://deps.kaleido.ai/pypi/ -u ${FURY_PUSH_TOKEN} -p "" --disable-progress-bar
+            python setup.py check
+            python setup.py sdist upload -r fury --show-response
+            python setup.py bdist upload -r fury --show-response
+            python setup.py bdist_wheel upload -r fury --show-response
 
   # Docker
   docker:
