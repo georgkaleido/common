@@ -46,7 +46,7 @@ jobs:
           command: |
             cd core
             . .venv/bin/activate
-            pip install --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/ -r requirements.in --progress-bar off
+            python setup.py install
       - run:
           name: Check and install
           command: |
@@ -165,6 +165,22 @@ jobs:
             cd core
             . .venv/bin/activate
             pip install . --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/ --progress-bar off
+      - run:
+          name: Init .pypirc
+          command: |
+            tee -a /home/circleci/.pypirc > /dev/null \<<EOT
+            [distutils]
+            index-servers =
+                pypi
+                fury
+            [pypi]
+            username =
+            password =
+            [fury]
+            repository: https://deps.kaleido.ai/pypi/
+            username = ${FURY_PUSH_TOKEN}
+            password =
+            EOT
       - run:
           name: Deploy to Gemfury
           command: |
