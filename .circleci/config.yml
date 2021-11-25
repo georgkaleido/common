@@ -42,12 +42,6 @@ jobs:
             cd core
             python3 -m venv .venv
       - run:
-          name: Install packages
-          command: |
-            cd core
-            . .venv/bin/activate
-            python setup.py install
-      - run:
           name: Check and install
           command: |
             cd core
@@ -159,12 +153,6 @@ jobs:
           command: |
             cd core
             python3 -m venv .venv
-      - run:
-          name: Install packages
-          command: |
-            cd core
-            . .venv/bin/activate
-            pip install . --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/ --progress-bar off
       - run:
           name: Init .pypirc
           command: |
