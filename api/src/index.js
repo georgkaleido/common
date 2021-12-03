@@ -61,6 +61,7 @@ function toBoolean(value) {
 function startServer() {
   const app = express()
   app.disable('x-powered-by');
+  app.use(exposeCustomResponseHeaders);
   app.use(withRequestId);
   app.use(fileUpload());
   app.use(bodyParser.urlencoded({extended: false, limit: maxFileSize}));
@@ -584,6 +585,11 @@ function mapType(type, typeLevel) {
 
 function errorHandler(err, req, res, next) {
   sendError(res, err.status || 500, err.message, err.details || {});
+}
+
+function exposeCustomResponseHeaders(req, res, next) {
+  res.set("Access-Control-Expose-Headers", "*");
+  return next();
 }
 
 function withRequestId(req, res, next) {
