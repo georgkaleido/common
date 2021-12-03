@@ -24,7 +24,7 @@ google==3.0.0
     # via kaleido-core
 idna==3.3
     # via requests
-kaleido-core==2.5.1
+kaleido-core==2.7.0
     # via -r requirements-deploy.in
 msgpack==0.6.2
     # via
@@ -108,7 +108,7 @@ torchvision==0.11.1+cu113
     #   kaleido-core
 tqdm==4.62.3
     # via kaleido-core
-typing-extensions==4.0.0
+typing-extensions==4.0.1
     # via
     #   gitpython
     #   torch

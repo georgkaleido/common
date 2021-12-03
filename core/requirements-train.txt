@@ -36,7 +36,7 @@ frozenlist==1.2.0
     # via
     #   aiohttp
     #   aiosignal
-fsspec[http]==2021.11.0
+fsspec[http]==2021.11.1
     # via pytorch-lightning
 future==0.18.2
     # via pytorch-lightning
@@ -51,7 +51,7 @@ google-api-core==2.2.2
     #   google-api-python-client
     #   google-cloud-core
     #   google-cloud-storage
-google-api-python-client==2.31.0
+google-api-python-client==2.32.0
     # via -r requirements-train.in
 google-auth==2.3.3
     # via
@@ -94,7 +94,7 @@ idna==3.3
     #   yarl
 importlib-metadata==4.8.2
     # via markdown
-kaleido-core==2.5.1
+kaleido-core==2.7.0
     # via -r requirements.in
 markdown==3.3.6
     # via tensorboard
@@ -176,7 +176,7 @@ python-dateutil==2.8.2
     #   wandb
 python-etcd==0.4.5
     # via torchelastic
-pytorch-lightning==1.5.3
+pytorch-lightning==1.5.4
     # via -r requirements-train.in
 pytz==2021.3
     # via pandas
@@ -247,7 +247,7 @@ tqdm==4.62.3
     # via
     #   kaleido-core
     #   pytorch-lightning
-typing-extensions==4.0.0
+typing-extensions==4.0.1
     # via
     #   async-timeout
     #   gitpython
