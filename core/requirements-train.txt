@@ -94,7 +94,7 @@ idna==3.3
     #   yarl
 importlib-metadata==4.8.2
     # via markdown
-kaleido-core==2.7.0
+kaleido-core==2.8.0
     # via -r requirements.in
 markdown==3.3.6
     # via tensorboard

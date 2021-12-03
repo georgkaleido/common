@@ -24,7 +24,7 @@ google==3.0.0
     # via kaleido-core
 idna==3.3
     # via requests
-kaleido-core==2.7.0
+kaleido-core==2.8.0
     # via -r requirements-deploy.in
 msgpack==0.6.2
     # via

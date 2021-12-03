@@ -68,7 +68,7 @@ jeepney==0.7.1
     # via
     #   keyring
     #   secretstorage
-kaleido-core==2.7.0
+kaleido-core==2.8.0
     # via -r requirements-deploy.in
 keyring==23.4.0
     # via twine

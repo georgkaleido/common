@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import math
+import multiprocessing
 import os
 import time
 from dataclasses import dataclass
@@ -270,10 +271,10 @@ class RemovebgWorker(Worker):
         bbox = image.foreground_bounding_box
         if bbox:
             scaling_ratio = image.width_original / image.width_pre_mplimit
-            result.input_foreground_top = int(scaling_ratio*bbox[0])
-            result.input_foreground_left = int(scaling_ratio*bbox[2])
-            result.input_foreground_height = int(scaling_ratio*(bbox[1] - bbox[0]))
-            result.input_foreground_width = int(scaling_ratio*(bbox[3] - bbox[2]))
+            result.input_foreground_top = int(scaling_ratio * bbox[0])
+            result.input_foreground_left = int(scaling_ratio * bbox[2])
+            result.input_foreground_height = int(scaling_ratio * (bbox[1] - bbox[0]))
+            result.input_foreground_width = int(scaling_ratio * (bbox[3] - bbox[2]))
         else:
             result.input_foreground_top = 0
             result.input_foreground_left = 0
@@ -315,6 +316,7 @@ class RemovebgServer(ImageServer):
         mock_response: bool,
         require_models: bool,
         worker_init_kwargs: Optional[Dict[str, Any]] = None,
+        worker_count: int = multiprocessing.cpu_count(),
     ) -> None:
         super().__init__(
             request_queue,
@@ -322,8 +324,9 @@ class RemovebgServer(ImageServer):
             rabbitmq_port,
             rabbitmq_user,
             rabbitmq_password,
-            worker_class,
-            worker_init_kwargs,
+            worker_class=worker_class,
+            worker_init_kwargs=worker_init_kwargs,
+            worker_count=worker_count,
         )
         self.removebg = None
         self.identifier = None
@@ -391,11 +394,19 @@ def main():
     rabbitmq_args = read_rabbitmq_env_variables()
     mock_response = bool(int(os.environ.get("MOCK_RESPONSE", 0)))
     require_models = bool(int(os.environ.get("REQUIRE_MODELS", 1)))
+    # number of workers to spawn, defaults to number of cpus
+    # be aware that the default worker count might include
+    # "virtual" hyperthreaded cpus and impacts memory usage
+    worker_count = min(
+        int(os.environ.get("MAX_WORKER_COUNT", multiprocessing.cpu_count())), multiprocessing.cpu_count()
+    )
+
     server = RemovebgServer(
         *rabbitmq_args,
         require_models=require_models,
         worker_class=RemovebgWorker,
         mock_response=mock_response,
+        worker_count=worker_count,
     )
     server.start()
 
