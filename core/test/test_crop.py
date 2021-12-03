@@ -207,3 +207,48 @@ def test_margin_abs_huge_png(req_fn):
 
     assert status_code == 200
     assert im.width * im.height > 10000000
+
+
+def test_foreground_anchors(req_fn):
+    im, im_in, headers, status_code = req_fn(
+        "data/RGB.png", {"format": "png", "size": "full", "crop": "true", "channels": "alpha"}
+    )
+
+    input_foreground_left = int(headers.get("X-Foreground-Top"))
+    input_foreground_top = int(headers.get("X-Foreground-Left"))
+    input_foreground_width = int(headers.get("X-Foreground-Width"))
+    input_foreground_height = int(headers.get("X-Foreground-Height"))
+
+    assert 0 < input_foreground_left < im_in.width
+    assert 0 < input_foreground_top < im_in.height
+    assert 0 < input_foreground_width
+    assert 0 < input_foreground_height
+    assert input_foreground_left + input_foreground_width <= im_in.width
+    assert input_foreground_top + input_foreground_height <= im_in.height
+    assert im.width == input_foreground_width
+    assert im.height == input_foreground_height
+    assert im_in.width > im.width
+    assert im_in.height > im.height
+
+
+def test_foreground_anchors_no_crop(req_fn):
+    im, im_in, headers, status_code = req_fn(
+        "data/RGB.png", {"format": "png", "size": "full", "crop": "false", "channels": "alpha"}
+    )
+
+    input_foreground_left = int(headers.get("X-Foreground-Top"))
+    input_foreground_top = int(headers.get("X-Foreground-Left"))
+    input_foreground_width = int(headers.get("X-Foreground-Width"))
+    input_foreground_height = int(headers.get("X-Foreground-Height"))
+
+    assert 0 < input_foreground_left < im_in.width
+    assert 0 < input_foreground_top < im_in.height
+    assert 0 < input_foreground_width
+    assert 0 < input_foreground_height
+    assert input_foreground_left + input_foreground_width <= im_in.width
+    assert input_foreground_top + input_foreground_height <= im_in.height
+    assert im.width > input_foreground_width
+    assert im.height > input_foreground_height
+    assert im_in.width == im.width
+    assert im_in.height == im.height
+

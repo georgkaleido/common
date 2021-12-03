@@ -488,6 +488,11 @@ function processImage(data, backgroundData, res, wrapperFormat, megapixels, type
           res.set('X-Max-Width', result.maxwidth);
           res.set('X-Max-Height', result.maxheight);
 
+          res.set('X-Foreground-Top', result.input_foreground_top);
+          res.set('X-Foreground-Left', result.input_foreground_left);
+          res.set('X-Foreground-Width', result.input_foreground_width);
+          res.set('X-Foreground-Height', result.input_foreground_height);
+
           if(typeLevel !== null) {
             res.set('X-Type', mapType(result.type, typeLevel));
           }
@@ -527,7 +532,11 @@ function processImage(data, backgroundData, res, wrapperFormat, megapixels, type
           else {
             res.json({
               data: {
-                result_b64: data.toString("base64")
+                result_b64: data.toString("base64"),
+                foreground_top: result.input_foreground_top,
+                foreground_left: result.input_foreground_left,
+                foreground_width: result.input_foreground_width,
+                foreground_height: result.input_foreground_height,
               }
             })
             res.end()
