@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.12.0 (03/12/2021)
+
+#### 🚀 Enhancements:
+
+- Added support to configure number of core workers [#82](https://github.com/remove-bg/kaleido-removebg/pull/82)
+- Expose foreground coordinates in json response and http headers [#76](https://github.com/remove-bg/kaleido-removebg/pull/76)
+- Expose custom headers to frontend clients [#75](https://github.com/remove-bg/kaleido-removebg/pull/75)
+
+#### 🔀 Dependencies
+
+- Updated core dependencies [#81](https://github.com/remove-bg/kaleido-removebg/pull/81)
+- [js] Upgrade Node.js to 14.18.2 [#79](https://github.com/remove-bg/kaleido-removebg/pull/79)
+- [api] Update all Yarn dependencies (2021-12-01) [#78](https://github.com/remove-bg/kaleido-removebg/pull/78)
+- [js] Update all Yarn dependencies (2021-12-01) [#77](https://github.com/remove-bg/kaleido-removebg/pull/77)
+- [api] Upgrade Node.js to 14.18.2 [#80](https://github.com/remove-bg/kaleido-removebg/pull/80) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.12.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.12.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.12.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.12.0-cc86`
+---
+
 ## 1.11.1 (25/11/2021)
 
 #### 🚀 Enhancements:
