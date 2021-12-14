@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.14.0 (14/12/2021)
+
+#### 🚀 Enhancements:
+
+- Update kaleido-models to version 1.13.0 #trivial [#84](https://github.com/remove-bg/kaleido-removebg/pull/84)
+- Moved cpu processing into pre and postprocessing [#83](https://github.com/remove-bg/kaleido-removebg/pull/83) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.14.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.14.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.14.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.14.0-cc86`
+---
+
 ## 1.13.0 (06/12/2021)
 *No changelog for this release.* 
 
