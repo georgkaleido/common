@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import math
-import multiprocessing
 import os
 import time
 from dataclasses import dataclass
@@ -125,6 +124,8 @@ class RemovebgWorker(Worker):
             f"{image.width}x{image.height} -> {im_cv.shape[1]}x{im_cv.shape[0]} (crop: {crop})",
         )
 
+        im_cv = to_tensor(im_cv, bgr2rgb=True, cuda=False)
+
         # pass all data which is needed for postprocessing
         processing_data.data = {
             "times": times,
@@ -149,8 +150,16 @@ class RemovebgWorker(Worker):
         result = processing_data.result
         data = processing_data.data
 
-        # load data from preprocessing
-        im_res = data["data"]
+        # when it is not mocked
+        if data["data"] is None:
+            im_tr_rgb = data["im_tr_rgb"]
+            im_tr_alpha = data["im_tr_alpha"]
+            im_rgb = to_numpy(im_tr_rgb, rgb2bgr=True, cpu_clamp=True)
+            im_alpha = to_numpy(im_tr_alpha)
+            im_res = np.dstack((im_rgb, np.expand_dims(im_alpha, axis=2)))
+        else:
+            im_res = data["data"]
+
         times = data["times"]
         image = data["image"]
         semitransparency = data["semitransparency"]
@@ -316,7 +325,6 @@ class RemovebgServer(ImageServer):
         mock_response: bool,
         require_models: bool,
         worker_init_kwargs: Optional[Dict[str, Any]] = None,
-        worker_count: int = multiprocessing.cpu_count(),
     ) -> None:
         super().__init__(
             request_queue,
@@ -326,7 +334,6 @@ class RemovebgServer(ImageServer):
             rabbitmq_password,
             worker_class=worker_class,
             worker_init_kwargs=worker_init_kwargs,
-            worker_count=worker_count,
         )
         self.removebg = None
         self.identifier = None
@@ -360,7 +367,7 @@ class RemovebgServer(ImageServer):
             processing_data["api"] = "mock"
         else:
             # transfer to gpu
-            im_tr = to_tensor(im, bgr2rgb=True)
+            im_tr = im.cuda(non_blocking=True)
 
             # overwrite if auto
             if processing_data["api"] == "auto":
@@ -382,10 +389,9 @@ class RemovebgServer(ImageServer):
                 result.status = ERROR_STATUS
                 result.description = UNKNOWN_FOREGROUND
             else:
-                im_rgb = to_numpy(im_tr_rgb, rgb2bgr=True)
-                im_alpha = to_numpy(im_tr_alpha)
-
-                processing_data["data"] = np.dstack((im_rgb, np.expand_dims(im_alpha, axis=2)))
+                # move model results to cpu
+                processing_data["im_tr_rgb"] = im_tr_rgb.cpu()
+                processing_data["im_tr_alpha"] = im_tr_alpha.cpu()
 
         processing_data["time"] = time.time() - t
 
@@ -394,19 +400,12 @@ def main():
     rabbitmq_args = read_rabbitmq_env_variables()
     mock_response = bool(int(os.environ.get("MOCK_RESPONSE", 0)))
     require_models = bool(int(os.environ.get("REQUIRE_MODELS", 1)))
-    # number of workers to spawn, defaults to number of cpus
-    # be aware that the default worker count might include
-    # "virtual" hyperthreaded cpus and impacts memory usage
-    worker_count = min(
-        int(os.environ.get("MAX_WORKER_COUNT", multiprocessing.cpu_count())), multiprocessing.cpu_count()
-    )
 
     server = RemovebgServer(
         *rabbitmq_args,
         require_models=require_models,
         worker_class=RemovebgWorker,
         mock_response=mock_response,
-        worker_count=worker_count,
     )
     server.start()
 

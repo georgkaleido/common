@@ -60,6 +60,11 @@ services:
 
   # Core
   core:
+    # Default shared memory segment for pytorch multiprocessing not enough
+    # solved by setting ipc host.
+    # see https://discuss.pytorch.org/t/unable-to-write-to-file-torch-18692-1954506624/9990/2
+    ipc: host
+
     build:
       context: core
       dockerfile: Dockerfile

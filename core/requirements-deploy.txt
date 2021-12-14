@@ -8,11 +8,11 @@ certifi==2021.10.8
     # via
     #   requests
     #   sentry-sdk
-charset-normalizer==2.0.8
+charset-normalizer==2.0.9
     # via requests
 click==8.0.3
     # via wandb
-configparser==5.1.0
+configparser==5.2.0
     # via wandb
 docker-pycreds==0.4.0
     # via wandb
@@ -24,7 +24,7 @@ google==3.0.0
     # via kaleido-core
 idna==3.3
     # via requests
-kaleido-core==2.8.0
+kaleido-core==2.9.0
     # via -r requirements-deploy.in
 msgpack==0.6.2
     # via
@@ -45,7 +45,7 @@ opencv-python==4.5.4.60
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
-pandas==1.3.4
+pandas==1.3.5
     # via -r requirements-deploy.in
 pathtools==0.1.2
     # via wandb
