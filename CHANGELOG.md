@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.14.1 (20/12/2021)
+
+#### 🐞 Bugfixes:
+
+- Revert "Moved cpu processing into pre and postprocessing" [#85](https://github.com/remove-bg/kaleido-removebg/pull/85) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.14.1`
+* `eu.gcr.io/removebg-226919/removebg-core:1.14.1-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.14.1-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.14.1-cc86`
+---
+
 ## 1.14.0 (14/12/2021)
 
 #### 🚀 Enhancements:
