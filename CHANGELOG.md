@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.15.0 (04/01/2022)
+
+#### 🚀 Enhancements:
+
+- Update trimap model with version 1.16.0 #trivial [#88](https://github.com/remove-bg/kaleido-removebg/pull/88)
+
+#### 🔀 Dependencies
+
+- [js] Update all Yarn dependencies (2021-12-29) [#86](https://github.com/remove-bg/kaleido-removebg/pull/86)
+- [api] Update all Yarn dependencies (2021-12-29) [#87](https://github.com/remove-bg/kaleido-removebg/pull/87) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.15.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.15.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.15.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.15.0-cc86`
+---
+
 ## 1.14.1 (20/12/2021)
 
 #### 🐞 Bugfixes:
