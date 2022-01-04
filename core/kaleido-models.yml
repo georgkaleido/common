@@ -1,4 +1,4 @@
-version: "1.13.0"
+version: "1.16.0"
 files:
   - name: identifier-mobilenetv2-c9.pth.tar
     hash: 25bf45cb8cd7f3165395ac1194a4fac0aec4db0e0d8b818c3216b899794d3720
@@ -7,4 +7,4 @@ files:
   - name: shadowgen256_car.pth.tar
     hash: fc3ca55b394ca30c85588c3f93fb18eb9ad6bc069cbab16a91c91b06dcc3b5d9
   - name: trimap513-deeplab-res2net.pth.tar
-    hash: 56c92cd3fd98bc76268d890b83006e96efefcbd7bd3cc104a8db12e369fde43d
+    hash: b770ee95175893572ce32b2710e89311843beec7f9b688ce9764697f495f1edf
