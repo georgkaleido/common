@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1.2
 
 # Node base image https://hub.docker.com/_/node/
-FROM node:14.18.2
+FROM node:14.18.3
 
 # Maintainer
 LABEL maintainer="Kaleido AI <ops@kaleido.ai>"
