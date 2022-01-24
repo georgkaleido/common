@@ -11,9 +11,14 @@ def fetch_dataset(metadata_path, output_path):
     print("initializing danni loader...")
     samples = DanniMetadataSerializer.read_samples_list(metadata_path)
 
-    for rel_path, url in samples.items():
+    total = len(samples)
+    for idx, (rel_path, url) in enumerate(samples.items()):
         path = os.path.join(output_path, rel_path)
         os.makedirs(os.path.dirname(path), exist_ok=True)
+        if os.path.exists(path):
+            print(f"{(idx + 1):06d}/{total} : Skip {url} -> {path}")
+            continue
+        print(f"{(idx+1):06d}/{total} : {url} -> {path}")
         download_single((url, path))
 
 

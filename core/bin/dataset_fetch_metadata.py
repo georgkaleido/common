@@ -3,15 +3,21 @@ import os
 
 from kaleido.data.danni.loader import DanniLoader
 
+RESOLUTION_FILTER_NAME = {"300k": "file300k",
+                          "4m": "file4m",
+                          "full": "file"}
 
-def dataset_fetch_metadata(user, token, metadata_output_path, max_pages, test_split, batch_names=None):
+
+def dataset_fetch_metadata(user, token, metadata_output_path, max_pages, test_split, batch_names=None, resolution="300k"):
     os.environ["DANNI_HOST"] = "https://danni.kaleido.ai/"
     os.environ["DANNI_USER"] = user
     os.environ["DANNI_TOKEN"] = token
 
+    file_filter_name = RESOLUTION_FILTER_NAME[resolution]
+
     filter_ = {"worker_history.danni-image-remove_background-alpha-thumbnails": True}
 
-    fields = ["image.file300k.url", "image.remove_background.alpha[].file300k.url", "image.remove_background.batches"]
+    fields = [f"image.{file_filter_name}.url", f"image.remove_background.alpha[].{file_filter_name}.url", "image.remove_background.batches"]
     result_fn_names = ["color.jpg", "alpha.png"]
 
     if test_split:
@@ -34,16 +40,16 @@ def dataset_fetch_metadata(user, token, metadata_output_path, max_pages, test_sp
             filter_["$or"] = batch_names_dict_list
 
     def result_fn(d):
-        im_color_url = d.get("image", {}).get("file300k", {}).get("url")
+        im_color_url = d.get("image", {}).get(file_filter_name, {}).get("url")
 
         # Get list of alpha masks
-        alpha_mask_list = im_alpha_url = d.get("image", {}).get("remove_background", {}).get("alpha", [{}])
+        alpha_mask_list = d.get("image", {}).get("remove_background", {}).get("alpha", [{}])
         # Sort the list with field `created_at`, in reverse order: Most recent first
         alpha_mask_list.sort(key=lambda alpha_mask: alpha_mask.get("created_at"), reverse=True)
-        # Get the first mask with `file300k` field
+        # Get the first mask with `file` or `file300k` field
         im_alpha_url = None
         for alpha_mask in alpha_mask_list:
-            im_alpha_url = alpha_mask.get("file300k", {}).get("url")
+            im_alpha_url = alpha_mask.get(file_filter_name, {}).get("url")
             if im_alpha_url is not None:
                 break
 
@@ -97,6 +103,7 @@ def main():
     parser.add_argument("--test_split", action="store_true", help="Grab test split instead of train/valid")
     parser.add_argument("-b", "--batch_names", required=False, type=str, default=[], nargs="+",
                         help="Optionally filter with batch names")
+    parser.add_argument("--resolution", default="300k", choices=["300k", "4m", "full"], help="Select resolution of images to grab")
     args = parser.parse_args()
 
     dataset_fetch_metadata(
@@ -106,6 +113,7 @@ def main():
         max_pages=args.max_pages,
         test_split=args.test_split,
         batch_names=args.batch_names,
+        resolution=args.resolution,
     )
 
 

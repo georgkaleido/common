@@ -62,7 +62,7 @@ class RemovebgWorker(Worker):
         t = time.time()
 
         try:
-            image = SmartAlphaImage(im_bytes, megapixel_limit=megapixels)
+            image = SmartAlphaImage(im_bytes, megapixel_limit=megapixels, megapixel_limit_trimap=0.25)
 
             if im_bytes_bg is not None:
                 image_bg = SmartAlphaImage(im_bytes_bg, megapixel_limit=megapixels)
@@ -119,6 +119,8 @@ class RemovebgWorker(Worker):
             result.description = UNKNOWN_FOREGROUND
             return None
 
+        im_for_trimap = image.get("trimap_opti", crop=crop_roi)
+
         times.append(time.time() - t)
         self.logger.info(
             f"[{processing_data.correlation_id}] preproc ({times[-1]:.2f}s) | "
@@ -131,6 +133,7 @@ class RemovebgWorker(Worker):
             "api": api_type.decode(),
             "image": image,
             "im_cv": im_cv,
+            "im_for_trimap": im_for_trimap,
             "image_bg": image_bg,
             "shadow": shadow,
             "only_alpha": only_alpha,
@@ -349,6 +352,7 @@ class RemovebgServer(ImageServer):
     def _process(self, data: ImageProcessingData) -> None:
         processing_data = data.data
         im, shadow = processing_data["im_cv"], processing_data["shadow"]
+        im_for_trimap = processing_data["im_for_trimap"]
         result = data.result
 
         t = time.time()
@@ -361,6 +365,7 @@ class RemovebgServer(ImageServer):
         else:
             # transfer to gpu
             im_tr = to_tensor(im, bgr2rgb=True)
+            im_for_trimap_tr = to_tensor(im_for_trimap, bgr2rgb=False)
 
             # overwrite if auto
             if processing_data["api"] == "auto":
@@ -373,6 +378,7 @@ class RemovebgServer(ImageServer):
                 # extract background
                 im_tr_rgb, im_tr_alpha = self.removebg(
                     im_tr,
+                    im_for_trimap_tr,
                     color_enabled=(processing_data["api"] == "person" or processing_data["api"] == "animal"),
                     shadow_enabled=(processing_data["api"] == "car" and shadow),
                     trimap_confidence_thresh=trimap_confidence_thresh,

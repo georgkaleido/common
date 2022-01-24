@@ -1,5 +1,7 @@
 import io
 import zipfile
+import math
+import cv2
 from typing import Any, Optional, Tuple, Union
 
 import numpy
@@ -7,16 +9,71 @@ import numpy as np
 import PIL
 from kaleido.alpha.imops import bbox, crop_subject, fill_holes, position_subject, scale_subject, underlay_background
 from kaleido.image import ALPHA, BGR, BGRA, RGB, RGBA, CouldNotReadImage, encode_image
-from kaleido.image.icc import rgb2mode
-from kaleido.image.imread import read_image
+from kaleido.image.icc import rgb2mode, mode2rgb
+from kaleido.image.exif import handle_exif_rotation
+# from kaleido.image.imread import read_image
 from PIL import Image as ImagePIL
+
+TRIMAP_OPTI = "TRIMAP_OPTI"
+
+
+def read_image_custom(
+    data: Union[str, bytes], megapixel_limit: float, megapixel_limit_trimap: float
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, bytes, str, Tuple[int, int], Tuple[int, int], float, Any]:
+    if isinstance(data, str):
+        im_raw = ImagePIL.open(data)
+    else:
+        im_bytes = np.frombuffer(data, np.uint8)
+        im_raw = ImagePIL.open(io.BytesIO(im_bytes))
+
+    # copy image without overwriting. this will throw an exception if image is truncated
+    im_raw.copy()
+
+    icc = im_raw.info.get("icc_profile")
+    dpi = im_raw.info.get("dpi")
+    mode = im_raw.mode
+
+    im_raw, exif_rot = handle_exif_rotation(im_raw)
+
+    # scale
+    width_prescale = im_raw.width
+    height_prescale = im_raw.height
+
+    def downscale(image, mp_limit, interpolation_method=None, reducing_gap=None):
+        scale_factor = min(1.0, math.sqrt(mp_limit * 1000000.0 / (image.width * image.height))) if mp_limit else 1.0
+        if scale_factor < 1.0:
+            if interpolation_method is None:
+                interpolation_method = ImagePIL.BICUBIC if scale_factor > 0.5 and mp_limit < 1.0 else ImagePIL.BOX
+            ds_width, ds_height = (int(image.width * scale_factor), int(image.height * scale_factor))
+            image = image.resize((ds_width, ds_height), resample=interpolation_method, reducing_gap=reducing_gap)
+        return image, scale_factor
+
+    im, scale = downscale(im_raw, megapixel_limit, interpolation_method=None, reducing_gap=3.0)
+
+    # to rgb
+    im_rgb = mode2rgb(im, icc)
+
+    # to numpy
+    im_np = np.ascontiguousarray(np.array(im))
+    im_rgb_np = np.ascontiguousarray(np.array(im_rgb))
+
+    # Same process for image optimized for trimap
+    has_im_for_trimap = megapixel_limit_trimap is not None
+    if has_im_for_trimap:
+        im_for_trimap, _ = downscale(im_raw, megapixel_limit_trimap, interpolation_method=ImagePIL.BOX, reducing_gap=1.0)
+        im_for_trimap = mode2rgb(im_for_trimap, icc)
+        im_for_trimap_np = np.ascontiguousarray(np.array(im_for_trimap))
+    else:
+        im_for_trimap_np = None
+
+    return im_rgb_np, im_np, im_for_trimap_np, icc, mode, dpi, (width_prescale, height_prescale), scale, exif_rot
 
 
 class SmartAlphaImage:
-    def __init__(self, im_bytes: bytes, megapixel_limit: Optional[float] = None) -> None:
+    def __init__(self, im_bytes: bytes, megapixel_limit: Optional[float] = None, megapixel_limit_trimap: Optional[float] = None):
         try:
-            im, im_raw, icc, mode, dpi, size_prescale, scale, exif_rot = read_image(
-                im_bytes, megapixel_limit=megapixel_limit
+            im, im_raw, im_for_trimap, icc, mode, dpi, size_prescale, scale, exif_rot = read_image_custom(
+                im_bytes, megapixel_limit=megapixel_limit, megapixel_limit_trimap=megapixel_limit_trimap
             )
         except Exception as e:
             raise CouldNotReadImage(str(e))
@@ -26,16 +83,23 @@ class SmartAlphaImage:
 
         if im.shape[2] == 3:
             self.im_rgb = im
+            self.im_for_trimap = im_for_trimap
             self.im_alpha = None
         else:
             # if there is an alpha channel, interpolate with white
+
+            def interpolate_with_white(image_rgb, image_alpha):
+                alpha = image_alpha / 255.0
+                alpha = np.expand_dims(alpha, 2)
+                alpha = np.repeat(alpha, 3, 2)
+                return (image_rgb * alpha + 255 * (1.0 - alpha)).astype(np.uint8)
+
             self.im_alpha = im[:, :, 3]
-
-            alpha = self.im_alpha / 255.0
-            alpha = np.expand_dims(alpha, 2)
-            alpha = np.repeat(alpha, 3, 2)
-
-            self.im_rgb = (im[:, :, :3] * alpha + 255 * (1.0 - alpha)).astype(np.uint8)
+            self.im_rgb = interpolate_with_white(im[:, :, :3], self.im_alpha)
+            if im_for_trimap is not None:
+                self.im_for_trimap = interpolate_with_white(im_for_trimap[:, :, :3], im_for_trimap[:, :, 3])
+            else:
+                self.im_for_trimap = None
 
         self.icc = icc
         self.mode_original = mode
@@ -72,10 +136,13 @@ class SmartAlphaImage:
         ascontiguousarray: bool = True,
     ) -> Optional[np.ndarray]:
         mode = mode.upper()
-        assert mode in {RGB, BGR, BGRA, ALPHA}, f"Mode '{mode}' is not supported"
+        assert mode in {RGB, BGR, BGRA, ALPHA, TRIMAP_OPTI}, f"Mode '{mode}' is not supported"
         im = None
         if mode == RGB:
             im = self.im_rgb
+        elif mode == TRIMAP_OPTI:
+            assert self.im_for_trimap is not None, "im_for_trimap was not set"
+            im = self.im_for_trimap
         elif mode == BGR:
             im = self.im_rgb[:, :, ::-1]
         elif mode == BGRA:

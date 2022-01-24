@@ -24,13 +24,13 @@ class Removebg:
 
         self.trimap_flip_mean = trimap_flip_mean
 
-        size_trimap = 513  # size of trimap
+        self.trimap_size = 513  # size of trimap
         upscale_max = 4  # maximal supported upscale
-        self.max_matting_size = size_trimap * upscale_max
+        self.max_matting_size = self.trimap_size * upscale_max
         self.max_matting_mp = 4
 
-        self.aug_trimap_scale = aug_img.Scale(size_trimap, random=False, mode="max")
-        self.aug_trimap_crop = aug_img.Crop(size_trimap)
+        self.aug_trimap_scale = aug_img.Scale(self.trimap_size, random=False, mode="max")
+        self.aug_trimap_crop = aug_img.Crop(self.trimap_size)
 
         self.aug_trimap2c = aug_mask.TrimapTwoChannel()
         self.aug_trimap_erode = aug_mask.TrimapMorphology(erode_uk_ks=5, dilate_uk_ks=3, opencv_morph=False)
@@ -79,21 +79,27 @@ class Removebg:
             self.model_shadow, os.path.join(model_paths, "shadowgen256_car.pth.tar"), k=None, strict=False
         )
 
-    def __call__(self, im, color_enabled=False, shadow_enabled=False, trimap_confidence_thresh=0.5):
+    def __call__(self, im, im_for_trimap_tr=None, color_enabled=False, shadow_enabled=False, trimap_confidence_thresh=0.5, extra_trimap_output=False):
+
+        has_trimap_optimized_image = im_for_trimap_tr is not None
 
         # all operations are done with half precision
 
         im = im.half()
+        if has_trimap_optimized_image:
+            im_for_trimap_tr = im_for_trimap_tr.half()
 
         with torch.no_grad():
 
             # unsqueeze
 
             im = im[None]
+            if has_trimap_optimized_image:
+                im_for_trimap_tr = im_for_trimap_tr[None]
 
             # trimap
 
-            trimap = self.trimap(im, confidence_thresh=trimap_confidence_thresh)
+            trimap = self.trimap(im_for_trimap_tr if has_trimap_optimized_image else im, confidence_thresh=trimap_confidence_thresh)
 
             # alpha
 
@@ -110,7 +116,10 @@ class Removebg:
 
             # return
 
-            return im[0], im_alpha[0]
+            if extra_trimap_output:
+                return im[0], im_alpha[0], trimap[0]
+            else:
+                return im[0], im_alpha[0]
 
     def trimap(self, im, confidence_thresh):
 
