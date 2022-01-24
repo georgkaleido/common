@@ -50,7 +50,7 @@ gitpython==3.1.26
     # via wandb
 google==3.0.0
     # via kaleido-core
-identify==2.4.4
+identify==2.4.5
     # via pre-commit
 idna==3.3
     # via requests
@@ -66,8 +66,10 @@ jeepney==0.7.1
     # via
     #   keyring
     #   secretstorage
-kaleido-core==2.12.0
-    # via -r requirements-deploy.in
+kaleido-core==2.13.0
+    # via
+    #   -r requirements-deploy.in
+    #   shadowgen-core
 keyring==23.5.0
     # via twine
 mccabe==0.6.1
@@ -76,10 +78,13 @@ msgpack==0.6.2
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   shadowgen-core
 mypy-extensions==0.4.3
     # via black
 nibabel==2.4.1
-    # via -r requirements-deploy.in
+    # via
+    #   -r requirements-deploy.in
+    #   shadowgen-core
 nodeenv==1.6.0
     # via pre-commit
 numpy==1.21.5
@@ -90,18 +95,22 @@ numpy==1.21.5
     #   opencv-python
     #   pandas
     #   scipy
+    #   shadowgen-core
     #   torchvision
 opencv-python==4.5.5.62
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   shadowgen-core
 packaging==21.3
     # via
     #   bleach
     #   build
     #   pytest
 pandas==1.3.5
-    # via -r requirements-deploy.in
+    # via
+    #   -r requirements-deploy.in
+    #   shadowgen-core
 pathspec==0.9.0
     # via black
 pathtools==0.1.2
@@ -112,10 +121,12 @@ pika==1.2.0
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   shadowgen-core
 pillow==8.4.0
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   shadowgen-core
     #   torchvision
 pkginfo==1.8.2
     # via twine
@@ -141,7 +152,7 @@ pyflakes==2.3.1
     # via flake8
 pygments==2.11.2
     # via readme-renderer
-pyparsing==3.0.6
+pyparsing==3.0.7
     # via packaging
 pytest==6.2.5
     # via -r requirements-dev.in
@@ -173,9 +184,9 @@ scipy==1.7.3
     # via kaleido-core
 secretstorage==3.3.1
     # via keyring
-sentry-sdk==1.5.2
+sentry-sdk==1.5.3
     # via wandb
-shadowgen-core==1.7.1
+shadowgen-core==1.10.1
     # via -r requirements-deploy.in
 shortuuid==1.0.8
     # via wandb
@@ -207,11 +218,13 @@ torch==1.10.0+cu113
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   shadowgen-core
     #   torchvision
 torchvision==0.11.1+cu113
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   shadowgen-core
 tqdm==4.62.3
     # via
     #   kaleido-core

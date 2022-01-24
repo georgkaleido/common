@@ -52,14 +52,18 @@ def handle_args():
     parser.add_argument("--subject_crop", action="store_true", help="crops the image to the subject")
     parser.add_argument("--subject_crop_margin", default=0, type=int, help="relative crop margin")
 
+    parser.add_argument("--compute_device", default="cuda", type=str, choices=["cuda", "cpu"], help="Choose device between CUDA and CPU. Default: CUDA")
+
     args = parser.parse_args()
     return args
 
 
 def demo(args):
 
-    removebg = Removebg(args.path_networks, require_models=False, trimap_flip_mean=True)
-    identifier = Identifier(args.path_networks, require_models=False)
+    removebg = Removebg(args.path_networks, require_models=False, trimap_flip_mean=True, compute_device=args.compute_device)
+    identifier = Identifier(args.path_networks, require_models=False, compute_device=args.compute_device)
+
+    device_is_cuda = "cuda" == args.compute_device
 
     eval_data = {}
     if args.evaluate:
@@ -163,8 +167,8 @@ def demo(args):
             # ====================================================
             # inference
 
-            im_tr = to_tensor(image.get("rgb"), bgr2rgb=False, cuda=True)
-            im_for_trimap_tr = to_tensor(image.get("trimap_opti"), bgr2rgb=False, cuda=True)
+            im_tr = to_tensor(image.get("rgb"), bgr2rgb=False, cuda=device_is_cuda)
+            im_for_trimap_tr = to_tensor(image.get("trimap_opti"), bgr2rgb=False, cuda=device_is_cuda)
 
             cls = identifier(im_tr)
 

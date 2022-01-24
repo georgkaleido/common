@@ -214,8 +214,8 @@ def test_foreground_anchors(req_fn):
         "data/RGB.png", {"format": "png", "size": "full", "crop": "true", "channels": "alpha"}
     )
 
-    input_foreground_left = int(headers.get("X-Foreground-Top"))
-    input_foreground_top = int(headers.get("X-Foreground-Left"))
+    input_foreground_left = int(headers.get("X-Foreground-Left"))
+    input_foreground_top = int(headers.get("X-Foreground-Top"))
     input_foreground_width = int(headers.get("X-Foreground-Width"))
     input_foreground_height = int(headers.get("X-Foreground-Height"))
 
@@ -236,8 +236,8 @@ def test_foreground_anchors_no_crop(req_fn):
         "data/RGB.png", {"format": "png", "size": "full", "crop": "false", "channels": "alpha"}
     )
 
-    input_foreground_left = int(headers.get("X-Foreground-Top"))
-    input_foreground_top = int(headers.get("X-Foreground-Left"))
+    input_foreground_left = int(headers.get("X-Foreground-Left"))
+    input_foreground_top = int(headers.get("X-Foreground-Top"))
     input_foreground_width = int(headers.get("X-Foreground-Width"))
     input_foreground_height = int(headers.get("X-Foreground-Height"))
 

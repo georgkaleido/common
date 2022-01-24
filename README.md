@@ -134,11 +134,45 @@ generated automatically.
 
 ## :clipboard: Testing
 
+### How to run tests locally
+1. Start api, core and rabbitmq via the following docker-compose command:
+```bash
+COMPUTE_CAPABILITY=[your GPU compute capability] DOCKER_BUILDKIT=1 FURY_AUTH_TOKEN=[your GemFury token] GITHUB_AUTH_TOKEN=[your GitHub Access token]  docker-compose up --build
+```
+2. Execute tests as the following:
+```bash
+# change to test directory
+cd core/test/
+pytest --ignore core
+```
+
+### How to run tests locally on a machine without GPU
+1. Edit `docker-compose.yml`, and comment out line 79 : `runtime: nvidia`
+2. Start api, core and rabbitmq via the following docker-compose command:
+```bash
+COMPUTE_DEVICE="cpu" COMPUTE_CAPABILITY=75 DOCKER_BUILDKIT=1 FURY_AUTH_TOKEN=[your GemFury token] GITHUB_AUTH_TOKEN=[your GitHub Access token]  docker-compose up --build
+```
+3. If the docker build fails on `pip install` command, edit Dockerfile as follows:
+```
+RUN --mount=type=secret,id=fury_auth_token,mode=0444 \
+    if [ -f /run/secrets/fury_auth_token ]; then export FURY_AUTH_TOKEN="$(cat /run/secrets/fury_auth_token)"; fi \
+ #&& pip install --user --progress-bar off -r requirements-deploy.txt
+ && pip install --no-cache-dir --user --progress-bar off -r requirements-deploy.txt
+```
+5. Execute tests as the following:
+```bash
+# change to test directory
+cd core/test/
+pytest --ignore core
+```
+
 ### How to run core tests locally
 
 1. Make rabbitmq port available by uncommenting the rabbitmq service port section in `docker-compose.yaml`
 2. Start core and rabbitmq via the following docker-compose command:
-`COMPUTE_CAPABILITY=[your GPU compute capability] DOCKER_BUILDKIT=1 FURY_AUTH_TOKEN=[your GemFury token] GITHUB_AUTH_TOKEN=[your GitHub Access token]  docker-compose up --build core rabbitmq`
+```bash
+COMPUTE_CAPABILITY=[your GPU compute capability] DOCKER_BUILDKIT=1 FURY_AUTH_TOKEN=[your GemFury token] GITHUB_AUTH_TOKEN=[your GitHub Access token]  docker-compose up --build core rabbitmq
+```
 3. Set the following environment variables in your shell:
 ```bash
 REQUEST_QUEUE=remove_bg
@@ -150,6 +184,6 @@ RABBITMQ_PASSWORD=rabbitmq
 4. Execute tests as the following:
 ```bash
 # change to test directory
-$ cd core/test/
-$ pytest core/
+cd core/test/
+pytest core/
 ```

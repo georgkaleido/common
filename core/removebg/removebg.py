@@ -3,6 +3,8 @@ import os
 
 import torch
 import torch.nn.functional as F
+import cv2
+
 from ccl import ConnectedComponentsLabeling
 from kaleido.alpha.bounding_box import bounding_box
 from kaleido.alpha.trimap import force_transitions
@@ -20,17 +22,21 @@ class UnknownForegroundException(Exception):
 
 
 class Removebg:
-    def __init__(self, model_paths, require_models=True, trimap_flip_mean=False):
+    def __init__(self, model_paths, require_models=True, trimap_flip_mean=False, compute_device="cuda"):
+
+        assert compute_device in ["cuda", "cpu"]
+
+        self.compute_device = compute_device
 
         self.trimap_flip_mean = trimap_flip_mean
 
-        self.trimap_size = 513  # size of trimap
+        size_trimap = 513  # size of trimap
         upscale_max = 4  # maximal supported upscale
-        self.max_matting_size = self.trimap_size * upscale_max
+        self.max_matting_size = size_trimap * upscale_max
         self.max_matting_mp = 4
 
-        self.aug_trimap_scale = aug_img.Scale(self.trimap_size, random=False, mode="max")
-        self.aug_trimap_crop = aug_img.Crop(self.trimap_size)
+        self.aug_trimap_scale = aug_img.Scale(size_trimap, random=False, mode="max")
+        self.aug_trimap_crop = aug_img.Crop(size_trimap)
 
         self.aug_trimap2c = aug_mask.TrimapTwoChannel()
         self.aug_trimap_erode = aug_mask.TrimapMorphology(erode_uk_ks=5, dilate_uk_ks=3, opencv_morph=False)
@@ -45,7 +51,8 @@ class Removebg:
 
         self.aug_norm = aug_img.Normalize()
 
-        torch.cuda.set_device(0)
+        if "cuda" == compute_device:
+            torch.cuda.set_device(0)
 
         def load_model(model, path, k="state_dict", strict=True):
             if not os.path.exists(path):
@@ -56,15 +63,19 @@ class Removebg:
                 else:
                     print(error_msg)
             else:
-                cp = torch.load(path)
+                if "cpu" == self.compute_device:
+                    cp = torch.load(path, map_location=lambda storage, loc: storage)
+                else:  # "cuda" == self.compute_device:
+                    cp = torch.load(path)
 
                 if k:
                     cp = cp[k]
 
                 model.load_state_dict(cp, strict=strict)
 
-            model.cuda()
-            model.half()
+            if "cuda" == self.compute_device:
+                model.cuda()
+                model.half()
             model.eval()
 
         self.model_trimap = Trimap()
@@ -85,9 +96,10 @@ class Removebg:
 
         # all operations are done with half precision
 
-        im = im.half()
-        if has_trimap_optimized_image:
-            im_for_trimap_tr = im_for_trimap_tr.half()
+        if "cuda" == self.compute_device:
+            im = im.half()
+            if has_trimap_optimized_image:
+                im_for_trimap_tr = im_for_trimap_tr.half()
 
         with torch.no_grad():
 
@@ -161,7 +173,13 @@ class Removebg:
             if not trimap_mask.any():
                 raise UnknownForegroundException("only background pixels detected")
 
-            labels, count = self.ccl_cuda(trimap_mask)
+            if "cpu" == self.compute_device:
+                trimap_mask_np = trimap_mask.squeeze(0).numpy()
+                count, labels_np = cv2.connectedComponents(trimap_mask_np)
+                labels = torch.from_numpy(labels_np).unsqueeze(0)
+                count = torch.tensor([count], dtype=torch.int32)
+            else:  # "cuda" == self.device:
+                labels, count = self.ccl_cuda(trimap_mask)
 
             # CCL very rarely returns more labels than the count
 
@@ -276,16 +294,16 @@ class Removebg:
         input, info = self.aug_mul_matting(input).values()
 
         # to float (because fba doesnt like half)
-
-        input = input.float()
+        if "cuda" == self.compute_device:
+            input = input.float()
 
         # to both networks
 
         matting_output = self.model_matting(input[:, :3], input[:, 3:6], input[:, 6:])
 
         # back to half
-
-        matting_output = matting_output.half()
+        if "cuda" == self.compute_device:
+            matting_output = matting_output.half()
 
         # remove paddings
 
@@ -339,7 +357,7 @@ class Removebg:
         im_input[:, :3] *= im_input[:, 3:4] > 0
 
         # forward
-        shadow, _, _ = self.model_shadow.process(im_input.squeeze(0), angle_deg=0.0, boundary_mode="original")
+        shadow, _, _, _ = self.model_shadow.process(im_input.squeeze(0), angle_deg=(0.0,), boundary_mode="original")
         shadow = shadow.unsqueeze(0)
 
         # Ensure values do not exceed those of alpha's
@@ -350,7 +368,11 @@ class Removebg:
 
 
 class Identifier:
-    def __init__(self, model_paths, cuda_enabled=True, cpu_cores=None, require_models=True):
+    def __init__(self, model_paths, require_models=True, compute_device="cuda"):
+
+        assert compute_device in ["cuda", "cpu"]
+
+        self.compute_device = compute_device
 
         size = 224
 
@@ -358,13 +380,10 @@ class Identifier:
         self.aug_crop = aug_img.Crop(size, fill="reflect")
         self.aug_norm = aug_img.Normalize()
 
-        self.cuda_enabled = cuda_enabled
-
-        if cuda_enabled:
+        if "cuda" == self.compute_device:
             torch.cuda.set_device(0)
-
-        if cpu_cores:
-            torch.set_num_threads(cpu_cores)
+        else:  # "cpu" == self.compute_device:
+            torch.set_num_threads(os.cpu_count())
 
         self.model = Classifier(9)
         self.labels = [
@@ -381,7 +400,7 @@ class Identifier:
 
         # load weights
         load_args = {}
-        if not cuda_enabled:
+        if "cpu" == self.compute_device:
             load_args["map_location"] = "cpu"
 
         path = os.path.join(model_paths, "identifier-mobilenetv2-c9.pth.tar")
@@ -396,7 +415,7 @@ class Identifier:
         else:
             self.model.load_state_dict(torch.load(path, **load_args)["state_dict"])
 
-        if cuda_enabled:
+        if "cuda" == self.compute_device:
             self.model.cuda()
             self.model.half()
 
@@ -419,7 +438,8 @@ class Identifier:
         im = self.aug_crop(im)["result"]
         im = self.aug_norm(im)["result"]
 
-        im = im.half()
+        if "cuda" == self.compute_device:
+            im = im.half()
 
         with torch.no_grad():
             pred = self.model(im[None])

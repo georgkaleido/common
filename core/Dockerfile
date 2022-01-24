@@ -125,6 +125,7 @@ RUN apt-get purge -y ${BUILD_DEPENDENCIES} \
 
 # Copy application
 COPY --chown=app:app bin/removebg-server.py bin/
+COPY --chown=app:app bin/__init__.py bin/
 COPY --chown=app:app liveness.sh .
 
 # Build arguments
@@ -147,10 +148,15 @@ ENV VCS_REF="${VCS_REF}" \
     BUILD_DATE="${BUILD_DATE}" \
     VERSION="${VERSION}"
 
+# Default application configuration
+# DEVICE can be either "cuda" or "cpu"
+ARG COMPUTE_DEVICE="cuda"
+
 # Application configuration
 ENV PYTHONUNBUFFERED="true" \
     PYTHONPATH="${PYTHONPATH}:../" \
-    NVIDIA_VISIBLE_DEVICES="all"
+    NVIDIA_VISIBLE_DEVICES="all" \
+    COMPUTE_DEVICE=${COMPUTE_DEVICE}
 
 # Switch back to app user
 USER app

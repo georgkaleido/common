@@ -320,6 +320,7 @@ class RemovebgServer(ImageServer):
         require_models: bool,
         worker_init_kwargs: Optional[Dict[str, Any]] = None,
         worker_count: int = multiprocessing.cpu_count(),
+        compute_device: str = "cuda",
     ) -> None:
         super().__init__(
             request_queue,
@@ -329,8 +330,13 @@ class RemovebgServer(ImageServer):
             rabbitmq_password,
             worker_class=worker_class,
             worker_init_kwargs=worker_init_kwargs,
-            worker_count=worker_count,
+            worker_count=worker_count
         )
+
+        assert compute_device in ["cuda", "cpu"]
+        self.logger.info(f"compute_device set to {compute_device}")
+
+        self.compute_device = compute_device
         self.removebg = None
         self.identifier = None
         self.error_count = 0
@@ -344,8 +350,11 @@ class RemovebgServer(ImageServer):
                 "networks-trained/",
                 require_models=self.require_models,
                 trimap_flip_mean=True,
+                compute_device=compute_device
             )
-            self.identifier = Identifier("networks-trained/", require_models=self.require_models)
+            self.identifier = Identifier("networks-trained/",
+                                         require_models=self.require_models,
+                                         compute_device=compute_device)
             assert self.removebg, "Failed to initialize Removebg"
             assert self.identifier, "Failed to initialize Identifier"
 
@@ -364,8 +373,8 @@ class RemovebgServer(ImageServer):
             processing_data["api"] = "mock"
         else:
             # transfer to gpu
-            im_tr = to_tensor(im, bgr2rgb=True)
-            im_for_trimap_tr = to_tensor(im_for_trimap, bgr2rgb=False)
+            im_tr = to_tensor(im, bgr2rgb=True, cuda=("cuda" == self.compute_device))
+            im_for_trimap_tr = to_tensor(im_for_trimap, bgr2rgb=False, cuda=("cuda" == self.compute_device))
 
             # overwrite if auto
             if processing_data["api"] == "auto":
@@ -406,6 +415,8 @@ def main():
     worker_count = min(
         int(os.environ.get("MAX_WORKER_COUNT", multiprocessing.cpu_count())), multiprocessing.cpu_count()
     )
+    compute_device = str(os.environ.get("COMPUTE_DEVICE", "cuda"))
+    compute_device = "cuda" if "" == compute_device.strip() else compute_device
 
     server = RemovebgServer(
         *rabbitmq_args,
@@ -413,6 +424,7 @@ def main():
         worker_class=RemovebgWorker,
         mock_response=mock_response,
         worker_count=worker_count,
+        compute_device=compute_device
     )
     server.start()
 
