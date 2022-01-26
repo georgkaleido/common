@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qi-dataset-storage-[{DATE}]
+spec:
+  storageClassName: qi-class-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,9 +29,12 @@ spec:
         - name: dshm
           emptyDir:
             medium: Memory
+        - name: qi-dataset-storage
+          persistentVolumeClaim:
+            claimName: qi-dataset-storage-[{DATE}]
       containers:
         - name: removebg-trimap513
-          image: eu.gcr.io/kaleido-train/trimap-qi-auto-trainer:v5
+          image: eu.gcr.io/kaleido-train/trimap-qi-auto-trainer:v6
           imagePullPolicy: Always
           command: ["python", "/workspace/kaleido/removebg-train-trimap-cloud-qi.py"]
           args:
@@ -46,5 +61,7 @@ spec:
               nvidia.com/gpu: 1
           # Necessary to have enough shared memory
           volumeMounts:
-            - mountPath: /dev/shm
-              name: dshm
+            - name: dshm
+              mountPath: /dev/shm
+            - name: qi-dataset-storage
+              mountPath: "/workspace/kaleido/danni-data"
