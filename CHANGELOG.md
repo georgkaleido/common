@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.16.0 (31/01/2022)
+
+#### 🚀 Enhancements:
+
+- Reduce cost of QI trainings [#95](https://github.com/remove-bg/kaleido-removebg/pull/95)
+- Add option for inference on CPU [#92](https://github.com/remove-bg/kaleido-removebg/pull/92)
+- Architecture change to tackle Preview Vs. Full Resolution discrepancies [#91](https://github.com/remove-bg/kaleido-removebg/pull/91)
+
+#### 🔀 Dependencies
+
+- [js] Update all Yarn dependencies (2022-01-26) [#93](https://github.com/remove-bg/kaleido-removebg/pull/93)
+- [api] Update all Yarn dependencies (2022-01-26) [#94](https://github.com/remove-bg/kaleido-removebg/pull/94)
+- [api] Upgrade Node.js to 14.18.3 [#90](https://github.com/remove-bg/kaleido-removebg/pull/90)
+- [js] Upgrade Node.js to 14.18.3 [#89](https://github.com/remove-bg/kaleido-removebg/pull/89) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.16.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.16.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.16.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.16.0-cc86`
+---
+
 ## 1.15.0 (04/01/2022)
 
 #### 🚀 Enhancements:
