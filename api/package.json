@@ -28,7 +28,7 @@
     "hex-rgb": "^4.3.0",
     "http-terminator": "^2.0.3",
     "image-size": "^0.8.3",
-    "ioredis": "^4.28.2",
+    "ioredis": "^4.28.3",
     "ip-range-check": "^0.2.0",
     "jsonwebtoken": "^8.5.1",
     "kaleido-api": "^1.1.5",
