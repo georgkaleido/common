@@ -19,7 +19,7 @@ TRIMAP_OPTI = "TRIMAP_OPTI"
 
 def read_image_custom(
     data: Union[str, bytes], megapixel_limit: float, megapixel_limit_trimap: float
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, bytes, str, Tuple[int, int], Tuple[int, int], float, Any]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, bytes, str, Tuple[int, int], Tuple[int, int], float, float, Any]:
     if isinstance(data, str):
         im_raw = ImagePIL.open(data)
     else:
@@ -60,19 +60,20 @@ def read_image_custom(
     # Same process for image optimized for trimap
     has_im_for_trimap = megapixel_limit_trimap is not None
     if has_im_for_trimap:
-        im_for_trimap, _ = downscale(im_raw, megapixel_limit_trimap, interpolation_method=ImagePIL.BOX, reducing_gap=1.0)
+        im_for_trimap, scale_trimap = downscale(im_raw, megapixel_limit_trimap, interpolation_method=ImagePIL.BOX, reducing_gap=1.0)
         im_for_trimap = mode2rgb(im_for_trimap, icc)
         im_for_trimap_np = np.ascontiguousarray(np.array(im_for_trimap))
     else:
         im_for_trimap_np = None
+        scale_trimap = None
 
-    return im_rgb_np, im_np, im_for_trimap_np, icc, mode, dpi, (width_prescale, height_prescale), scale, exif_rot
+    return im_rgb_np, im_np, im_for_trimap_np, icc, mode, dpi, (width_prescale, height_prescale), scale, scale_trimap, exif_rot
 
 
 class SmartAlphaImage:
     def __init__(self, im_bytes: bytes, megapixel_limit: Optional[float] = None, megapixel_limit_trimap: Optional[float] = None):
         try:
-            im, im_raw, im_for_trimap, icc, mode, dpi, size_prescale, scale, exif_rot = read_image_custom(
+            im, im_raw, im_for_trimap, icc, mode, dpi, size_prescale, scale, scale_trimap, exif_rot = read_image_custom(
                 im_bytes, megapixel_limit=megapixel_limit, megapixel_limit_trimap=megapixel_limit_trimap
             )
         except Exception as e:
@@ -115,6 +116,7 @@ class SmartAlphaImage:
         self.width_pre_mplimit = size_prescale[0]
         self.height_pre_mplimit = size_prescale[1]
         self.scale_pre_mplimit = scale
+        self.scale_trimap = scale_trimap
 
         # this mask is used later when cmyk colors are restored
         self.pre_background_mask = None

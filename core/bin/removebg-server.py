@@ -88,22 +88,28 @@ class RemovebgWorker(Worker):
         t = time.time()
 
         # crop to roi
-        crop_roi = None
+        crop_roi_image = None
+        crop_roi_trimap = None
 
         if roi:
-            x0 = min(roi[0], roi[2])
-            x1 = max(roi[0], roi[2])
-            y0 = min(roi[1], roi[3])
-            y1 = max(roi[1], roi[3])
+            def compute_crop_roi(roi, scale):
+                x0 = min(roi[0], roi[2])
+                x1 = max(roi[0], roi[2])
+                y0 = min(roi[1], roi[3])
+                y1 = max(roi[1], roi[3])
 
-            w = int((x1 - x0 + 1) * image.scale_pre_mplimit)
-            h = int((y1 - y0 + 1) * image.scale_pre_mplimit)
-            x0 = int(x0 * image.scale_pre_mplimit)
-            y0 = int(y0 * image.scale_pre_mplimit)
+                w = int((x1 - x0 + 1) * scale)
+                h = int((y1 - y0 + 1) * scale)
+                x0 = int(x0 * scale)
+                y0 = int(y0 * scale)
 
-            crop_roi = (x0, y0, w, h)
+                crop_roi = (x0, y0, w, h)
+                return crop_roi
 
-        im_cv = image.get("bgr", crop=crop_roi)
+            crop_roi_image = compute_crop_roi(roi, image.scale_pre_mplimit)
+            crop_roi_trimap = compute_crop_roi(roi, image.scale_trimap)
+
+        im_cv = image.get("bgr", crop=crop_roi_image)
 
         # check min size
         s = 224.0 / max(im_cv.shape[0], im_cv.shape[1])
@@ -119,7 +125,7 @@ class RemovebgWorker(Worker):
             result.description = UNKNOWN_FOREGROUND
             return None
 
-        im_for_trimap = image.get("trimap_opti", crop=crop_roi)
+        im_for_trimap = image.get("trimap_opti", crop=crop_roi_trimap)
 
         times.append(time.time() - t)
         self.logger.info(
@@ -143,7 +149,7 @@ class RemovebgWorker(Worker):
             "position_param": position_param,
             "crop": crop,
             "crop_margin": crop_margin,
-            "crop_roi": crop_roi,
+            "crop_roi": crop_roi_image,
             "semitransparency": semitransparency,
         }
 
