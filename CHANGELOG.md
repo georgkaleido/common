@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.16.1 (08/02/2022)
+
+#### 🐞 Bugfixes:
+
+- Fix misuse of roi parameter for trimap. #yolo [#98](https://github.com/remove-bg/kaleido-removebg/pull/98) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.16.1`
+* `eu.gcr.io/removebg-226919/removebg-core:1.16.1-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.16.1-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.16.1-cc86`
+---
+
 ## 1.16.0 (31/01/2022)
 
 #### 🚀 Enhancements:
