@@ -98,10 +98,11 @@ if (danger.github.pr.base.ref != "main") {
  * Reason: Labels are used to categorize the PR into a group which
  *         is used in the Changelog.
  */
- if (danger.github.issue.labels.length == 0) {
+const relevantLabels = danger.github.issue.labels.filter(label => !label.name.startsWith('size/'));
+if (relevantLabels.length == 0) {
   fail("🏷 Please categorize your PR by adding a label!")
-} else if (danger.github.issue.labels.length > 1 && !isDepfuPR) {
-  fail(`🏷 Please use exactly one label for your PR, instead of ${danger.github.issue.labels.length}!`)
+} else if (relevantLabels.length > 1 && !isDepfuPR) {
+  warn(`🏷 Please use exactly one label for your PR, instead of ${relevantLabels.length}!`)
 }
 
 /**
@@ -123,7 +124,7 @@ commonValidJson({ logType: 'fail' })
  * Reason: Warns for skipped tests and fails for focused tests, because
  *         this prevents the whole test suite from running.
  */
- jsTestShortcuts({ logTypeSkipped: 'warn', logTypeFocused: 'fail' });
+jsTestShortcuts({ logTypeSkipped: 'warn', logTypeFocused: 'fail' });
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* ~ Achievements                                                            ~ */
