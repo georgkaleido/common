@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.17.0 (14/02/2022)
+
+#### 🚀 Enhancements:
+
+- Update model version #trivial [#101](https://github.com/remove-bg/kaleido-removebg/pull/101)
+
+#### 🔀 Dependencies
+
+- [js] Update all Yarn dependencies (2022-02-09) [#99](https://github.com/remove-bg/kaleido-removebg/pull/99)
+- [api] Update all Yarn dependencies (2022-02-09) [#100](https://github.com/remove-bg/kaleido-removebg/pull/100)
+- [api] Upgrade Node.js to 14.19.0 [#97](https://github.com/remove-bg/kaleido-removebg/pull/97)
+- [js] Upgrade Node.js to 14.19.0 [#96](https://github.com/remove-bg/kaleido-removebg/pull/96) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.17.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.17.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.17.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.17.0-cc86`
+---
+
 ## 1.16.1 (08/02/2022)
 
 #### 🐞 Bugfixes:
