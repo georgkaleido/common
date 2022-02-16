@@ -1,6 +1,8 @@
 const logger = require("kaleido-api/logger");
 
 function sendError(res, status, errorTitle, details={}) {
+  res.locals.requestLog.errors.push({ message: errorTitle, ...details })
+
   res.status(status);
   var errorJson =  {
     errors: [

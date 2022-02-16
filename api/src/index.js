@@ -1,12 +1,16 @@
 const logger = require("kaleido-api/logger");
-require("dotenv").config()
+const log = require("kaleido-api/modern_logger");
+const PubSub = require("kaleido-api/gc_pub_sub");
 
+require("dotenv").config()
 if(process.env.NODE_ENV == "development") {
   const mockery = require("mockery")
   mockery.enable({
     warnOnUnregistered: false
   })
   mockery.registerSubstitute("kaleido-api/core", "./mock/core_mock")
+  mockery.registerSubstitute("./remote_credits", "./mock/remote_credits_mock")
+  mockery.registerSubstitute("./key_auth", "./mock/key_auth_mock")
 }
 
 const https = require('https');
@@ -62,7 +66,9 @@ function startServer() {
   const app = express()
   app.disable('x-powered-by');
   app.use(exposeCustomResponseHeaders);
+  app.use(requestLog);
   app.use(withRequestId);
+  app.use(reportToDW);
   app.use(fileUpload());
   app.use(bodyParser.urlencoded({extended: false, limit: maxFileSize}));
   app.use(bodyParser.json({limit: maxFileSize}));
@@ -91,9 +97,12 @@ function startServer() {
     if(!goodStates.includes(status)) {
       res.status(500);
     }
+
+    logger.info(`[${res.locals.requestId}]   API Health: ${status}`)
+    log.debug(`API Health: ${status}`, { api_health_status: status }, null, res)
+
     res.type('txt');
     res.send(`health:${status}`)
-    logger.info(`[${res.locals.requestId}]   API Health: ${status}`)
   }
 
   app.get('/health', (req, res) => healthCheck(res, "ok"));
@@ -109,12 +118,16 @@ function startServer() {
   app.options('/v1.0/removebg.json', cors());
   app.post('/v1.0/removebg.json', cors(), authenticated, authScope("removebg:process"), (req, res) => {
     logger.info("[${res.locals.requestId}]   DEPRECATED: Endpoint /v1.0/removebg.json");
+    log.info("DEPRECATED: Endpoint /v1.0/removebg.json", {}, req, res)
     prepare(req, res, "json");
   })
 
   app.options('/v1.0/apps/:name', cors());
   app.get('/v1.0/apps/:name', cors(), (req, res) => {
     logger.info(`[${res.locals.requestId}]   App: ${req.params.name} / Version: ${req.query.v}`);
+
+    res.locals.requestLog.version_check_app_name = req.params.name;
+    res.locals.requestLog.version_check_app_version = req.query.v;
 
     // All OK:            res.json({"status": "ok"});
     // Optional update:   res.json({"status": "warning", "message": "Thanks for testing remove.bg for Adobe Photoshop. Feedback? team@remove.bg"});
@@ -217,7 +230,10 @@ function startServer() {
     https.createServer(serverOptions, app) :
     http.createServer(serverOptions, app)
 
-  server.listen(apiPort, () => logger.info(`remove bg API listening on ${serverType} port ${apiPort}!`));
+  server.listen(apiPort, () => {
+    logger.info(`remove bg API listening on ${serverType} port ${apiPort}!`)
+    log.info(`remove bg API listening on ${serverType} port ${apiPort}!`, { server_type: serverType, api_port: apiPort })
+  });
 
   var httpTerminator = createHttpTerminator({
     server,
@@ -234,8 +250,10 @@ function startServer() {
 
   shutdown.before((callback) => {
     logger.info("Closing server...")
+    log.info("Closing server.")
     httpTerminator.terminate().then(() => {
       logger.info("Server closed. Waiting a few more seconds to proceed shutdown to allow for persistence...")
+      log.info("Server closed. Waiting a few more seconds to proceed shutdown to allow for persistence.")
       setTimeout(callback, 8000);
     });
   });
@@ -430,6 +448,7 @@ function validate(data, backgroundData, res, wrapperFormat, megapixels, type, ch
 
   applyRateLimit(res, dataValid.width * dataValid.height).then(() => {
     logger.info(`[${res.locals.requestId}]   Input image: ${dataValid.width} x ${dataValid.height} / format ${dataValid.ext} / size ${data.length} bytes`)
+
     if(backgroundData) {
       logger.info(`[${res.locals.requestId}]   Background image: ${bgDataValid.width} x ${bgDataValid.height} / format ${bgDataValid.ext} / size ${backgroundData.length} bytes`)
     }
@@ -440,13 +459,13 @@ function validate(data, backgroundData, res, wrapperFormat, megapixels, type, ch
       logger.info(`[${res.locals.requestId}]   Enterprise user ${res.locals.user_id}, input resolution ${pixels} px`)
     }
 
-    processImage(data, backgroundData, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel);
+    processImage(data, backgroundData, bgDataValid, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel);
   }).catch(() => {
     // no-op
   });
 }
 
-function processImage(data, backgroundData, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel) {
+function processImage(data, backgroundData, bgDataValid, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel) {
   var msg = {
     version: "1.0",
     command: "removebg",
@@ -503,7 +522,7 @@ function processImage(data, backgroundData, res, wrapperFormat, megapixels, type
 
           var resolution = result.width_uncropped * result.height_uncropped;
 
-          var data = Buffer.from(result.data, "binary");
+          var resultData = Buffer.from(result.data, "binary");
 
           var chargeInfo = auth.charge(resolution);
           res.set('X-Credits-Charged', chargeInfo.credits_charged);
@@ -522,17 +541,56 @@ function processImage(data, backgroundData, res, wrapperFormat, megapixels, type
             result.width,
             result.height,
           ].join(",")
-
           logger.info(processedImageLog)
 
+         processLog = {
+              input_image_width: res.locals.inputImageWidth,
+              input_image_height: res.locals.inputImageHeight,
+              input_image_resolution: res.locals.inputImageWidth * res.locals.inputImageHeight,
+              input_image_size_bytes: data.length,
+              input_image_format: data.ext,
+              input_image_channels: channels,
+              input_image_type: type,
+
+              result_format: result.format?.toString(),
+              result_use_semitransparency: semitransparency,
+              result_add_shadow: addShadow,
+              result_scale: scale,
+              result_position: position,
+              result_image_width: result.width,
+              result_image_height: result.height,
+              result_image_resolution: squarepx,
+              result_image_max_width: result.maxwidth,
+              result_image_max_height: result.maxheight,
+              result_image_size_bytes: resultData.length,
+              result_image_crop_empty_pixels: crop,
+              result_image_crop_margin: cropMargin,
+              result_image_roi: [roi[0].x, roi[0].y, roi[1].x, roi[1].y],
+
+              background_image_width: bgDataValid?.width || null,
+              background_image_height: bgDataValid?.height || null,
+              background_image_format: bgDataValid?.ext || null,
+              background_image_size: backgroundData?.length || null,
+              background_color: bgColor,
+
+              credits_charged: chargeInfo.credits_charged,
+              response_format: wrapperFormat,
+            }
+
+          res.locals.requestLog = {
+            ...res.locals.requestLog,
+            ...processLog,
+          }
+
+
           if(wrapperFormat == "binary") {
-            res.type(result.format.toString());
-            res.end(data, "binary");
+            res.type(result.format?.toString());
+            res.end(resultData, "binary");
           }
           else {
             res.json({
               data: {
-                result_b64: data.toString("base64"),
+                result_b64: resultData.toString("base64"),
                 foreground_top: result.input_foreground_top,
                 foreground_left: result.input_foreground_left,
                 foreground_width: result.input_foreground_width,
@@ -571,6 +629,7 @@ function processImage(data, backgroundData, res, wrapperFormat, megapixels, type
         }
         catch(err) {
           logger.error(`Failed to return HTTP status 500: ${err}`)
+          res.locals.requestLog.errors.push({ message: "Failed to return HTTP status 500", detail: `${err}`, code: "internal_error" })
         }
       }
     }
@@ -603,6 +662,11 @@ function exposeCustomResponseHeaders(req, res, next) {
 
 function withRequestId(req, res, next) {
   res.locals.requestId = RequestId.generate();
+  res.locals.requestLog.request_id = res.locals.requestId;
+
+  res.set("X-Vcs-Ref", process.env.VCS_REF  || null);
+  res.set("X-Build-Date", process.env.BUILD_DATE || null);
+  res.set("X-Version", process.env.VERSION || null);
 
   var ip = remoteIp(req);
   res.locals.remoteIp = ip;
@@ -618,6 +682,113 @@ function withRequestId(req, res, next) {
     logger.info(`[${res.locals.requestId}] Completed ${this.statusCode} in ${finished-started}ms`);
   })
   return next();
+}
+
+function reportToDW(req, res, next) {
+  res.on("finish", function() {
+    if(req.path == "/v1.0/removebg") {
+      reportBgRemoval(res)
+    }
+  })
+
+  return next();
+}
+
+function reportBgRemoval(res) {
+  const logData = res.locals.requestLog
+
+  const data = {
+    user_id: res.locals.user_id || null,
+    request_id: res.locals.requestId || null,
+    user_agent: logData.httpRequest.userAgent || null,
+    requested_with: logData.requested_with || null,
+    requested_with_version: logData.requested_with_version || null,
+    processing_time_ms: logData.processing_time_ms || null,
+
+    input_image_width: logData.input_image_width || null,
+    input_image_height: logData.input_image_height || null,
+    input_image_resolution: logData.input_image_resolution || null,
+    input_image_size_bytes: logData.input_image_size_bytes || null,
+    input_image_format: logData.input_image_format || null,
+    input_image_channels: logData.input_image_channels || null,
+    input_image_type: logData.input_image_type || null,
+
+    result_format: logData.result_format || null,
+    result_use_semitransparency: logData.result_use_semitransparency || null,
+    result_add_shadow: logData.result_add_shadow || null,
+    result_scale: logData.result_scale || null,
+    result_position: logData.result_position || null,
+    result_image_width: logData.result_image_width || null,
+    result_image_height: logData.result_image_height || null,
+    result_image_resolution: logData.result_image_resolution || null,
+    result_image_max_width: logData.result_image_max_width || null,
+    result_image_max_height: logData.result_image_max_height || null,
+    result_image_size_bytes: logData.result_image_size_bytes || null,
+    result_image_crop_empty_pixels: logData.result_image_crop_empty_pixels || null,
+    result_image_crop_margin: logData.result_image_crop_margin || null,
+    result_image_roi: logData.result_image_roi || null,
+
+    background_image_width: logData.background_image_width || null,
+    background_image_height: logData.background_image_height || null,
+    background_image_format: logData.background_image_format || null,
+    background_image_size: logData.background_image_size || null,
+    background_color: logData.background_color || null,
+
+    credits_charged: logData.credits_charged || null,
+    response_format: logData.response_format || null,
+
+    vcs_ref: process.env.VCS_REF  || null,
+    build_date: process.env.BUILD_DATE || null,
+    version: process.env.VERSION || null,
+
+    timestamp: res.locals.requestStart.toISOString(),
+  }
+
+  if(process.env.ENABLE_PUBSUB_REPORTING == "1") {
+    const p = new PubSub(process.env.PUBSUB_TOPIC_BGREMOVAL);
+    p.publish(data)
+  }
+}
+
+function requestLog(req, res, next) {
+  const requestStart = new Date()
+  res.locals.requestStart = requestStart
+
+  res.locals.requestLog =        {
+    httpRequest: {
+     requestMethod: req.method,
+     requestUrl: req.protocol + "://" + req.get("host") + req.originalUrl,
+     userAgent: req.headers["x-user-agent"] || req.headers["user-agent"],
+     remoteIP: remoteIp(req),
+    },
+    requested_with: req.headers["x-requested-with"] || null,
+    requested_with_version: req.headers["x-requested-with-version"] || null,
+    errors: [],
+  }
+
+  res.on("finish", () => {
+    if(req.path.match(/^\/health(\/.*)?$/gi)) return true
+
+    const requestEnd = new Date()
+    const processing_time_ms = (requestEnd - requestStart)
+
+    res.locals.requestLog.httpRequest.status = res.statusCode
+    res.locals.requestLog.httpRequest.responseSize = res['_contentLength']
+    res.locals.requestLog.processing_time_ms = processing_time_ms
+    res.locals.requestLog.httpRequest.latency = convertToSecondsAndNanoseconds(processing_time_ms)
+
+    const logLevel = (res.locals.requestLog.errors.length == 0) ? "info" : "error"
+
+    log.log(logLevel, `Completed ${res.statusCode} for ${req.method} ${req.path} from ${res.locals.requestLog.httpRequest.remoteIP} in ${processing_time_ms} ms`, res.locals.requestLog)
+  })
+
+  return next();
+}
+
+function convertToSecondsAndNanoseconds(ms) {
+  var s = Math.floor(ms / 1000);
+  var ns = (ms % 1000) * 1000000;
+  return { seconds: s, nanos: ns };
 }
 
 function logParams(req, res, next) {
@@ -676,7 +847,7 @@ if(process.env["SKIP_AUTH"] == "1") {
       err.status = 403;
       err.details = {
         code: 'auth_failed',
-        detail: "Please provide etiher the Authorization OR the X-Api-Key header, but not both."
+        detail: "Please provide either the Authorization OR the X-Api-Key header, but not both."
       };
       return next(err);
     }
@@ -709,6 +880,9 @@ if(process.env["SKIP_AUTH"] == "1") {
 
     function assignUser() {
       credits.getUser(res.locals.user_id, res.locals.requestId).then((user) => {
+        res.locals.requestLog.user_id = user.id;
+        res.locals.requestLog.user_enterprise = user.enterprise;
+
         if(checkIP(user, res.locals.key ? res.locals.key.ip_passlist : null)) {
           res.locals.user = user;
           next();
