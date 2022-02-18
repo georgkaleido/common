@@ -1,8 +1,0 @@
-apiVersion: cloud.google.com/v1
-kind: BackendConfig
-metadata:
-  name: api-backend-config
-spec:
-  timeoutSec: 40
-  connectionDraining:
-    drainingTimeoutSec: 40
