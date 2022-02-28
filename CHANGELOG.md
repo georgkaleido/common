@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.19.0 (28/02/2022)
+
+#### 🚀 Enhancements:
+
+- Update model version #trivial [#107](https://github.com/remove-bg/kaleido-removebg/pull/107) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.19.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.19.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.19.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.19.0-cc86`
+---
+
 ## 1.18.0 (16/02/2022)
 
 #### 🚀 Enhancements:
