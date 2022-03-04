@@ -32,7 +32,7 @@ def main():
 
     os.environ["DANNI_HOST"] = "https://danni.kaleido.ai/"
     os.environ["DANNI_USER"] = "david.fankhauser"
-    os.environ["DANNI_TOKEN"] = "7rbnKHj02KFH4qF0tTanRUTC"
+    os.environ["DANNI_TOKEN"] = None # set this
 
     filter_ = {"worker_history.danni-image-remove_background-alpha-thumbnails": True}
 
