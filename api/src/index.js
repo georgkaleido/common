@@ -316,6 +316,8 @@ function prepare(req, res, wrapperFormat) {
     }
 
     var semitransparency = getSemitransparency(req);
+    var semitransparency_experimental = getSemitransparencyExperimental(req, semitransparency);
+
     if(semitransparency == null) {
       return sendError(res, 400, "Invalid semitransparency parameter given", { code: "invalid_semitransparency" });
     }
@@ -354,7 +356,7 @@ function prepare(req, res, wrapperFormat) {
     var addShadow = getAddShadow(req);
 
     var afterAllFetched = (originalData, backgroundData) => {
-      validate(originalData, backgroundData, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel);
+      validate(originalData, backgroundData, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel, semitransparency_experimental);
     }
 
     var afterOriginalFetched = (originalData) => {
@@ -405,7 +407,7 @@ function prepare(req, res, wrapperFormat) {
 
 
 
-function validate(data, backgroundData, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel) {
+function validate(data, backgroundData, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel, semitransparency_experimental) {
   var dataValid = Validation.validateImageData(data);
   if(!dataValid.valid) {
     return sendError(res, 400, dataValid.message, { code: dataValid.code, detail: dataValid.detail });
@@ -459,13 +461,13 @@ function validate(data, backgroundData, res, wrapperFormat, megapixels, type, ch
       logger.info(`[${res.locals.requestId}]   Enterprise user ${res.locals.user_id}, input resolution ${pixels} px`)
     }
 
-    processImage(data, backgroundData, bgDataValid, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel);
+    processImage(data, backgroundData, bgDataValid, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel, semitransparency_experimental);
   }).catch(() => {
     // no-op
   });
 }
 
-function processImage(data, backgroundData, bgDataValid, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel) {
+function processImage(data, backgroundData, bgDataValid, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel, semitransparency_experimental) {
   var msg = {
     version: "1.0",
     command: "removebg",
@@ -480,6 +482,7 @@ function processImage(data, backgroundData, bgDataValid, res, wrapperFormat, meg
     crop_margin: cropMargin,
     roi: [roi[0].x, roi[0].y, roi[1].x, roi[1].y],
     semitransparency: semitransparency,
+    semitransparency_experimental: semitransparency_experimental,
     shadow: addShadow,
   }
 
@@ -494,7 +497,7 @@ function processImage(data, backgroundData, bgDataValid, res, wrapperFormat, meg
   if(position && position != "original") {
     msg.position = position;
   }
-
+  // DEBUG message to core here: console.log(msg);
   core.process(
     res.locals.requestId,
     msg,
@@ -554,6 +557,7 @@ function processImage(data, backgroundData, bgDataValid, res, wrapperFormat, meg
 
               result_format: result.format?.toString(),
               result_use_semitransparency: semitransparency,
+              result_use_semitransparency_experimental: semitransparency_experimental,
               result_add_shadow: addShadow,
               result_scale: scale,
               result_position: position,
@@ -715,6 +719,7 @@ function reportBgRemoval(res) {
 
     result_format: logData.result_format || null,
     result_use_semitransparency: logData.result_use_semitransparency || null,
+    result_use_semitransparency_experimental: logData.result_use_semitransparency_experimental || null,
     result_add_shadow: logData.result_add_shadow || null,
     result_scale: logData.result_scale || null,
     result_position: logData.result_position || null,
@@ -1237,6 +1242,24 @@ function getSemitransparency(req) {
     return semitransparency == "true" || semitransparency == "1";
   default:
     return null;
+  }
+}
+
+function getSemitransparencyExperimental(req, semitransparency) {
+  var semitransparency_experimental = req.body.semitransparency_experimental;
+  if(semitransparency_experimental == undefined) {
+    return false;
+  }
+  // semitransparency flag overrules the experimental flag
+  switch(typeof(semitransparency_experimental)) {
+    case "boolean":
+      return semitransparency_experimental && semitransparency;
+    case "number":
+      return semitransparency_experimental == 1 && semitransparency;
+    case "string":
+      return (semitransparency_experimental == "true" && semitransparency) || (semitransparency_experimental == "1" && semitransparency);
+    default:
+      return null;
   }
 }
 
