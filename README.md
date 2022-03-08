@@ -117,7 +117,6 @@ Docker images are being pushed to `eu.gcr.io/removebg-226919/removebg-core` and 
 - `CACHE_VERSION`: `2` (increment to update cache)
 - `DOCKER_IMAGE_NAME`: `eu.gcr.io/removebg-226919/removebg` (base image name, `-core` and `-api` are appended automatically)
 - `GKE_CLUSTER`: `removebg-app` (which GKE cluster the app will be deployed to)
-- `GKE_KUBERNETES_VERSION`: `1.20.8` (used by `kubeval` to validate K8s config)
 
 ## 🚚 Release Process
 

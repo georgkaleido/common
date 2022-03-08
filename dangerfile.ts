@@ -218,21 +218,3 @@ if (yamllintResult.includes("[error]") || yamllintResult.includes("[warning]")) 
 if (yamllintResult.includes("warning") || yamllintResult.includes("error")) {
   fail("📎 There are issues in your `.yaml` files!")
 }
-
-var kubevalJson = JSON.parse(fs.readFileSync("lint/kubeval.json").toString());
-var kubevalResult = '';
-const markdownHeaderKubeval = "| File  | Status | Kind     | Errors |\n| ----- |:------:| -------- | ------ |\n"
-
-kubevalJson.forEach(obj => {
-  var errors = "";
-  obj.errors.forEach(error => {
-    errors += "<li>" + error + "</li>";
-  });
-  kubevalResult += "| `" + obj.filename + "` | **" + obj.status + "** | `" + obj.kind + "` | " + errors + " |\n";
-});
-
-markdown("### Kubernetes Configuration\n\n" + markdownHeaderKubeval + kubevalResult);
-
-if (kubevalResult.includes("invalid")) {
-  fail("`☸️ Invalid Kubernetes configuration found!")
-}
