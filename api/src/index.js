@@ -49,6 +49,9 @@ const useSSL = toBoolean(process.env.API_SSL || true)
                 && process.env.API_SSL_CRT
 const maxFileSize = 12*1024*1024;
 
+if(process.env.ENABLE_PUBSUB_REPORTING == "1") {
+  var p = new PubSub(process.env.PUBSUB_TOPIC_BGREMOVAL);
+}
 
 function toBoolean(value) {
   if (null !== value) {
@@ -750,7 +753,6 @@ function reportBgRemoval(res) {
   }
 
   if(process.env.ENABLE_PUBSUB_REPORTING == "1") {
-    const p = new PubSub(process.env.PUBSUB_TOPIC_BGREMOVAL);
     p.publish(data)
   }
 }
