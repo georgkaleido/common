@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.20.0 (08/03/2022)
+
+#### 🚀 Enhancements:
+
+- add semitransparency_experimental flag to API [#108](https://github.com/remove-bg/kaleido-removebg/pull/108)
+
+#### 🐞 Bugfixes:
+
+- Instantiate PubSub Client on server start instead of every request [#109](https://github.com/remove-bg/kaleido-removebg/pull/109)
+- Fix CI pipeline [#110](https://github.com/remove-bg/kaleido-removebg/pull/110)
+
+#### 🚨 Security
+
+- Fix url-parse critical vulnerability issue [#111](https://github.com/remove-bg/kaleido-removebg/pull/111)
+
+#### 🔀 Dependencies
+
+- Bump node-fetch from 2.6.1 to 2.6.7 [#113](https://github.com/remove-bg/kaleido-removebg/pull/113)
+- Bump node-fetch from 2.6.0 to 2.6.7 in /api [#112](https://github.com/remove-bg/kaleido-removebg/pull/112)
+- [js] Update all Yarn dependencies (2022-02-23) [#103](https://github.com/remove-bg/kaleido-removebg/pull/103) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.20.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.20.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.20.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.20.0-cc86`
+---
+
 ## 1.19.0 (28/02/2022)
 
 #### 🚀 Enhancements:
