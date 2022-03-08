@@ -3,7 +3,6 @@ numpy>=1.17
 opencv-python>=4.1
 pandas>=0.24.2
 nibabel>=2.4.0
-pillow>=7.2.0
 pyarrow>=3.0.0
 google-cloud>=0.34.0
 google-cloud-core>=1.4.3

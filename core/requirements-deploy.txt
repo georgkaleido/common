@@ -8,9 +8,9 @@ certifi==2021.10.8
     # via
     #   requests
     #   sentry-sdk
-charset-normalizer==2.0.10
+charset-normalizer==2.0.12
     # via requests
-click==8.0.3
+click==8.0.4
     # via wandb
 configparser==5.2.0
     # via wandb
@@ -18,13 +18,13 @@ docker-pycreds==0.4.0
     # via wandb
 gitdb==4.0.9
     # via gitpython
-gitpython==3.1.26
+gitpython==3.1.27
     # via wandb
 google==3.0.0
     # via kaleido-core
 idna==3.3
     # via requests
-kaleido-core==2.14.0
+kaleido-core==2.17.0
     # via
     #   -r requirements-deploy.in
     #   shadowgen-core
@@ -63,15 +63,14 @@ pika==1.2.0
     #   -r requirements-deploy.in
     #   kaleido-core
     #   shadowgen-core
-pillow==8.4.0
+pillow==9.0.1
     # via
-    #   -r requirements-deploy.in
     #   kaleido-core
     #   shadowgen-core
     #   torchvision
 promise==2.3
     # via wandb
-protobuf==3.19.3
+protobuf==3.19.4
     # via wandb
 psutil==5.9.0
     # via wandb
@@ -87,11 +86,11 @@ requests==2.27.1
     # via
     #   kaleido-core
     #   wandb
-scipy==1.7.3
+scipy==1.8.0
     # via kaleido-core
-sentry-sdk==1.5.4
+sentry-sdk==1.5.7
     # via wandb
-shadowgen-core==1.10.1
+shadowgen-core==1.10.3
     # via -r requirements-deploy.in
 shortuuid==1.0.8
     # via wandb
@@ -119,9 +118,9 @@ torchvision==0.11.1+cu113
     #   -r requirements-deploy.in
     #   kaleido-core
     #   shadowgen-core
-tqdm==4.62.3
+tqdm==4.63.0
     # via kaleido-core
-typing-extensions==4.0.1
+typing-extensions==4.1.1
     # via torch
 urllib3==1.26.8
     # via

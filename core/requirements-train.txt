@@ -18,17 +18,15 @@ certifi==2021.10.8
     # via
     #   requests
     #   sentry-sdk
-charset-normalizer==2.0.10
+charset-normalizer==2.0.12
     # via
     #   aiohttp
     #   requests
-click==8.0.3
-    # via wandb
-configparser==5.2.0
+click==8.0.4
     # via wandb
 crcmod==1.7
     # via -r requirements-train.in
-dnspython==2.2.0
+dnspython==2.2.1
     # via python-etcd
 docker-pycreds==0.4.0
     # via wandb
@@ -36,24 +34,24 @@ frozenlist==1.3.0
     # via
     #   aiohttp
     #   aiosignal
-fsspec[http]==2022.1.0
+fsspec[http]==2022.2.0
     # via pytorch-lightning
 future==0.18.2
     # via pytorch-lightning
 gitdb==4.0.9
     # via gitpython
-gitpython==3.1.26
+gitpython==3.1.27
     # via wandb
 google==3.0.0
     # via kaleido-core
-google-api-core==2.4.0
+google-api-core==2.6.1
     # via
     #   google-api-python-client
     #   google-cloud-core
     #   google-cloud-storage
-google-api-python-client==2.36.0
+google-api-python-client==2.39.0
     # via -r requirements-train.in
-google-auth==2.4.1
+google-auth==2.6.0
     # via
     #   google-api-core
     #   google-api-python-client
@@ -68,7 +66,7 @@ google-auth-oauthlib==0.4.6
     # via tensorboard
 google-cloud==0.34.0
     # via -r requirements-train.in
-google-cloud-core==2.2.2
+google-cloud-core==2.2.3
     # via
     #   -r requirements-train.in
     #   google-cloud-storage
@@ -78,13 +76,13 @@ google-crc32c==1.3.0
     # via
     #   -r requirements-train.in
     #   google-resumable-media
-google-resumable-media==2.1.0
+google-resumable-media==2.3.1
     # via google-cloud-storage
-googleapis-common-protos==1.54.0
+googleapis-common-protos==1.55.0
     # via google-api-core
-grpcio==1.43.0
+grpcio==1.44.0
     # via tensorboard
-httplib2==0.20.2
+httplib2==0.20.4
     # via
     #   google-api-python-client
     #   google-auth-httplib2
@@ -92,9 +90,9 @@ idna==3.3
     # via
     #   requests
     #   yarl
-importlib-metadata==4.10.1
+importlib-metadata==4.11.2
     # via markdown
-kaleido-core==2.14.0
+kaleido-core==2.17.0
     # via
     #   -r requirements.in
     #   shadowgen-core
@@ -128,7 +126,7 @@ numpy==1.21.5
     #   torchelastic
     #   torchmetrics
     #   torchvision
-oauthlib==3.1.1
+oauthlib==3.2.0
     # via requests-oauthlib
 opencv-python==4.5.5.62
     # via
@@ -150,7 +148,7 @@ pika==1.2.0
     #   -r requirements.in
     #   kaleido-core
     #   shadowgen-core
-pillow==8.4.0
+pillow==9.0.1
     # via
     #   -r requirements.in
     #   kaleido-core
@@ -158,7 +156,7 @@ pillow==8.4.0
     #   torchvision
 promise==2.3
     # via wandb
-protobuf==3.19.3
+protobuf==3.19.4
     # via
     #   google-api-core
     #   google-cloud-storage
@@ -167,7 +165,7 @@ protobuf==3.19.3
     #   wandb
 psutil==5.9.0
     # via wandb
-pyarrow==6.0.1
+pyarrow==7.0.0
     # via -r requirements-train.in
 pyasn1==0.4.8
     # via
@@ -189,7 +187,7 @@ python-dateutil==2.8.2
     #   wandb
 python-etcd==0.4.5
     # via torchelastic
-pytorch-lightning==1.5.9
+pytorch-lightning==1.5.10
     # via -r requirements-train.in
 pytz==2021.3
     # via pandas
@@ -206,15 +204,17 @@ requests==2.27.1
     #   requests-oauthlib
     #   tensorboard
     #   wandb
-requests-oauthlib==1.3.0
+requests-oauthlib==1.3.1
     # via google-auth-oauthlib
 rsa==4.8
     # via google-auth
-scipy==1.7.3
+scipy==1.8.0
     # via kaleido-core
-sentry-sdk==1.5.4
+sentry-sdk==1.5.7
     # via wandb
-shadowgen-core==1.10.1
+setproctitle==1.2.2
+    # via wandb
+shadowgen-core==1.10.3
     # via -r requirements.in
 shortuuid==1.0.8
     # via wandb
@@ -233,14 +233,14 @@ smmap==5.0.0
     # via gitdb
 soupsieve==2.3.1
     # via beautifulsoup4
-subprocess32==3.5.4
-    # via wandb
 tensorboard==2.8.0
     # via pytorch-lightning
 tensorboard-data-server==0.6.1
     # via tensorboard
 tensorboard-plugin-wit==1.8.1
     # via tensorboard
+termcolor==1.1.0
+    # via yaspin
     # via
     #   -r requirements.in
     #   kaleido-core
@@ -251,17 +251,17 @@ tensorboard-plugin-wit==1.8.1
     #   torchvision
 torchelastic==0.2.0
     # via -r requirements-train.in
-torchmetrics==0.7.0
+torchmetrics==0.7.2
     # via pytorch-lightning
     # via
     #   -r requirements.in
     #   kaleido-core
     #   shadowgen-core
-tqdm==4.62.3
+tqdm==4.63.0
     # via
     #   kaleido-core
     #   pytorch-lightning
-typing-extensions==4.0.1
+typing-extensions==4.1.1
     # via
     #   pytorch-lightning
     #   torch
@@ -272,10 +272,9 @@ urllib3==1.26.8
     #   python-etcd
     #   requests
     #   sentry-sdk
-    #   wandb
-wandb==0.11.2
-    # via -r requirements.in
-werkzeug==2.0.2
+wandb==0.12.11
+    # via -r requirements-train.in
+werkzeug==2.0.3
     # via tensorboard
 wheel==0.37.1
     # via
@@ -284,6 +283,8 @@ wheel==0.37.1
     #   tensorboard
 yarl==1.7.2
     # via aiohttp
+yaspin==2.1.0
+    # via wandb
 zipp==3.7.0
     # via importlib-metadata
 
