@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.22.0 (17/03/2022)
+
+#### 🚀 Enhancements:
+
+- Add semitransparency model into removebg [#106](https://github.com/remove-bg/kaleido-removebg/pull/106) 
+
+### Docker Images
+---
+
+## 1.21.0 (14/03/2022)
+
+#### 🚀 Enhancements:
+
+- Update kaleido-models version. #trivial [#117](https://github.com/remove-bg/kaleido-removebg/pull/117)
+
+#### 🔀 Dependencies
+
+- Update dependencies [#114](https://github.com/remove-bg/kaleido-removebg/pull/114) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.21.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.21.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.21.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.21.0-cc86`
+---
+
 ## 1.20.0 (08/03/2022)
 
 #### 🚀 Enhancements:
