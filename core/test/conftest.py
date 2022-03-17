@@ -92,6 +92,7 @@ class RemovebgMessage:
     crop_margin: Dict[str, Any] = None
     roi: List[int] = None
     semitransparency: bool = True
+    semitransparency_experimental: bool = False
     shadow: bool = False
     bg_image: Any = None
     data: Any = None

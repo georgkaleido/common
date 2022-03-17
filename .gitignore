@@ -326,3 +326,7 @@ core/sweep_local/sample_imgs/
 # Python Dist Tools
 core/ChangeLog
 core/AUTHORS
+
+# local pycharm setting files
+.idea/*
+core/.idea/*

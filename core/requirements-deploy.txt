@@ -27,6 +27,7 @@ idna==3.3
 kaleido-core==2.17.0
     # via
     #   -r requirements-deploy.in
+    #   semitransparency-core
     #   shadowgen-core
 msgpack==0.6.2
     # via
@@ -45,12 +46,14 @@ numpy==1.21.5
     #   opencv-python
     #   pandas
     #   scipy
+    #   semitransparency-core
     #   shadowgen-core
     #   torchvision
-opencv-python==4.5.5.62
+opencv-python==4.5.5.64
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   semitransparency-core
     #   shadowgen-core
 pandas==1.3.5
     # via
@@ -87,7 +90,11 @@ requests==2.27.1
     #   kaleido-core
     #   wandb
 scipy==1.8.0
-    # via kaleido-core
+    # via
+    #   kaleido-core
+    #   semitransparency-core
+semitransparency-core==0.9.3
+    # via -r requirements-deploy.in
 sentry-sdk==1.5.7
     # via wandb
 shadowgen-core==1.10.3
@@ -111,12 +118,14 @@ torch==1.10.0+cu113
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   semitransparency-core
     #   shadowgen-core
     #   torchvision
 torchvision==0.11.1+cu113
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   semitransparency-core
     #   shadowgen-core
 tqdm==4.63.0
     # via kaleido-core

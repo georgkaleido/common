@@ -32,7 +32,7 @@ colorama==0.4.4
     # via twine
 configparser==5.2.0
     # via wandb
-cryptography==36.0.1
+cryptography==36.0.2
     # via secretstorage
 distlib==0.3.4
     # via virtualenv
@@ -54,7 +54,7 @@ identify==2.4.11
     # via pre-commit
 idna==3.3
     # via requests
-importlib-metadata==4.11.2
+importlib-metadata==4.11.3
     # via
     #   keyring
     #   twine
@@ -69,6 +69,7 @@ jeepney==0.7.1
 kaleido-core==2.17.0
     # via
     #   -r requirements-deploy.in
+    #   semitransparency-core
     #   shadowgen-core
 keyring==23.5.0
     # via twine
@@ -95,12 +96,14 @@ numpy==1.21.5
     #   opencv-python
     #   pandas
     #   scipy
+    #   semitransparency-core
     #   shadowgen-core
     #   torchvision
-opencv-python==4.5.5.62
+opencv-python==4.5.5.64
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   semitransparency-core
     #   shadowgen-core
 packaging==21.3
     # via
@@ -165,9 +168,9 @@ pyyaml==6.0
     # via
     #   pre-commit
     #   wandb
-readme-renderer==33.0
+readme-renderer==34.0
     # via twine
-regex==2022.3.2
+regex==2022.3.15
     # via black
 requests==2.27.1
     # via
@@ -180,9 +183,13 @@ requests-toolbelt==0.9.1
 rfc3986==2.0.0
     # via twine
 scipy==1.8.0
-    # via kaleido-core
+    # via
+    #   kaleido-core
+    #   semitransparency-core
 secretstorage==3.3.1
     # via keyring
+semitransparency-core==0.9.3
+    # via -r requirements-deploy.in
 sentry-sdk==1.5.7
     # via wandb
 shadowgen-core==1.10.3
@@ -217,12 +224,14 @@ torch==1.10.0+cu113
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   semitransparency-core
     #   shadowgen-core
     #   torchvision
 torchvision==0.11.1+cu113
     # via
     #   -r requirements-deploy.in
     #   kaleido-core
+    #   semitransparency-core
     #   shadowgen-core
 tqdm==4.63.0
     # via

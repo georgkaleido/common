@@ -12,3 +12,4 @@ pika>=1.0.0,<2.0.0
 msgpack<1.0.0
 pandas<1.4.0
 nibabel<2.5.0,>=2.4.0
+semitransparency-core>=0.9.3,<1.0.0

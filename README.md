@@ -174,15 +174,15 @@ COMPUTE_CAPABILITY=[your GPU compute capability] DOCKER_BUILDKIT=1 FURY_AUTH_TOK
 ```
 3. Set the following environment variables in your shell:
 ```bash
-REQUEST_QUEUE=remove_bg
-RABBITMQ_HOST=127.0.0.1
-RABBITMQ_PORT=5672
-RABBITMQ_USER=rabbitmq
-RABBITMQ_PASSWORD=rabbitmq
+export REQUEST_QUEUE=remove_bg
+export RABBITMQ_HOST=127.0.0.1
+export RABBITMQ_PORT=5672
+export RABBITMQ_USER=rabbitmq
+export RABBITMQ_PASSWORD=rabbitmq
 ```
 4. Execute tests as the following:
 ```bash
 # change to test directory
-cd core/test/
-pytest core/
+cd core/test/core/
+pytest .
 ```

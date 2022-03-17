@@ -13,6 +13,7 @@ from kaleido.aug import mask as aug_mask
 from kaleido.image.resize import resize_tensor
 from removebg.models import Classifier, Matting, Trimap
 from shadowgen.models.oriented_shadow import OrientedShadow
+from semitransparency.semitransparency import Semitransparency
 
 
 class UnknownForegroundException(Exception):
@@ -90,12 +91,20 @@ class Removebg:
             self.model_shadow, os.path.join(model_paths, "shadowgen256_car.pth.tar"), k=None, strict=False
         )
 
-    def __call__(self, im, im_for_trimap_tr=None, color_enabled=False, shadow_enabled=False, trimap_confidence_thresh=0.5, extra_trimap_output=False):
+        # load semi_transparency models (segmentation+matting) to cpu first
+        self.semitransparency_model = Semitransparency(matting_weight_path=os.path.join(model_paths,
+                                                                                        'semimatting_windinput50_aftergamma_windloss_fix2_5_change2_last_e27.pth.tar'),
+                                                       segmentation_weight_path=os.path.join(model_paths,
+                                                                                             'window_segmentation_deeplab_best_e40.pth.tar'),
+                                                       device='cpu')
+        # semitransparency models are already in eval mode, float. here make segmentation model half
+        self.semitransparency_model.model_segmentation.half()
+
+    def __call__(self, im, im_for_trimap_tr=None, color_enabled=False, shadow_enabled=False, semitranspareny_new_enabled=False, trimap_confidence_thresh=0.5, extra_trimap_output=False):
 
         has_trimap_optimized_image = im_for_trimap_tr is not None
 
         # all operations are done with half precision
-
         if "cuda" == self.compute_device:
             im = im.half()
             if has_trimap_optimized_image:
@@ -121,12 +130,12 @@ class Removebg:
             if color_enabled:
                 im = im_color
 
-            # shadow
-
             if shadow_enabled:
                 im, im_alpha = self.shadow(im, im_alpha)
 
-            # return
+            # semi-transparency matting for window
+            if semitranspareny_new_enabled:
+                im, im_alpha = self.semitransparency(im, im_alpha)
 
             if extra_trimap_output:
                 return im[0], im_alpha[0], trimap[0]
@@ -365,6 +374,34 @@ class Removebg:
         im = im * (alpha + (shadow == 0)).clamp(0, 1)
 
         return im, alpha_new
+
+    def semitransparency(self, im, alpha):
+
+        # unload removebg and load semitransparency model as cant fit into 1 GPU
+        # removebg GPU to CPU
+        if "cuda" == self.compute_device:
+            self.model_trimap.cpu()
+            self.model_matting.cpu()
+
+            #Load semitransparency model to GPU
+            self.semitransparency_model.model_segmentation.cuda()
+            self.semitransparency_model.model_semitransparency.cuda()
+
+        # semitransparency core
+        removebg_result_4ch = torch.cat((im, alpha), dim=1).float()
+        alpha_new, im_color = self.semitransparency_model(im[0], removebg_result_4ch[0])
+
+        # removebg model CPU to GPU
+        if "cuda" == self.compute_device:
+            # semitransparency model GPU to CPU
+            self.semitransparency_model.model_segmentation.cpu()
+            self.semitransparency_model.model_semitransparency.cpu()
+
+            # removebg model CPU TO GPU
+            self.model_trimap.cuda()
+            self.model_matting.cuda()
+
+        return im_color, alpha_new
 
 
 class Identifier:

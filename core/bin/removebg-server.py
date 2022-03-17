@@ -56,6 +56,8 @@ class RemovebgWorker(Worker):
         roi = message.get(b"roi", None)
         shadow = message.get(b"shadow", False)
         semitransparency = message.get(b"semitransparency", True)
+        semitransparency_experimental = message.get(b"semitransparency_experimental", False)
+
         image_bg = None
 
         times = []
@@ -151,6 +153,7 @@ class RemovebgWorker(Worker):
             "crop_margin": crop_margin,
             "crop_roi": crop_roi_image,
             "semitransparency": semitransparency,
+            "semitransparency_experimental": semitransparency_experimental,
         }
 
     def _post_process(self, processing_data: ImageProcessingData) -> None:
@@ -163,6 +166,7 @@ class RemovebgWorker(Worker):
         times = data["times"]
         image = data["image"]
         semitransparency = data["semitransparency"]
+        semitransparency_experimental = data["semitransparency_experimental"]
         crop_margin = data["crop_margin"]
         scale_param = data["scale_param"]
         position_param = data["position_param"]
@@ -182,14 +186,15 @@ class RemovebgWorker(Worker):
         im_rgb_precolorcorr = image.get("rgb")
         image.set(im_res, "bgra", limit_alpha=True, crop=data["crop_roi"])
 
-        # car windows
+        # car windows, new model only works for car but not car interior
         if data["api"] == "car":
-            image.fill_holes(
-                200 if semitransparency else 255,
-                mode="car",
-                average=semitransparency,
-                im_rgb_precolorcorr=im_rgb_precolorcorr,
-            )
+            if not(semitransparency_experimental and semitransparency): #only if both are true, use new model
+                image.fill_holes(
+                    200 if semitransparency else 255,
+                    mode="car",
+                    average=semitransparency,
+                    im_rgb_precolorcorr=im_rgb_precolorcorr,
+                )
         elif data["api"] == "car_interior":
             image.fill_holes(
                 200 if semitransparency else 0,
@@ -367,6 +372,7 @@ class RemovebgServer(ImageServer):
     def _process(self, data: ImageProcessingData) -> None:
         processing_data = data.data
         im, shadow = processing_data["im_cv"], processing_data["shadow"]
+        semitransparency, semitransparency_experimental = processing_data["semitransparency"], processing_data["semitransparency_experimental"]
         im_for_trimap = processing_data["im_for_trimap"]
         result = data.result
 
@@ -396,6 +402,7 @@ class RemovebgServer(ImageServer):
                     im_for_trimap_tr,
                     color_enabled=(processing_data["api"] == "person" or processing_data["api"] == "animal"),
                     shadow_enabled=(processing_data["api"] == "car" and shadow),
+                    semitranspareny_new_enabled=(processing_data["api"] == "car" and semitransparency and semitransparency_experimental),
                     trimap_confidence_thresh=trimap_confidence_thresh,
                 )
             except UnknownForegroundException:

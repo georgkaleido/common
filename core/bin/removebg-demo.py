@@ -53,6 +53,7 @@ def handle_args():
     parser.add_argument("--subject_crop_margin", default=0, type=int, help="relative crop margin")
 
     parser.add_argument("--compute_device", default="cuda", type=str, choices=["cuda", "cpu"], help="Choose device between CUDA and CPU. Default: CUDA")
+    parser.add_argument("--semitransparency_experimental", action="store_true", help="use semitransparent matting model to the car window")
 
     args = parser.parse_args()
     return args
@@ -105,9 +106,7 @@ def demo(args):
         t_start = time.time()
 
         for file in files:
-
             is_folder = not os.path.isfile(file)
-
             if is_folder:
                 path_save = os.path.join(file, (args.caption + "_" if args.caption else "") + "result.png")
             else:
@@ -184,6 +183,7 @@ def demo(args):
                     color_enabled=(not args.no_color),
                     shadow_enabled=args.shadow,
                     trimap_confidence_thresh=trimap_confidence_thresh,
+                    semitranspareny_new_enabled=(cls == 'car' and args.semitransparency_experimental and not args.no_semitransparency)
                 )
             except UnknownForegroundException as e:
                 print("could not detect foreground: {}".format(e))
@@ -204,12 +204,13 @@ def demo(args):
 
             if not args.evaluate:
                 if cls == "car":
-                    image.fill_holes(
-                        255 if args.no_semitransparency else 200,
-                        mode="car",
-                        average=(not args.no_semitransparency),
-                        im_rgb_precolorcorr=im_rgb_precolorcorr,
-                    )
+                    if not (not args.no_semitransparency and args.semitransparency_experimental):
+                        image.fill_holes(
+                            255 if args.no_semitransparency else 200,
+                            mode="car",
+                            average=(not args.no_semitransparency),
+                            im_rgb_precolorcorr=im_rgb_precolorcorr,
+                        )
 
                 elif cls == "car_interior":
                     image.fill_holes(
