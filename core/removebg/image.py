@@ -1,7 +1,6 @@
 import io
-import zipfile
 import math
-import cv2
+import zipfile
 from typing import Any, Optional, Tuple, Union
 
 import numpy
@@ -9,8 +8,9 @@ import numpy as np
 import PIL
 from kaleido.alpha.imops import bbox, crop_subject, fill_holes, position_subject, scale_subject, underlay_background
 from kaleido.image import ALPHA, BGR, BGRA, RGB, RGBA, CouldNotReadImage, encode_image
-from kaleido.image.icc import rgb2mode, mode2rgb
 from kaleido.image.exif import handle_exif_rotation
+from kaleido.image.icc import mode2rgb, rgb2mode
+
 # from kaleido.image.imread import read_image
 from PIL import Image as ImagePIL
 
@@ -60,7 +60,9 @@ def read_image_custom(
     # Same process for image optimized for trimap
     has_im_for_trimap = megapixel_limit_trimap is not None
     if has_im_for_trimap:
-        im_for_trimap, scale_trimap = downscale(im_raw, megapixel_limit_trimap, interpolation_method=ImagePIL.BOX, reducing_gap=1.0)
+        im_for_trimap, scale_trimap = downscale(
+            im_raw, megapixel_limit_trimap, interpolation_method=ImagePIL.BOX, reducing_gap=1.0
+        )
         im_for_trimap = mode2rgb(im_for_trimap, icc)
         im_for_trimap_np = np.ascontiguousarray(np.array(im_for_trimap))
     else:
@@ -76,8 +78,10 @@ class SmartAlphaImage:
             im, im_raw, im_for_trimap, icc, mode, dpi, size_prescale, scale, scale_trimap, exif_rot = read_image_custom(
                 im_bytes, megapixel_limit=megapixel_limit, megapixel_limit_trimap=megapixel_limit_trimap
             )
+        except OSError as e:
+            raise CouldNotReadImage("corrupted image (truncated)") from e
         except Exception as e:
-            raise CouldNotReadImage(str(e))
+            raise CouldNotReadImage("unknown error occurred") from e
 
         # im is rgb and im_raw is in the original colorspace (mode)
         self.im_raw = im_raw
@@ -127,9 +131,7 @@ class SmartAlphaImage:
         x, y, w, h = crop_roi
         assert h + y <= self.height, f"crop invalid, {h + x} out of height {self.height} bound"
         assert w + x <= self.width, f"crop invalid, {w + x} out of width {self.width} bound"
-        assert (
-            w != 0 and h != 0 and x >= 0 and y >= 0
-        ), f"crop invalid zero value in width={w}, height={h}, x={x} y={y}"
+        assert w != 0 and h != 0 and x >= 0 and y >= 0, f"crop invalid zero value in width={w}, height={h}, x={x} y={y}"
 
     def get(
         self,
@@ -284,9 +286,7 @@ class SmartAlphaImage:
     def has_transparency(self):
         return self.im_alpha is not None and (self.im_alpha < 255).any()
 
-    def _restore_cmyk_colors(
-        self, im: Union[np.ndarray, ImagePIL.Image]
-    ) -> Union[np.ndarray, ImagePIL.Image]:
+    def _restore_cmyk_colors(self, im: Union[np.ndarray, ImagePIL.Image]) -> Union[np.ndarray, ImagePIL.Image]:
         # only supported if icc profile is set and mode is cmyk
         if self.icc is None or self.mode_original != "CMYK":
             return im
