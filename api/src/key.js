@@ -16,6 +16,7 @@ class Key {
   static fromSql(row) {
     var k = new Key();
     k.exists = true;
+    k.id = row.id;
     k.ip_passlist = row.ip_passlist;
     k.user_id = row.user_id;
     return k;

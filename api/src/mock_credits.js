@@ -22,7 +22,7 @@ class MockCredits {
     return "full";
   }
 
-  check(api, user_id, user, correlationId, callbacks = {}) {
+  check(api, user_id, user, correlationId, callbacks = {}, api_key_id) {
     callbacks.success({
       charge: () => {
         return {

@@ -182,25 +182,29 @@ if (isDepfuPR || declaredTrivial) {
 /**
  * Rule: Run yarn audit
  */
-const yarnAuditAPI = JSON.parse(require('child_process').execSync(`yarn audit --summary --json --non-interactive --no-progress --group dependencies || exit 0`, {cwd: 'api'}).toString());
-const vulnerabilitiesAPI = Object.values(yarnAuditAPI.data.vulnerabilities).reduce(
-  (t, n) => Number(t) + Number(n),
-);
+ try {
+  const yarnAuditAPI = JSON.parse(require('child_process').execSync(`yarn audit --summary --json --non-interactive --no-progress --group dependencies || exit 0`, {cwd: 'api'}).toString());
+  const vulnerabilitiesAPI = Object.values(yarnAuditAPI.data.vulnerabilities).reduce(
+    (t, n) => Number(t) + Number(n),
+  );
 
-var vulnerabilityStringAPI = '';
-Object.keys(yarnAuditAPI.data.vulnerabilities).forEach(key => {
-  if (yarnAuditAPI.data.vulnerabilities[key] > 0) {
-    vulnerabilityStringAPI = vulnerabilityStringAPI + `${yarnAuditAPI.data.vulnerabilities[key]} ${key}, `;
+  var vulnerabilityStringAPI = '';
+  Object.keys(yarnAuditAPI.data.vulnerabilities).forEach(key => {
+    if (yarnAuditAPI.data.vulnerabilities[key] > 0) {
+      vulnerabilityStringAPI = vulnerabilityStringAPI + `${yarnAuditAPI.data.vulnerabilities[key]} ${key}, `;
+    }
+  });
+  vulnerabilityStringAPI = '(' + vulnerabilityStringAPI.slice(0, -2) + ')';
+
+  if (vulnerabilitiesAPI == 0) {
+    message(`Found <b>0</b> vulnerabilities in <b>${yarnAuditAPI.data.totalDependencies}</b> scanned <b>api</b> packages`, { icon: '⛑' } );
+  } else if (yarnAuditAPI.data.vulnerabilities.critical > 0) {
+    fail(`🚨 Found <b>${yarnAuditAPI.data.vulnerabilities.critical}</b> critical vulnerabilities in <b>${yarnAuditAPI.data.totalDependencies}</b> scanned <b>api</b> packages ${vulnerabilityStringAPI}`);
+  } else {
+    warn(`🔥 Found <b>${vulnerabilitiesAPI}</b> vulnerabilities in <b>${yarnAuditAPI.data.totalDependencies}</b> scanned <b>api</b> packages ${vulnerabilityStringAPI}`);
   }
-});
-vulnerabilityStringAPI = '(' + vulnerabilityStringAPI.slice(0, -2) + ')';
-
-if (vulnerabilitiesAPI == 0) {
-  message(`Found <b>0</b> vulnerabilities in <b>${yarnAuditAPI.data.totalDependencies}</b> scanned <b>api</b> packages`, { icon: '⛑' } );
-} else if (yarnAuditAPI.data.vulnerabilities.critical > 0) {
-  fail(`🚨 Found <b>${yarnAuditAPI.data.vulnerabilities.critical}</b> critical vulnerabilities in <b>${yarnAuditAPI.data.totalDependencies}</b> scanned <b>api</b> packages ${vulnerabilityStringAPI}`);
-} else {
-  warn(`🔥 Found <b>${vulnerabilitiesAPI}</b> vulnerabilities in <b>${yarnAuditAPI.data.totalDependencies}</b> scanned <b>api</b> packages ${vulnerabilityStringAPI}`);
+} catch (error) {
+  warn(error);
 }
 
 /**

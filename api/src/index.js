@@ -8,9 +8,9 @@ if(process.env.NODE_ENV == "development") {
   mockery.enable({
     warnOnUnregistered: false
   })
-  mockery.registerSubstitute("kaleido-api/core", "./mock/core_mock")
-  mockery.registerSubstitute("./remote_credits", "./mock/remote_credits_mock")
-  mockery.registerSubstitute("./key_auth", "./mock/key_auth_mock")
+  if(process.env["MOCK_CORE"] == "1") mockery.registerSubstitute("kaleido-api/core", "./mock/core_mock")
+  if(process.env["MOCK_REMOTE_CREDITS"] == "1") mockery.registerSubstitute("./remote_credits", "./mock/remote_credits_mock")
+  if(process.env["MOCK_KEY_AUTH"] == "1") mockery.registerSubstitute("./key_auth", "./mock/key_auth_mock")
 }
 
 const https = require('https');
@@ -706,6 +706,7 @@ function reportBgRemoval(res) {
 
   const data = {
     user_id: res.locals.user_id || null,
+    api_key_id: res.locals.api_key_id || null,
     request_id: res.locals.requestId || null,
     user_agent: logData.httpRequest.userAgent || null,
     requested_with: logData.requested_with || null,
@@ -931,6 +932,8 @@ if(process.env["SKIP_AUTH"] == "1") {
       key_auth.fromApiKeyHeader(api_key).then((key) => {
         res.locals.key = key;
         res.locals.user_id = key.user_id;
+        res.locals.api_key_id = key.id;
+        res.locals.requestLog.api_key_id = key.id;
         logger.info(`[${res.locals.requestId}]   User: ${res.locals.user_id} (via X-Api-Key)`);
         assignUser();
       }).catch((error) => {
@@ -940,6 +943,8 @@ if(process.env["SKIP_AUTH"] == "1") {
       token_auth.fromAuthorizationHeader(authorization).then((token) => {
         res.locals.token = token;
         res.locals.user_id = token.resource_owner_id;
+        res.locals.api_key_id = null;
+        res.locals.requestLog.api_key_id = null;
         logger.info(`[${res.locals.requestId}]   User: ${res.locals.user_id} (via OAuth2)`);
         assignUser();
       }).catch((error) => {
@@ -1034,7 +1039,8 @@ function checkBalance(user_id, size, req, res, callback) {
       missing_credits: () => {
         sendError(res, 402, `Insufficient credits`, { code: "insufficient_credits" });
       },
-    }
+    },
+    res.locals.api_key_id
   )
 }
 

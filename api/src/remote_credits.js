@@ -5,7 +5,7 @@ const ApiCall = require("./api_call");
 const request = require('request');
 
 // this pool object needs to be global to have an effect according to https://www.npmjs.com/package/request
-const httpPool = { 
+const httpPool = {
   maxSockets: 6,
 };
 
@@ -114,7 +114,7 @@ class RemoteCredits {
     return "preview";
   }
 
-  check(api, user_id, user, correlationId, callbacks = {}) {
+  check(api, user_id, user, correlationId, callbacks = {}, api_key_id = null) {
     var call = new ApiCall(api);
 
     var availableMcredits = user.mcredits_monthly + user.mcredits;
@@ -128,12 +128,12 @@ class RemoteCredits {
           var mcreditsCharged = null;
           call.updateForResolution(resolution);
           if(user.free_api_calls > 0 && call.canBeFree()) {
-            this.report(correlationId, call.api, user_id, 1, 0, 0, 0);
+            this.report(correlationId, call.api, user_id, 1, 0, 0, 0, api_key_id);
             mcreditsCharged = 0;
           }
           else {
             var charge = this.distributeCharge(user, call.requiredMCredits);
-            this.report(correlationId, call.api, user_id, 0, ...charge);
+            this.report(correlationId, call.api, user_id, 0, ...charge, api_key_id);
             mcreditsCharged = call.requiredMCredits;
           }
           return {
@@ -147,13 +147,14 @@ class RemoteCredits {
     }
   }
 
-  report(correlationId, api, user_id, free_api_calls, mcredits_monthly, mcredits, mcredits_enterprise) {
+  report(correlationId, api, user_id, free_api_calls, mcredits_monthly, mcredits, mcredits_enterprise, api_key_id) {
     var data = {
       action: api,
       free_api_calls: free_api_calls,
       mcredits_monthly: mcredits_monthly,
       mcredits: mcredits,
       mcredits_enterprise: mcredits_enterprise,
+      api_key_id: api_key_id,
     };
 
     this.remote(

@@ -50,7 +50,7 @@ class KeyAuth {
 
   fromKey(key) {
     return new Promise((resolve, reject) => {
-      this.fetchKeyOnce(key).then((keyObj) => {
+      this.fetchKey(key).then((keyObj) => {
         if(keyObj.isAcceptable()) {
           resolve(keyObj);
         }
@@ -135,6 +135,7 @@ class KeyAuth {
         ).catch((e) => {
           logger.info("Failed to set redis key cache", e);
         }).finally(() => {
+
           resolve(keyObj);
         });
       }).catch(() => {
@@ -159,20 +160,22 @@ class KeyAuth {
 
     var fetches = this.pendingDbFetches;
     this.pendingDbFetches = [];
-
     this.db.query(
       `
-      SELECT key, user_id, ip_passlist
+      SELECT id, key, old_key, user_id, ip_passlist
       FROM api_keys
-      WHERE key = ANY ($1)
+      WHERE deleted_at IS NULL
+      AND  ( key = ANY ($1) OR old_key = ANY ($1) )
       `,
       [ fetches.map((f) => f.key) ]
     ).then((res) => {
       var byKey = {};
       res.rows.forEach((row) => {
         byKey[row.key] = row;
+        if(row.old_key) {
+          byKey[row.old_key] = row; // support for key and old_key at the same time
+        }
       });
-
       fetches.forEach((fetch) => {
         if(fetch.key in byKey) {
           fetch.resolve(Key.fromSql(byKey[fetch.key]));
