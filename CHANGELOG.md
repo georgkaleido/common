@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.23.0 (24/03/2022)
+
+#### 🚀 Enhancements:
+
+- Support multiple API Keys + API Key rotation. [#102](https://github.com/remove-bg/kaleido-removebg/pull/102)
+- Handle OSError for corrupted/truncated image and chain exceptions [#118](https://github.com/remove-bg/kaleido-removebg/pull/118)
+
+#### 🔀 Dependencies
+
+- [api] Upgrade Node.js to 14.19.1 [#120](https://github.com/remove-bg/kaleido-removebg/pull/120)
+- [js] Update all Yarn dependencies (2022-03-23) [#122](https://github.com/remove-bg/kaleido-removebg/pull/122)
+- [js] Update all Yarn dependencies (2022-03-09) [#115](https://github.com/remove-bg/kaleido-removebg/pull/115)
+- [js] Upgrade Node.js to 14.19.1 [#119](https://github.com/remove-bg/kaleido-removebg/pull/119) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.23.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.23.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.23.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.23.0-cc86`
+---
+
 ## 1.22.0 (17/03/2022)
 
 #### 🚀 Enhancements:
