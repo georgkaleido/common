@@ -1,6 +1,7 @@
 const logger = require("kaleido-api/logger");
 const log = require("kaleido-api/modern_logger");
 const PubSub = require("kaleido-api/gc_pub_sub");
+const RateLimitHitReporter = require("./reporting/rate_limit");
 
 require("dotenv").config()
 if(process.env.NODE_ENV == "development") {
@@ -51,6 +52,10 @@ const maxFileSize = 12*1024*1024;
 
 if(process.env.ENABLE_PUBSUB_REPORTING == "1") {
   var p = new PubSub(process.env.PUBSUB_TOPIC_BGREMOVAL);
+}
+
+if(process.env.REPORT_RATE_LIMIT_HITS == "1") {
+  var rateLimitReporter = new RateLimitHitReporter()
 }
 
 function toBoolean(value) {
@@ -466,7 +471,9 @@ function validate(data, backgroundData, res, wrapperFormat, megapixels, type, ch
 
     processImage(data, backgroundData, bgDataValid, res, wrapperFormat, megapixels, type, channels, format, bgColor, roi, semitransparency, crop, cropMargin, scale, position, addShadow, auth, typeLevel, semitransparency_experimental);
   }).catch(() => {
-    // no-op
+    if(process.env.REPORT_RATE_LIMIT_HITS == "1" && res.locals.user.enterprise) {
+      rateLimitReporter.report(res.locals.user_id);
+    }
   });
 }
 
