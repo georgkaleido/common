@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.25.0 (28/03/2022)
+
+#### 🚀 Enhancements:
+
+- QI release #trivial [#123](https://github.com/remove-bg/kaleido-removebg/pull/123) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.25.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.25.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.25.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.25.0-cc86`
+---
+
 ## 1.24.0 (28/03/2022)
 
 #### 🚀 Enhancements:
@@ -540,7 +554,3 @@
 
 * `eu.gcr.io/removebg-226919/removebg-api:1.4.0`
 * `eu.gcr.io/removebg-226919/removebg-core:1.4.0-cc75`
----
-
-## v1.3.0 (23/08/2021)
-Dependency refactoring
