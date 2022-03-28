@@ -1,4 +1,4 @@
-version: "1.30.0"
+version: "1.34.0"
 files:
   - name: identifier-mobilenetv2-c9.pth.tar
     hash: 25bf45cb8cd7f3165395ac1194a4fac0aec4db0e0d8b818c3216b899794d3720
@@ -7,7 +7,7 @@ files:
   - name: shadowgen256_car.pth.tar
     hash: fc3ca55b394ca30c85588c3f93fb18eb9ad6bc069cbab16a91c91b06dcc3b5d9
   - name: trimap513-deeplab-res2net.pth.tar
-    hash: c9ea9fa9deda7eb7b84c2a27dbc3813580555a773f8ea292363aa22e1191c1f1
+    hash: 5cb9cff4c60615da18e169221983196b15ced9e2c430d73373b831b1f708471a
   - name: window_segmentation_deeplab_best_e40.pth.tar
     hash: 04e6ceacc8376b01738950876bd0a5b301ac1820652761c01e992ac88a63d419
   - name: semimatting_windinput50_aftergamma_windloss_fix2_5_change2_last_e27.pth.tar
