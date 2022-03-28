@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import math
-import multiprocessing
 import os
 import time
 from dataclasses import dataclass
@@ -94,6 +93,7 @@ class RemovebgWorker(Worker):
         crop_roi_trimap = None
 
         if roi:
+
             def compute_crop_roi(roi, scale):
                 x0 = min(roi[0], roi[2])
                 x1 = max(roi[0], roi[2])
@@ -188,7 +188,7 @@ class RemovebgWorker(Worker):
 
         # car windows, new model only works for car but not car interior
         if data["api"] == "car":
-            if not(semitransparency_experimental and semitransparency): #only if both are true, use new model
+            if not (semitransparency_experimental and semitransparency):  # only if both are true, use new model
                 image.fill_holes(
                     200 if semitransparency else 255,
                     mode="car",
@@ -251,8 +251,7 @@ class RemovebgWorker(Worker):
         times.append(time.time() - t)
         has_shadow: str = "yes" if shadow else "no"
         self.logger.info(
-            f"[{processing_data.correlation_id}] postproc "
-            f"({times[-1]:.2f}s) | bg_color: {bg_color}, shadow: {has_shadow}",
+            f"[{processing_data.correlation_id}] postproc " f"({times[-1]:.2f}s) | bg_color: {bg_color}, shadow: {has_shadow}",
         )
         t = time.time()
 
@@ -330,7 +329,6 @@ class RemovebgServer(ImageServer):
         mock_response: bool,
         require_models: bool,
         worker_init_kwargs: Optional[Dict[str, Any]] = None,
-        worker_count: int = multiprocessing.cpu_count(),
         compute_device: str = "cuda",
     ) -> None:
         super().__init__(
@@ -341,7 +339,6 @@ class RemovebgServer(ImageServer):
             rabbitmq_password,
             worker_class=worker_class,
             worker_init_kwargs=worker_init_kwargs,
-            worker_count=worker_count
         )
 
         assert compute_device in ["cuda", "cpu"]
@@ -358,21 +355,19 @@ class RemovebgServer(ImageServer):
             from removebg.removebg import Identifier, Removebg
 
             self.removebg = Removebg(
-                "networks-trained/",
-                require_models=self.require_models,
-                trimap_flip_mean=True,
-                compute_device=compute_device
+                "networks-trained/", require_models=self.require_models, trimap_flip_mean=True, compute_device=compute_device
             )
-            self.identifier = Identifier("networks-trained/",
-                                         require_models=self.require_models,
-                                         compute_device=compute_device)
+            self.identifier = Identifier("networks-trained/", require_models=self.require_models, compute_device=compute_device)
             assert self.removebg, "Failed to initialize Removebg"
             assert self.identifier, "Failed to initialize Identifier"
 
     def _process(self, data: ImageProcessingData) -> None:
         processing_data = data.data
         im, shadow = processing_data["im_cv"], processing_data["shadow"]
-        semitransparency, semitransparency_experimental = processing_data["semitransparency"], processing_data["semitransparency_experimental"]
+        semitransparency, semitransparency_experimental = (
+            processing_data["semitransparency"],
+            processing_data["semitransparency_experimental"],
+        )
         im_for_trimap = processing_data["im_for_trimap"]
         result = data.result
 
@@ -402,7 +397,9 @@ class RemovebgServer(ImageServer):
                     im_for_trimap_tr,
                     color_enabled=(processing_data["api"] == "person" or processing_data["api"] == "animal"),
                     shadow_enabled=(processing_data["api"] == "car" and shadow),
-                    semitranspareny_new_enabled=(processing_data["api"] == "car" and semitransparency and semitransparency_experimental),
+                    semitranspareny_new_enabled=(
+                        processing_data["api"] == "car" and semitransparency and semitransparency_experimental
+                    ),
                     trimap_confidence_thresh=trimap_confidence_thresh,
                 )
             except UnknownForegroundException:
@@ -422,12 +419,6 @@ def main():
     rabbitmq_args = read_rabbitmq_env_variables()
     mock_response = bool(int(os.environ.get("MOCK_RESPONSE", 0)))
     require_models = bool(int(os.environ.get("REQUIRE_MODELS", 1)))
-    # number of workers to spawn, defaults to number of cpus
-    # be aware that the default worker count might include
-    # "virtual" hyperthreaded cpus and impacts memory usage
-    worker_count = min(
-        int(os.environ.get("MAX_WORKER_COUNT", multiprocessing.cpu_count())), multiprocessing.cpu_count()
-    )
     compute_device = str(os.environ.get("COMPUTE_DEVICE", "cuda"))
     compute_device = "cuda" if "" == compute_device.strip() else compute_device
 
@@ -436,8 +427,7 @@ def main():
         require_models=require_models,
         worker_class=RemovebgWorker,
         mock_response=mock_response,
-        worker_count=worker_count,
-        compute_device=compute_device
+        compute_device=compute_device,
     )
     server.start()
 
