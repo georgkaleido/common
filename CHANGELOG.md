@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.24.0 (28/03/2022)
+
+#### 🚀 Enhancements:
+
+- RMV-882: Set up message sending to PubSub in case the rate limit is hit [#116](https://github.com/remove-bg/kaleido-removebg/pull/116)
+- Remove handling of MAX_WORKER_COUNT environment variable [#121](https://github.com/remove-bg/kaleido-removebg/pull/121) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.24.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.24.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.24.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.24.0-cc86`
+---
+
 ## 1.23.0 (24/03/2022)
 
 #### 🚀 Enhancements:
