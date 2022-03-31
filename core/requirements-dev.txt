@@ -50,7 +50,7 @@ gitpython==3.1.27
     # via wandb
 google==3.0.0
     # via kaleido-core
-identify==2.4.11
+identify==2.4.12
     # via pre-commit
 idna==3.3
     # via requests
@@ -66,7 +66,7 @@ jeepney==0.7.1
     # via
     #   keyring
     #   secretstorage
-kaleido-core==2.17.0
+kaleido-core==2.18.0
     # via
     #   -r requirements-deploy.in
     #   semitransparency-core
@@ -162,7 +162,7 @@ python-dateutil==2.8.2
     # via
     #   pandas
     #   wandb
-pytz==2021.3
+pytz==2022.1
     # via pandas
 pyyaml==6.0
     # via
@@ -190,7 +190,7 @@ secretstorage==3.3.1
     # via keyring
 semitransparency-core==0.9.3
     # via -r requirements-deploy.in
-sentry-sdk==1.5.7
+sentry-sdk==1.5.8
     # via wandb
 shadowgen-core==1.10.3
     # via -r requirements-deploy.in
@@ -233,7 +233,7 @@ torchvision==0.11.1+cu113
     #   kaleido-core
     #   semitransparency-core
     #   shadowgen-core
-tqdm==4.63.0
+tqdm==4.63.1
     # via
     #   kaleido-core
     #   twine
@@ -241,13 +241,13 @@ twine==3.8.0
     # via -r requirements-dev.in
 typing-extensions==4.1.1
     # via torch
-urllib3==1.26.8
+urllib3==1.26.9
     # via
     #   requests
     #   sentry-sdk
     #   twine
     #   wandb
-virtualenv==20.13.3
+virtualenv==20.14.0
     # via pre-commit
 wandb==0.11.2
     # via -r requirements-deploy.in

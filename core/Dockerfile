@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1.2
 
 # Pytorch base image
-FROM nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04
+FROM nvcr.io/nvidia/pytorch:21.10-py3
 
 # Maintainer
 LABEL maintainer="Kaleido AI <ops@kaleido.ai>"
@@ -14,7 +14,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG DEBCONF_NONINTERACTIVE_SEEN=true
 
 # Build dependencies (will be uninstalled later)
-ARG BUILD_DEPENDENCIES="curl python3-pip jq"
+ARG BUILD_DEPENDENCIES="curl jq"
 ARG GITHUB_FETCH_VERSION="v0.4.2"
 
 # Install dependencies and configure user
@@ -31,8 +31,6 @@ RUN apt-get update \
       libpq-dev \
       libgl1-mesa-dev \
       libgl1-mesa-glx \
-      python3.8-minimal \
-      python3-pkg-resources \
  && curl -Lo /usr/bin/fetch https://github.com/gruntwork-io/fetch/releases/download/${GITHUB_FETCH_VERSION}/fetch_linux_$(dpkg --print-architecture) \
  && chmod +x /usr/bin/fetch \
  && useradd --create-home --user-group app \
@@ -54,17 +52,11 @@ RUN --mount=type=secret,id=fury_auth_token,mode=0444 \
  && pip install --user --progress-bar off -r requirements-deploy.txt
 
 # https://github.com/remove-bg/downscale-area-cuda/
-ARG CUDA_DOWNSCALE_VERSION="3.0.7"
+ARG CUDA_DOWNSCALE_VERSION="3.0.6"
 # https://github.com/remove-bg/connected-component-labeling-cuda/
-ARG CUDA_CCL_VERSION="3.0.5"
+ARG CUDA_CCL_VERSION="v3.0.4"
 # Requested Compute Capability
 ARG COMPUTE_CAPABILITY="75"
-
-RUN --mount=type=secret,id=fury_auth_token,mode=0444 \
-    if [ -f /run/secrets/fury_auth_token ]; then export FURY_AUTH_TOKEN="$(cat /run/secrets/fury_auth_token)"; fi \
- && pip install --user --progress-bar off --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/ \
-     "downscale-area==${CUDA_DOWNSCALE_VERSION}+cc${COMPUTE_CAPABILITY}" \
-     "connected-component-labeling==${CUDA_CCL_VERSION}+cc${COMPUTE_CAPABILITY}"
 
 # Add Kaleido Models
 ARG GITHUB_AUTH_TOKEN
@@ -76,6 +68,8 @@ RUN --mount=type=secret,id=github_auth_token,mode=0444 \
     if [ -f /run/secrets/github_auth_token ]; then export GITHUB_AUTH_TOKEN="$(cat /run/secrets/github_auth_token)"; fi \
  && pip install yq \
  && mkdir networks-trained \
+ && mkdir -p /app/cuda_modules/downscale/ \
+ && mkdir -p /app/cuda_modules/ccl/ \
  && export KALEIDO_MODELS_VERSION=$(yq -r ".version" kaleido-models.yml) \
  && yq -rc '.files | .[] | [.name, .hash] | @tsv' kaleido-models.yml > kaleido-models.tsv \
  && while IFS=$'\n' read -r line ; do \
@@ -88,7 +82,16 @@ RUN --mount=type=secret,id=github_auth_token,mode=0444 \
       networks-trained/ ; \
     done <kaleido-models.tsv \
  && pip uninstall -y yq \
- && rm kaleido-models.yml kaleido-models.tsv
+ && rm kaleido-models.yml kaleido-models.tsv \
+ && curl -L -H "Authorization: token ${GITHUB_AUTH_TOKEN}" --output - \
+    https://api.github.com/repos/remove-bg/connected-component-labeling-cuda/tarball/${CUDA_CCL_VERSION} | \
+    tar -xz --strip-components=1 -C /app/cuda_modules/ccl/ \
+ && curl -L -H "Authorization: token ${GITHUB_AUTH_TOKEN}" --output - \
+    https://api.github.com/repos/remove-bg/downscale-area-cuda/tarball/${CUDA_DOWNSCALE_VERSION} | \
+    tar -xz --strip-components=1 -C /app/cuda_modules/downscale/ \
+ && /app/cuda_modules/ccl/python/ccl_package/install.sh ${COMPUTE_CAPABILITY} \
+ && /app/cuda_modules/downscale/python/da_package/install.sh ${COMPUTE_CAPABILITY} \
+ && rm -rf /app/cuda_modules/
 
 
 ########################################################################################################################

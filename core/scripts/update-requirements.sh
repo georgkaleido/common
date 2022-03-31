@@ -20,6 +20,12 @@ pip-compile -U requirements-deploy.in -o requirements-deploy.txt --find-links ht
 sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\n\n/' requirements-deploy.txt
 echo "Successfully updated requirements-deploy.txt"
 
+echo "Removing torch,torchvision and torchtext dependencies from requirements-deploy.txt as already shipped in base image."
+# remove torch, torchvision dependencies from deployment dependencies as we have them in base image
+sed -i '/torch==/d' requirements-deploy.txt
+sed -i '/torchvision==/d' requirements-deploy.txt
+sed -i '/torchtext==/d' requirements-deploy.txt
+
 echo "Updating requirements-dev.txt. This may take a while..."
 pip-compile -U requirements-deploy.in requirements-dev.in -o requirements-dev.txt --find-links https://download.pytorch.org/whl/torch_stable.html --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
 # add --extra-index-url to beginning of file
@@ -33,7 +39,6 @@ sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/p
 echo "Successfully updated requirements-train.txt"
 
 echo "Removing torch,torchvision and torchtext dependencies from requirements-train.txt as already shipped in base image."
-# remove torch, torchvision dependencies from deployment dependencies as we have them in base image
 sed -i '/torch==/d' requirements-train.txt
 sed -i '/torchvision==/d' requirements-train.txt
 sed -i '/torchtext==/d' requirements-train.txt
