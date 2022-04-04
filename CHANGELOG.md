@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.26.0 (04/04/2022)
+
+#### 🚀 Enhancements:
+
+- Improve packaging of removebg-core [#126](https://github.com/remove-bg/kaleido-removebg/pull/126)
+- Change to nvidia pytorch base 21.10 to lower memory consumption [#124](https://github.com/remove-bg/kaleido-removebg/pull/124)
+
+#### 🔀 Dependencies
+
+- Update core requirements [#127](https://github.com/remove-bg/kaleido-removebg/pull/127) 
+
+### Docker Images
+
+* `eu.gcr.io/removebg-226919/removebg-api:1.26.0`
+* `eu.gcr.io/removebg-226919/removebg-core:1.26.0-cc75`
+* `eu.gcr.io/removebg-226919/removebg-core:1.26.0-cc61`
+* `eu.gcr.io/removebg-226919/removebg-core:1.26.0-cc86`
+---
+
 ## 1.25.0 (28/03/2022)
 
 #### 🚀 Enhancements:
@@ -538,19 +557,3 @@
 * `eu.gcr.io/removebg-226919/removebg-core:1.4.1-cc75`
 * `eu.gcr.io/removebg-226919/removebg-core:1.4.1-cc61`
 * `eu.gcr.io/removebg-226919/removebg-core:1.4.1-cc86`
----
-
-## 1.4.0 (07/09/2021)
-
-#### 🚀 Enhancements:
-
-- Changed update-requirements.sh to exclude torch dependencies as already included in base image [#10](https://github.com/remove-bg/kaleido-removebg/pull/10)
-
-#### 🔧 Changes:
-
-- Automated QI Training [#8](https://github.com/remove-bg/kaleido-removebg/pull/8) 
-
-### Docker Images
-
-* `eu.gcr.io/removebg-226919/removebg-api:1.4.0`
-* `eu.gcr.io/removebg-226919/removebg-core:1.4.0-cc75`
