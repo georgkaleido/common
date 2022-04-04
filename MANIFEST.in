@@ -1,0 +1,38 @@
+# root directory
+prune api
+prune .circleci
+exclude dangerfile.ts
+exclude docker-compose.yml
+exclude .editorconfig
+exclude .flake8
+prune .git
+exclude .gitattributes
+prune .github
+exclude .gitignore
+exclude .grenrc.json
+prune .idea
+exclude MANIFEST.in
+exclude .node-version
+exclude package.json
+exclude .pre-commit-config.yaml
+exclude .tool-versions
+exclude .yamllint.yml
+exclude yarn.lock
+
+# core directory
+prune core/bin
+prune core/data
+exclude core/docker-build.yml
+exclude core/Dockerfile
+exclude core/Dockerfile.training
+prune core/eval
+prune core/.pytest_cache
+exclude core/__init__.py
+exclude core/kaleido-models.yml
+exclude core/liveness.sh
+exclude core/liveness.training.sh
+prune core/qi_auto
+recursive-exclude core *.in *.txt
+prune core/scripts
+prune core/test
+prune core/removebg/training

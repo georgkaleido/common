@@ -39,15 +39,12 @@ jobs:
       - run:
           name: Create virtualenv
           command: |
-            cd core
             python3 -m venv .venv
       - run:
           name: Check and install
           command: |
-            cd core
             . .venv/bin/activate
-            python setup.py check
-            python setup.py install
+            pip install . --progress-bar off --extra-index-url https://${FURY_AUTH_TOKEN}:@deps.kaleido.ai/pypi/
       - save_cache:
           paths:
             - core/.venv
@@ -138,24 +135,7 @@ jobs:
       - run:
           name: Create virtualenv
           command: |
-            cd core
             python3 -m venv .venv
-      - run:
-          name: Init .pypirc
-          command: |
-            tee -a /home/circleci/.pypirc > /dev/null \<<EOT
-            [distutils]
-            index-servers =
-                pypi
-                fury
-            [pypi]
-            username =
-            password =
-            [fury]
-            repository: https://deps.kaleido.ai/pypi/
-            username = ${FURY_PUSH_TOKEN}
-            password =
-            EOT
       - run:
           name: Deploy to Gemfury
           command: |
@@ -164,13 +144,11 @@ jobs:
               exit 0
             fi
 
-            cd core
             . .venv/bin/activate
-            pip install wheel
-            python setup.py check
-            python setup.py sdist upload -r fury --show-response
-            python setup.py bdist upload -r fury --show-response
-            python setup.py bdist_wheel upload -r fury --show-response
+            pip install build twine
+            python3 -m build
+            twine check dist/*
+            twine upload dist/* --repository-url https://deps.kaleido.ai/pypi/ -u ${FURY_PUSH_TOKEN} -p "" --disable-progress-bar
 
   # Docker
   docker:

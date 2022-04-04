@@ -33,7 +33,7 @@ sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/p
 echo "Successfully updated requirements-dev.txt"
 
 echo "Updating requirements-train.txt. This may take a while..."
-pip-compile -U requirements.in requirements-train.in -o requirements-train.txt --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
+pip-compile -U requirements-shared.in requirements-train.in -o requirements-train.txt --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
 # add --extra-index-url to beginning of file
 sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\n\n/' requirements-train.txt
 echo "Successfully updated requirements-train.txt"
@@ -44,7 +44,7 @@ sed -i '/torchvision==/d' requirements-train.txt
 sed -i '/torchtext==/d' requirements-train.txt
 
 echo "Updating requirements-eval.txt. This may take a while..."
-pip-compile -U requirements.in requirements-eval.in -o requirements-eval.txt --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
+pip-compile -U requirements-shared.in requirements-eval.in -o requirements-eval.txt --extra-index-url ${extra_index_url} --no-emit-index-url --no-header
 # add --extra-index-url to beginning of file
 sed -i '1s/^/--extra-index-url https:\/\/\${FURY_AUTH_TOKEN}:@deps.kaleido.ai\/pypi\/\n\n/' requirements-eval.txt
 echo "Successfully updated requirements-eval.txt"
