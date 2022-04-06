@@ -12,7 +12,8 @@ This repository contains the remove.bg [Core](core) and [API](api). The remove.b
    read about [GemFury in 📝 Notion](https://www.notion.so/kaleidoai/GemFury-374c03b9452c4c839d9efb6276369bed).
 
 1) Generate a [_Personal Access Token_](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token)
-   in your personal GitHub account (which needs to be a member of the [Kaleido `remove-bg` organization](https://github.com/remove-bg).
+   in your personal GitHub account (which needs to be a member of the [Kaleido `remove-bg` organization](https://github.com/remove-bg)).
+   The token needs to have scope *repo* (see [relevant Section in Github doc](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#:~:text=Select%20the%20scopes%2C%20or%20permissions%2C%20you%27d%20like%20to%20grant%20this%20token.%20To%20use%20your%20token%20to%20access%20repositories%20from%20the%20command%20line%2C%20select%20repo).)
 
 1) Prepare your NPM token (`npm token list` or take it from `~/.npmrc`). This is different from your GemFury token but
    is required for NPM to access NodeJS packages hosted on [Kaleido's GemFury account](https://manage.fury.io/manage/kaleido/).
