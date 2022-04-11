@@ -1,0 +1,84 @@
+apiVersion: "kubeflow.org/v1"
+kind: PyTorchJob
+metadata:
+  name: trimap513-qi-auto-2022-04-01 # Name of your training
+  namespace: removebg-qi-auto
+spec:
+  pytorchReplicaSpecs:
+    Worker:
+      replicas: 1 # max number of workers
+      restartPolicy: OnFailure
+      template:
+        spec:
+          nodeSelector:
+            # Which GPU type we want
+            cloud.google.com/gke-accelerator: nvidia-tesla-v100 # other options: nvidia-tesla-v100 nvidia-tesla-a100
+
+          # Container description and configuration
+          containers:
+            - name: pytorch
+              image: eu.gcr.io/kaleido-train/trimap-qi-auto-eliud # Name of the docker image
+              imagePullPolicy: Always
+              command:
+                -  python
+                - /workspace/kaleido/removebg-train-trimap-cloud-qi.py
+                - --config=/workspace/kaleido/removebg/data/trimap.json
+                - --danni_metadata_path=gs://kaleido-train-checkpoints/removebg/trimap-qi-auto/2022-04-01_qi/trimap_dataset_train.json
+                - --name=2022-04-01_qi_bs4
+                - --lr=0.00001
+                - --initialize_with_prod_weights
+              # Resources we need
+              resources:
+                limits:
+                  nvidia.com/gpu: 1 # 1 GPU per worker
+                requests:
+                  cpu: "3.5"
+                  memory: "10Gi"
+###########################################################
+# Kubernetes details below, stuff you do not need to change
+              volumeMounts:
+                  - mountPath: /dev/shm
+                    name: dshm
+              env:
+                - name: GITHUB_AUTH_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      key: github-token
+                      name: auth-secrets
+                - name: WANDB_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: wandb-api-key
+                      key: WANDB_API_KEY
+          volumes:
+            - name: dshm
+              emptyDir:
+                medium: Memory
+
+          affinity:
+            podAffinity:
+              # Stay in the same AZ
+              requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchLabels:
+                    training.kubeflow.org/replica-type: worker
+                topologyKey: topology.kubernetes.io/zone
+              # Group together workers of the same namespace
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchLabels:
+                        training.kubeflow.org/replica-type: worker
+                    topologyKey: kubernetes.io/hostname
+  runPolicy:
+    cleanPodPolicy: all
+  elasticPolicy:
+      rdzvHost: "torchelastic-etcd.torchelastic"
+      rdzvPort: 2379
+      rdzvConf:
+        - key: last_call_timeout
+          value: "10"
+      rdzvBackend: "etcd-v2"
+      minReplicas: 1
+      maxReplicas: 128 # Set very high to avoid reconfiguring this for every replica count

@@ -175,13 +175,13 @@ def main():
     callbacks.append(model_checkppint_callback)
 
     # Progress bar
-    callbacks.append(pl.callbacks.ProgressBar(5, 0))
+    #callbacks.append(pl.callbacks.ProgressBar(5, 0))
 
     # Configure cloud training on GCP -> Checkpoint synchronization on bucket
     configure_cloud_training(
         checkpoint_dir_local_path,
         callbacks,
-        "trimap-qi-auto",
+        "trimap-qi-auto-eliud",
         args.name,
         bucket_category="removebg",
         checkpoint_names=["best.ckpt", "last.ckpt"],

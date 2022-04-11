@@ -28,7 +28,7 @@ RUN mkdir data
 
 # Copy and install general requirements
 COPY requirements-train.txt .
-RUN --mount=type=secret,id=fury_auth_token \
+RUN --mount=type=secret,id=fury_auth_token  --mount=type=cache,target=/root/.cache/pip \
     pip install \
     --extra-index-url https://$(cat /run/secrets/fury_auth_token):@deps.kaleido.ai/pypi/ \
     -r /workspace/kaleido/requirements-train.txt

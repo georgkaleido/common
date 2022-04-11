@@ -10,7 +10,7 @@ certifi==2021.10.8
     #   sentry-sdk
 charset-normalizer==2.0.12
     # via requests
-click==8.1.1
+click==8.1.2
     # via wandb
 configparser==5.2.0
     # via wandb
@@ -24,7 +24,7 @@ google-api-core==2.7.1
     # via
     #   google-cloud-core
     #   google-cloud-storage
-google-auth==2.6.2
+google-auth==2.6.3
     # via
     #   google-api-core
     #   google-cloud-core
@@ -41,7 +41,7 @@ googleapis-common-protos==1.56.0
     # via google-api-core
 idna==3.3
     # via requests
-kaleido-core==2.19.3
+kaleido-core==2.19.4
     # via
     #   -r requirements-deploy.in
     #   semitransparency-core
@@ -83,14 +83,14 @@ pika==1.2.0
     #   -r requirements-deploy.in
     #   kaleido-core
     #   shadowgen-core
-pillow==9.0.1
+pillow==9.1.0
     # via
     #   kaleido-core
     #   shadowgen-core
     #   torchvision
 promise==2.3
     # via wandb
-protobuf==3.19.4
+protobuf==3.20.0
     # via
     #   google-api-core
     #   google-cloud-storage
@@ -155,7 +155,7 @@ subprocess32==3.5.4
     #   kaleido-core
     #   semitransparency-core
     #   shadowgen-core
-tqdm==4.63.1
+tqdm==4.64.0
     # via kaleido-core
 typing-extensions==4.1.1
     # via torch
