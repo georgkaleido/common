@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 import pytorch_lightning as pl
 import torch
 from google.cloud import storage
+import kaleido.training.callbacks
 from kaleido.data.danni.loader import DanniOfflineLoader
 from kaleido.training.dataset import Dataset
 from kaleido.training.gce.utilities import (
@@ -151,7 +152,7 @@ def main():
     os.makedirs(path, exist_ok=True)
 
     logger = pl.loggers.WandbLogger(
-        name=args.name, project="trimap", save_dir=path, offline=False, id=args.name  # for resuming
+        name=args.name, project="trimap", save_dir=path, offline=False, group="eliud", id=args.name,  # for resuming
     )
 
     checkpoint_dir_local_path = os.path.join(path, "checkpoints")
@@ -186,15 +187,15 @@ def main():
         bucket_category="removebg",
         checkpoint_names=["best.ckpt", "last.ckpt"],
     )
-
+    callbacks.extend(kaleido.training.callbacks.get_kaleido_callbacks(kaleido.training.callbacks.KCFLevel.performance))
     # Create trainer
     last_checkpoint_path = os.path.join(checkpoint_dir_local_path, "last.ckpt")
     trainer = pl.Trainer(
         logger=logger,
         callbacks=callbacks,
         default_root_dir=path,
-        gpus=-1,
-        # max_epochs=20,
+        gpus=1,
+        #max_epochs=20,
         precision=16,
         resume_from_checkpoint=last_checkpoint_path if os.path.exists(last_checkpoint_path) else None,
     )

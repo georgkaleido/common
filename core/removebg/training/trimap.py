@@ -95,3 +95,6 @@ class PlTrimap(pl.LightningModule):
     def configure_optimizers(self):
 
         return RAdam(self.parameters(), lr=self.lr, betas=(0.9, 0.999), weight_decay=5e-5)
+
+    def optimizer_zero_grad(self, epoch: int, batch_idx: int, optimizer: torch.optim.Optimizer, optimizer_idx: int):
+        optimizer.zero_grad(set_to_none=True)

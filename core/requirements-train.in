@@ -3,3 +3,4 @@ crcmod>=1.7
 google-crc32c>=1.0.0
 pytorch-lightning>=1.4.2,<1.6.0
 wandb<0.13
+lightning-bolts>=0.5.0

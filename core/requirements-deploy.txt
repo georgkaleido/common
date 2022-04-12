@@ -41,7 +41,7 @@ googleapis-common-protos==1.56.0
     # via google-api-core
 idna==3.3
     # via requests
-kaleido-core==2.19.4
+kaleido-core==2.20.0
     # via
     #   -r requirements-deploy.in
     #   semitransparency-core

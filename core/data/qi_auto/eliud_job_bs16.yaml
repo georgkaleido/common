@@ -1,7 +1,7 @@
 apiVersion: "kubeflow.org/v1"
 kind: PyTorchJob
 metadata:
-  name: trimap513-qi-auto-2022-04-01-bs4 # Name of your training
+  name: trimap513-qi-auto-2022-04-01-bs16 # Name of your training
   namespace: removebg-qi-auto
 spec:
   pytorchReplicaSpecs:
@@ -24,8 +24,9 @@ spec:
                 - /workspace/kaleido/removebg-train-trimap-cloud-qi.py
                 - --config=/workspace/kaleido/removebg/data/trimap.json
                 - --danni_metadata_path=gs://kaleido-train-checkpoints/removebg/trimap-qi-auto/2022-04-01_qi/trimap_dataset_train.json
-                - --name=2022-04-01_qi_bs4
-                - --lr=0.00001
+                - --name=2022-04-01_qi_bs16
+                - --lr=0.00004
+                - --bs=16
                 - --initialize_with_prod_weights
               # Resources we need
               resources:

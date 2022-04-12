@@ -83,7 +83,7 @@ jeepney==0.8.0
     # via
     #   keyring
     #   secretstorage
-kaleido-core==2.19.4
+kaleido-core==2.20.0
     # via
     #   -r requirements-deploy.in
     #   semitransparency-core
