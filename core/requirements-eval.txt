@@ -48,7 +48,7 @@ google-auth-oauthlib==0.4.6
     # via tensorboard
 google-cloud==0.34.0
     # via -r requirements-eval.in
-google-cloud-core==2.2.3
+google-cloud-core==2.3.0
     # via
     #   -r requirements-eval.in
     #   google-cloud-storage
