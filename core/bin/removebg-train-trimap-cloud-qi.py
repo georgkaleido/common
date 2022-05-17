@@ -12,13 +12,10 @@ from urllib.parse import urlparse
 import pytorch_lightning as pl
 import torch
 from google.cloud import storage
-import kaleido.training.callbacks
 from kaleido.data.danni.loader import DanniOfflineLoader
+from kaleido.training import callbacks as k_callbacks
 from kaleido.training.dataset import Dataset
-from kaleido.training.gce.utilities import (
-    configure_best_model_checkpoint_for_cloud_training,
-    configure_cloud_training,
-)
+from kaleido.training.gce.utilities import configure_best_model_checkpoint_for_cloud_training, configure_cloud_training_full
 from pytorch_lightning.callbacks import Callback
 from qi_auto.utilities import run_bash
 
@@ -161,7 +158,7 @@ def main():
     callbacks = []
 
     # Checkpoints creation
-    model_checkppint_callback = pl.callbacks.ModelCheckpoint(
+    model_checkpoint_callback = pl.callbacks.ModelCheckpoint(
         save_last=True,
         save_top_k=1,
         dirpath=checkpoint_dir_local_path,
@@ -171,23 +168,19 @@ def main():
         mode="max",
     )
 
-    best_model_checkpoint_path = os.path.join(checkpoint_dir_local_path, "best.ckpt")
-    configure_best_model_checkpoint_for_cloud_training(best_model_checkpoint_path, model_checkppint_callback)
-    callbacks.append(model_checkppint_callback)
+    callbacks.append(model_checkpoint_callback)
 
     # Progress bar
-    #callbacks.append(pl.callbacks.ProgressBar(5, 0))
+    # callbacks.append(pl.callbacks.ProgressBar(5, 0))
 
     # Configure cloud training on GCP -> Checkpoint synchronization on bucket
-    configure_cloud_training(
-        checkpoint_dir_local_path,
+    configure_cloud_training_full(
         callbacks,
-        "trimap-qi-auto-eliud",
-        args.name,
+        project="trimap-qi-auto-eliud",
+        name=args.name,
         bucket_category="removebg",
-        checkpoint_names=["best.ckpt", "last.ckpt"],
     )
-    callbacks.extend(kaleido.training.callbacks.get_kaleido_callbacks(kaleido.training.callbacks.KCFLevel.performance))
+    k_callbacks.add_kaleido_callbacks(callbacks, k_callbacks.KCFLevel.PERFORMANCE)
     # Create trainer
     last_checkpoint_path = os.path.join(checkpoint_dir_local_path, "last.ckpt")
     trainer = pl.Trainer(
