@@ -357,9 +357,10 @@ func (jc *JobController) ReconcilePods(
 				// Deletion is expected
 				jc.Expectations.RaiseExpectations(expectationPodsKey, 0, 1)
 
-			}
+			} else {
 
 			updateJobReplicaStatuses(jobStatus, rType, pod)
+			}
 		}
 	}
 	return nil
